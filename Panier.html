@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panier - Brunel</title>
+    <style>
+        /* public-styles.css */
+        :root {
+            --blue: #007bff;
+            --red: #dc3545;
+            --dark-bg: #121212;
+            --dark-card: #1e1e1e;
+            --text-light: #f8f9fa;
+            --text-secondary: #adb5bd;
+            --border-color: #333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            /* Application du dégradé sur tout l'arrière-plan */
+            background: linear-gradient(120deg, var(--blue) 0%, var(--red) 100%);
+            background-attachment: fixed; /* Le dégradé reste fixe au défilement */
+            color: var(--text-light);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Barre de Navigation Améliorée */
+        header {
+            background-color: rgba(18, 18, 18, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: bold;
+            font-size: 1.5em;
+            color: var(--text-light);
+            text-decoration: none;
+        }
+
+        .logo img {
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover img {
+            transform: scale(1.05);
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 30px;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+            padding-bottom: 5px;
+        }
+
+        nav ul a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 50%;
+            background: linear-gradient(90deg, var(--blue), var(--red));
+            transition: all 0.3s ease-in-out;
+        }
+
+        nav ul a:hover::after {
+            width: 100%;
+            left: 0;
+        }
+
+        nav a:hover, .nav-actions a.primary {
+            color: var(--text-light);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-actions a.primary {
+            background: linear-gradient(90deg, var(--blue), var(--red));
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        /* Sections Générales */
+        section {
+            padding: 80px 0;
+        }
+
+        h1, h2, h3 {
+            line-height: 1.2;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.8em;
+            margin-bottom: 10px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.1em;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 60px auto;
+        }
+
+        /* Section Hero spécifique */
+        .hero {
+            padding-top: 60px;
+            padding-bottom: 60px;
+        }
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+        }
+        .hero-video video {
+            width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        /* Cartes Produit spécifiques */
+        .product-card .price {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .price span {
+            font-size: 0.5em;
+            font-weight: normal;
+            color: var(--text-secondary);
+        }
+
+        /* Grilles et Cartes */
+        .grid-2, .grid-3 {
+            display: grid;
+            gap: 30px;
+        }
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+
+        .card {
+            background-color: var(--dark-card);
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .card h3 {
+            color: var(--blue);
+            margin-top: 0;
+        }
+
+        /* Boutons */
+        .btn {
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            padding: 12px;
+            background: var(--blue);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: transform 0.2s, opacity 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+        .btn-gradient {
+            background: linear-gradient(90deg, var(--blue), var(--red));
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav ul {
+                display: none; /* Cacher pour un menu burger en JS */
+            }
+            .section-title {
+                font-size: 2.2em;
+            }
+            .hero-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Styles spécifiques au panier */
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .cart-total {
+            margin-top: 30px;
+            text-align: right;
+            font-size: 1.5em;
+        }
+        .checkout-btn {
+            float: right;
+            margin-top: 20px;
+            width: auto;
+            padding: 12px 30px;
+        }
+
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Brunel" style="height: 65px; vertical-align: middle;"></a> 
+            <ul>
+                <li><a href="index.html#platform-features">Nos Services</a></li>
+                <li><a href="Boutique.html">Boutique</a></li>
+                <li><a href="index.html#about">À Propos</a></li> 
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div class="nav-actions">
+                <div class="nav-contact-info">
+                    <span>📞</span>
+                    <span>+221 76 904 79 99</span>
+                </div>
+                <a href="Panier.html" id="cart-link" style="color: var(--text-light);">Panier (0)</a>
+                <a href="Connexion.html" class="primary">Connexion</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="container">
+            <h1 class="section-title">Votre Panier</h1>
+
+            <div class="card" id="cart-container">
+                <!-- Les articles du panier seront injectés ici par JavaScript -->
+                <p id="empty-cart-message" style="display: none;">Votre panier est vide.</p>
+            </div>
+
+            <!-- Le bouton n'apparaît que si le panier n'est pas vide -->
+            <a href="#" id="checkout-btn" class="btn btn-gradient checkout-btn" style="display: none;">Passer au paiement</a>
+
+        </section>
+    </main>
+
+    <script src="<?!= getAppUrl() ?>?page=config"></script>
+
+    <script>
+        function displayCart() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const cartContainer = document.getElementById('cart-container');
+            const emptyCartMessage = document.getElementById('empty-cart-message');
+            const checkoutBtn = document.getElementById('checkout-btn');
+            
+            cartContainer.innerHTML = ''; // Vider le conteneur
+
+            if (cart.length === 0) {
+                cartContainer.appendChild(emptyCartMessage);
+                emptyCartMessage.style.display = 'block';
+                checkoutBtn.style.display = 'none';
+            } else {
+                emptyCartMessage.style.display = 'none';
+                let total = 0;
+
+                cart.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'cart-item';
+                    const subtotal = item.price * item.quantity;
+                    itemElement.innerHTML = `
+                        <div>
+                            <h3>${item.name}</h3>
+                            <p>Quantité: ${item.quantity}</p>
+                        </div>
+                        <div>
+                            <strong>${subtotal.toFixed(2)}€</strong>
+                        </div>
+                    `;
+                    cartContainer.appendChild(itemElement);
+                    total += subtotal;
+                });
+
+                const totalElement = document.createElement('div');
+                totalElement.className = 'cart-total';
+                totalElement.innerHTML = `Total: <strong>${total.toFixed(2)}€</strong>`;
+                cartContainer.appendChild(totalElement);
+                checkoutBtn.style.display = 'block';
+            }
+            updateCartCounter();
+        }
+
+        function updateCartCounter() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const cartLink = document.getElementById('cart-link');
+            if (cartLink) {
+                cartLink.textContent = `Panier (${totalItems})`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            displayCart();
+            // Logique pour le bouton de connexion dynamique
+            if (typeof IS_LOGGED_IN !== 'undefined' && IS_LOGGED_IN) {
+                const loginLink = document.querySelector('.nav-actions a.primary');
+                if(loginLink) {
+                    loginLink.textContent = 'Tableau de bord';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

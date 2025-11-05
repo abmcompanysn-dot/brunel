@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Brunel</title>
+    <style>
+        /* public-styles.css */
+        :root {
+            --blue: #007bff;
+            --red: #dc3545;
+            --dark-bg: #121212;
+            --dark-card: #1e1e1e;
+            --text-light: #f8f9fa;
+            --text-secondary: #adb5bd;
+            --border-color: #333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            background: linear-gradient(120deg, var(--blue) 0%, var(--red) 100%);
+            background-attachment: fixed;
+            color: var(--text-light);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Barre de Navigation Améliorée */
+        header {
+            background-color: rgba(18, 18, 18, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: bold;
+            font-size: 1.5em;
+            color: var(--text-light);
+            text-decoration: none;
+        }
+
+        .logo img {
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover img {
+            transform: scale(1.05);
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 30px;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+            padding-bottom: 5px;
+        }
+
+        nav ul a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 50%;
+            background: linear-gradient(90deg, var(--blue), var(--red));
+            transition: all 0.3s ease-in-out;
+        }
+
+        nav ul a:hover::after {
+            width: 100%;
+            left: 0;
+        }
+
+        nav a:hover, .nav-actions a.primary {
+            color: var(--text-light);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-actions a.primary {
+            background: linear-gradient(90deg, var(--blue), var(--red));
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        /* Menu Burger pour mobile */
+        .menu-burger {
+            display: none; /* Caché sur bureau */
+            font-size: 1.8em;
+            cursor: pointer;
+            color: var(--text-light);
+            z-index: 1001;
+        }
+
+        .nav-links-mobile {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(18, 18, 18, 0.98);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            font-size: 1.5em;
+        }
+        .nav-links-mobile.active {
+            display: flex;
+        }
+        .nav-links-mobile a {
+            color: var(--text-light);
+        }
+        body.no-scroll {
+            overflow: hidden;
+        }
+
+        /* Boutons */
+        .btn {
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            padding: 12px;
+            background: var(--blue);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: transform 0.2s, opacity 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+        .btn-gradient {
+            background: linear-gradient(90deg, var(--blue), var(--red));
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav ul.desktop-links {
+                display: none;
+            }
+            .nav-actions a.primary {
+                display: none; /* Cache le bouton connexion principal */
+            }
+            .menu-burger {
+                display: block;
+            }
+            .nav-actions {
+                gap: 15px; /* Réduit l'espace pour le panier */
+            }
+        }
+
+        /* Styles spécifiques à la page de connexion */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 80px 20px;
+        }
+        .auth-card {
+            background-color: var(--dark-card);
+            padding: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .auth-card h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--dark-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            color: var(--text-light);
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .toggle-form {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-secondary);
+        }
+        .toggle-form a {
+            color: var(--blue);
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #register-form { display: none; }
+
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Brunel" style="height: 65px; vertical-align: middle;"></a>
+            <ul class="desktop-links">
+                <li><a href="index.html#features">Nos Solutions</a></li>
+                <li><a href="Boutique.html">Boutique</a></li>
+                <li><a href="index.html#about">À Propos</a></li>
+            </ul>
+            <div class="nav-actions">
+                <a href="Panier.html" id="cart-link">Panier</a>
+                <a href="Connexion.html" class="primary" id="login-link">Connexion</a>
+            </div>
+        </nav>
+        <div class="menu-burger" onclick="toggleMobileMenu()">☰</div>
+    </header>
+
+    <div class="nav-links-mobile">
+        <a href="index.html#features" onclick="toggleMobileMenu()">Nos Solutions</a>
+        <a href="Boutique.html" onclick="toggleMobileMenu()">Boutique</a>
+        <a href="index.html#about" onclick="toggleMobileMenu()">À Propos</a>
+        <a href="Connexion.html" onclick="toggleMobileMenu()" class="primary">Connexion</a>
+    </div>
+
+    <main>
+        <div class="auth-container">
+            <div class="auth-card">
+                <!-- Formulaire de Connexion -->
+                <form id="login-form" onsubmit="handleAuth(event)">
+                    <h1>Connexion</h1>
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Mot de passe</label>
+                        <input type="password" id="login-password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-gradient">Se connecter</button>
+                    <p class="toggle-form">Pas de compte ? <a onclick="toggleForms()">Inscrivez-vous</a></p>
+                </form>
+
+                <!-- Formulaire d'Inscription -->
+                <form id="register-form" onsubmit="handleAuth(event)" style="display: none;">
+                    <h1>Inscription</h1>
+                    <div class="form-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Mot de passe</label>
+                        <input type="password" id="register-password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-gradient">Créer un compte</button>
+                    <p class="toggle-form">Déjà un compte ? <a onclick="toggleForms()">Connectez-vous</a></p>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="<?!= getAppUrl() ?>?page=config"></script>
+
+    <script>
+        function toggleForms() {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            document.getElementById('error-message')?.remove(); // Nettoyer les messages d'erreur
+
+            if (loginForm.style.display === 'none') {
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+            } else {
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+            }
+        }
+
+        function showError(formId, message) {
+            const form = document.getElementById(formId);
+            let errorDiv = document.getElementById('error-message');
+            if (!errorDiv) {
+                errorDiv = document.createElement('p');
+                errorDiv.id = 'error-message';
+                errorDiv.style.color = 'var(--red)';
+                errorDiv.style.textAlign = 'center';
+                form.insertBefore(errorDiv, form.querySelector('.toggle-form'));
+            }
+            errorDiv.textContent = message;
+        }
+
+        function handleAuth(event) {
+            event.preventDefault();
+            const isRegister = event.target.id === 'register-form';
+            const email = document.getElementById(isRegister ? 'register-email' : 'login-email').value;
+            const password = document.getElementById(isRegister ? 'register-password' : 'login-password').value;
+            const formId = event.target.id;
+            const button = event.target.querySelector('button');
+            button.disabled = true;
+            button.textContent = 'Chargement...';
+
+            const onSuccess = (response) => {
+                if (response.success) {
+                    // Rediriger vers la page d'accueil, qui gérera la redirection finale
+                    window.location.href = APP_URL;
+                } else {
+                    // Ce cas ne devrait pas arriver si une erreur est levée
+                    showError(formId, response.message || 'Une erreur est survenue.');
+                    button.disabled = false;
+                    button.textContent = isRegister ? 'Créer un compte' : 'Se connecter';
+                }
+            };
+
+            const onFailure = (error) => {
+                showError(formId, error.message);
+                button.disabled = false;
+                button.textContent = isRegister ? 'Créer un compte' : 'Se connecter';
+            };
+
+            if (isRegister) {
+                google.script.run
+                    .withSuccessHandler(onSuccess)
+                    .withFailureHandler(onFailure)
+                    .registerUser(email, password);
+            } else {
+                google.script.run
+                    .withSuccessHandler(onSuccess)
+                    .withFailureHandler(onFailure)
+                    .loginUser(email, password);
+            }
+        }
+
+        // --- Fonctions pour le header ---
+        function toggleMobileMenu() {
+            const mobileMenu = document.querySelector('.nav-links-mobile');
+            const burgerIcon = document.querySelector('.menu-burger');
+            const body = document.body;
+
+            mobileMenu.classList.toggle('active');
+            body.classList.toggle('no-scroll');
+
+            if (mobileMenu.classList.contains('active')) {
+                burgerIcon.innerHTML = '✕'; // Icône de fermeture
+            } else {
+                burgerIcon.innerHTML = '☰';
+            }
+        }
+
+        function updateCartCounter() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const cartLink = document.getElementById('cart-link');
+            if (cartLink) {
+                cartLink.textContent = `Panier (${totalItems})`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => { 
+            updateCartCounter(); 
+            // Le bouton de connexion est déjà correct sur cette page
+        });
+    </script>
+</body>
+</html>script>
+</body>
+</html>

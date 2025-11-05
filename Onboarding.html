@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenue chez Brunel</title>
+    <style>
+        :root {
+            --blue: #007bff;
+            --red: #dc3545;
+            --dark-card: #1e1e1e;
+            --text-light: #f8f9fa;
+            --text-secondary: #adb5bd;
+            --border-color: #333;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            background: linear-gradient(120deg, var(--blue) 0%, var(--red) 100%);
+            background-attachment: fixed;
+            color: var(--text-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .onboarding-container {
+            background-color: var(--dark-card);
+            padding: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .step {
+            display: none;
+        }
+        .step.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h1 { text-align: center; margin-bottom: 10px; }
+        p.subtitle { text-align: center; color: var(--text-secondary); margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
+        .form-control {
+            width: 100%; padding: 12px; background-color: #121212;
+            border: 1px solid var(--border-color); border-radius: 5px;
+            color: var(--text-light); font-size: 1em; box-sizing: border-box;
+        }
+        .btn {
+            display: block; width: 100%; text-align: center; padding: 12px;
+            background: var(--blue); color: white; text-decoration: none;
+            border-radius: 5px; font-weight: bold; transition: transform 0.2s, opacity 0.2s;
+            border: none; cursor: pointer; font-size: 1em; margin-top: 20px;
+        }
+        .btn-gradient { background: linear-gradient(90deg, var(--blue), var(--red)); }
+        .platform-choice {
+            border: 1px solid var(--border-color); padding: 20px; border-radius: 8px;
+            cursor: pointer; transition: background-color 0.3s; margin-bottom: 15px;
+        }
+        .platform-choice:hover { background-color: rgba(255,255,255,0.1); }
+        .platform-choice h3 { margin-top: 0; }
+        .info-step { text-align: center; }
+        .info-step img { max-width: 80%; height: auto; margin: 20px 0; }
+        .wallet-buttons { display: flex; gap: 15px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="onboarding-container">
+
+        <!-- Étape 1: Créer votre compte -->
+        <div id="step-1" class="step active">
+            <h1>Créez votre compte</h1>
+            <p class="subtitle">Dites-nous en plus sur vous.</p>
+            <form onsubmit="goToStep(2); return false;">
+                <div class="form-group">
+                    <label for="first-name">Prénom *</label>
+                    <input type="text" id="first-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="last-name">Nom *</label>
+                    <input type="text" id="last-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Téléphone</label>
+                    <input type="tel" id="phone" class="form-control" placeholder="Entrez votre numéro de téléphone">
+                </div>
+                <p style="font-size: 0.8em; color: var(--text-secondary);">En continuant, vous acceptez nos Conditions d'utilisation et notre Politique de confidentialité.</p>
+                <button type="submit" class="btn btn-gradient">Continuer</button>
+            </form>
+        </div>
+
+        <!-- Étape 2: Sélectionner la plateforme -->
+        <div id="step-2" class="step">
+            <h1>Comment souhaitez-vous utiliser Brunel?</h1>
+            <p class="subtitle">Cela garantit que votre compte est correctement configuré.</p>
+            <div class="platform-choice" onclick="selectPlatform('individual')">
+                <h3>Pour moi-même</h3>
+                <p>Idéal si vous avez besoin de Brunel pour vous-même en tant qu'individu.</p>
+            </div>
+            <div class="platform-choice" onclick="selectPlatform('team')">
+                <h3>Pour mon équipe</h3>
+                <p>Idéal si vous souhaitez créer des cartes d'affaire numériques pour votre équipe.</p>
+            </div>
+        </div>
+
+        <!-- Étape 3: Compléter le profil -->
+        <div id="step-3" class="step">
+            <h1>Créez votre profil</h1>
+            <p class="subtitle">Entrez les informations que vous voulez partager.</p>
+            <form onsubmit="goToStep(4); return false;">
+                <div class="form-group">
+                    <label for="profession">Profession</label>
+                    <input type="text" id="profession" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="company">Compagnie</label>
+                    <input type="text" id="company" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <input type="text" id="location" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-gradient">Continuer</button>
+            </form>
+        </div>
+
+        <!-- Étape 4: Info Partage Carte -->
+        <div id="step-4" class="step info-step">
+            <h1>Comment partager avec une carte</h1>
+            <p class="subtitle">Tenez votre carte Brunel devant un téléphone pour partager vos informations.</p>
+            <img src="https://via.placeholder.com/300x200.png?text=Animation+NFC" alt="Animation partage NFC">
+            <button class="btn" onclick="goToStep(5)">Suivant</button>
+        </div>
+
+        <!-- Étape 5: Info Partage QR -->
+        <div id="step-5" class="step info-step">
+            <h1>Comment partager avec un code QR</h1>
+            <p class="subtitle">Votre profil comporte un code QR qui peut être scanné pour échanger vos informations.</p>
+            <img src="https://via.placeholder.com/200x200.png?text=Exemple+QR+Code" alt="Exemple QR Code">
+            <button class="btn" onclick="goToStep(6)">Suivant</button>
+        </div>
+
+        <!-- Étape 6: Ajout au Wallet -->
+        <div id="step-6" class="step info-step">
+            <h1>Ajoutez votre code QR au portefeuille</h1>
+            <p class="subtitle">Enregistrez votre carte d'affaire numérique dans Apple Wallet ou Google Wallet.</p>
+            <button class="btn btn-gradient" onclick="finishOnboarding()">Aller au tableau de bord</button>
+        </div>
+
+    </div>
+
+    <script src="<?!= getAppUrl() ?>?page=config"></script>
+
+    <script>
+        let currentStep = 1;
+        const onboardingData = {};
+
+        function goToStep(stepNumber) {
+            // Sauvegarder les données de l'étape actuelle avant de changer
+            if (currentStep === 1) {
+                onboardingData.firstName = document.getElementById('first-name').value;
+                onboardingData.lastName = document.getElementById('last-name').value;
+                onboardingData.phone = document.getElementById('phone').value;
+                onboardingData.fullName = `${onboardingData.firstName} ${onboardingData.lastName}`;
+                // Envoyer les données de l'étape 1 au backend
+                google.script.run.updateOnboardingData({ step: 1, data: { Nom_Complet: onboardingData.fullName } });
+            }
+            if (currentStep === 3) {
+                const profileDetails = {
+                    Profession: document.getElementById('profession').value,
+                    Compagnie: document.getElementById('company').value,
+                    Location: document.getElementById('location').value,
+                };
+                // Envoyer les données de l'étape 3
+                google.script.run.updateOnboardingData({ step: 3, data: profileDetails });
+            }
+
+            // Cacher l'étape actuelle
+            document.getElementById(`step-${currentStep}`).classList.remove('active');
+            
+            // Afficher la nouvelle étape
+            currentStep = stepNumber;
+            document.getElementById(`step-${currentStep}`).classList.add('active');
+        }
+
+        function selectPlatform(type) {
+            onboardingData.accountType = type;
+            // Sauvegarder le type de compte et mettre à jour le statut
+            google.script.run.updateOnboardingData({ step: 2, data: { Role: type === 'team' ? 'Admin' : 'Particulier' } });
+            goToStep(3);
+        }
+
+        function finishOnboarding() {
+            // Mettre à jour le statut final et rediriger
+            google.script.run
+                .withSuccessHandler(() => {
+                    // Rediriger vers l'URL de base, qui mènera maintenant au tableau de bord
+                    // Utilisation de top pour sortir de l'iframe d'Apps Script et de APP_URL pour la cohérence
+                    window.top.location.href = APP_URL;
+                })
+                .updateOnboardingData({ step: 'final', data: {} }); // Envoyer un objet de données vide pour la dernière étape
+        }
+    </script>
+</body>
+</html>
+
+ 

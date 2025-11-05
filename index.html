@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brunel - Votre Carte de Visite Numérique</title>
+    <style>
+        /* public-styles.css */
+        :root {
+            --blue: #007bff;
+            --red: #dc3545;
+            --dark-bg: #121212;
+            --dark-card: #1e1e1e;
+            --text-light: #f8f9fa;
+            --text-secondary: #adb5bd;
+            --border-color: #333;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            /* Application du dégradé sur tout l'arrière-plan */
+            background: linear-gradient(120deg, var(--blue) 0%, var(--red) 100%);
+            background-attachment: fixed; /* Le dégradé reste fixe au défilement */
+            color: var(--text-light);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Barre de Navigation Améliorée */
+        header {
+            background-color: rgba(18, 18, 18, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: bold;
+            font-size: 1.5em;
+            color: var(--text-light);
+            text-decoration: none;
+        }
+
+        .logo img {
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover img {
+            transform: scale(1.05);
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            gap: 30px;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+            padding-bottom: 5px;
+        }
+
+        nav ul a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 50%;
+            background: linear-gradient(90deg, var(--blue), var(--red));
+            transition: all 0.3s ease-in-out;
+        }
+
+        nav ul a:hover::after {
+            width: 100%;
+            left: 0;
+        }
+
+        nav a:hover, .nav-actions a.primary {
+            color: var(--text-light);
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav-actions a.primary {
+            background: linear-gradient(90deg, var(--blue), var(--red));
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        /* Menu Burger pour mobile */
+        .menu-burger {
+            display: none; /* Caché sur bureau */
+            font-size: 1.8em;
+            cursor: pointer;
+            color: var(--text-light);
+            z-index: 1001;
+        }
+
+        .nav-links-mobile {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(18, 18, 18, 0.98);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            font-size: 1.5em;
+        }
+        .nav-links-mobile.active {
+            display: flex;
+        }
+        .nav-links-mobile a {
+            color: var(--text-light);
+        }
+        body.no-scroll {
+            overflow: hidden;
+        }
+
+        /* Sections Générales */
+        section {
+            padding: 80px 0;
+        }
+
+        h1, h2, h3 {
+            line-height: 1.2;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.8em;
+            margin-bottom: 10px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.1em;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 60px auto;
+        }
+
+        /* Section Hero spécifique */
+        .hero {
+            position: relative;
+            height: 80vh; /* Prend 80% de la hauteur de l'écran */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0 20px;
+            overflow: hidden; /* Cache les parties de la vidéo qui dépassent */
+        }
+        .hero-video-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+        }
+        .hero-video-background video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Assure que la vidéo couvre tout l'espace */
+        }
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Voile sombre pour la lisibilité */
+            z-index: -1;
+        }
+        .hero-text-content h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+        }
+        .hero-text-content p {
+            font-size: 1.2em;
+            max-width: 600px;
+            margin: 0 auto 30px auto;
+        }
+
+        /* Cartes Produit spécifiques */
+        .product-card .price {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .price span {
+            font-size: 0.5em;
+            font-weight: normal;
+            color: var(--text-secondary);
+        }
+
+        /* Grilles et Cartes */
+        .grid-2, .grid-3 {
+            display: grid;
+            gap: 30px;
+        }
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+
+        .card {
+            background-color: var(--dark-card);
+            padding: 30px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .card h3 {
+            color: var(--blue);
+            margin-top: 0;
+        }
+
+        /* Boutons */
+        .btn {
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            padding: 12px;
+            background: var(--blue);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: transform 0.2s, opacity 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        .btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+        .btn-gradient {
+            background: linear-gradient(90deg, var(--blue), var(--red));
+        }
+
+        /* Section Showcase Cartes */
+        #card-showcase {
+            background-color: var(--dark-bg);
+            padding: 60px 0;
+        }
+        .card-scroller {
+            max-width: 100%;
+            overflow: hidden;
+            -webkit-mask: linear-gradient(90deg, transparent, white 10%, white 90%, transparent);
+            mask: linear-gradient(90deg, transparent, white 10%, white 90%, transparent);
+        }
+        .card-scroller-inner {
+            display: flex;
+            gap: 20px;
+            width: fit-content;
+            animation: scroll-cards 40s linear infinite;
+        }
+        .card-scroller-inner img {
+            height: 200px;
+            width: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .card-scroller:hover .card-scroller-inner {
+            animation-play-state: paused;
+        }
+
+        @keyframes scroll-cards {
+            to {
+                transform: translateX(calc(-50% - 10px)); /* -50% pour la moitié, -10px pour la moitié du gap */
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) { /* Point de rupture ajusté pour une meilleure transition */
+            nav ul.desktop-links {
+                display: none;
+            }
+            .nav-actions a.primary {
+                display: none; /* Cache le bouton connexion principal */
+            }
+            .menu-burger {
+                display: block;
+            }
+            .nav-actions {
+                gap: 15px; /* Réduit l'espace pour le panier */
+            }
+
+            .section-title {
+                font-size: 2.2em;
+            }
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            .hero {
+                height: 70vh;
+            }
+            .hero-text-content h1 {
+                font-size: 2.5em;
+            }
+        }
+
+        /* Styles pour le défilement des logos */
+        .logo-scroller {
+            max-width: 100%;
+            overflow: hidden;
+            -webkit-mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
+            mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
+        }
+
+        .logo-scroller-inner {
+            display: flex;
+            gap: 40px; /* Espace entre les logos */
+            width: fit-content;
+            animation: scroll 30s linear infinite;
+        }
+
+        .logo-scroller-inner img {
+            height: 75px; /* Taille des logos agrandie */
+            width: auto;
+            opacity: 0.8; /* Légère transparence pour un effet doux */
+            transition: filter 0.3s;
+        }
+
+        .logo-scroller:hover .logo-scroller-inner {
+            animation-play-state: paused; /* Met en pause l'animation au survol */
+        }
+
+        .logo-scroller-inner img:hover {
+            opacity: 1; /* Le logo survolé devient totalement opaque */
+        }
+
+        @keyframes scroll {
+            to {
+                transform: translateX(calc(-50% - 20px)); /* -50% pour la moitié du conteneur, -20px pour la moitié du gap */
+            }
+        }
+
+        #trusted-by {
+            background-color: white;
+            padding-top: 40px; /* Réduction du padding pour un look plus intégré */
+            padding-bottom: 40px;
+        }
+
+        #trusted-by .section-title {
+            /* Applique le dégradé du site au texte du titre */
+            background: linear-gradient(90deg, var(--blue), var(--red));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav class="container">
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Brunel" style="height: 65px; vertical-align: middle;"></a>
+            <ul class="desktop-links">
+                <li><a href="index.html#features">Nos Solutions</a></li>
+                <li><a href="Boutique.html">Boutique</a></li>
+                <li><a href="index.html#about">À Propos</a></li>
+            </ul>
+            <div class="nav-actions">
+                <a href="Panier.html" id="cart-link">Panier</a>
+                <a href="Connexion.html" class="primary" id="login-link">Connexion</a>
+            </div>
+        </nav>
+        <div class="menu-burger" onclick="toggleMobileMenu()">☰</div>
+    </header>
+
+    <div class="nav-links-mobile">
+        <a href="index.html#features" onclick="toggleMobileMenu()">Nos Solutions</a>
+        <a href="Boutique.html" onclick="toggleMobileMenu()">Boutique</a>
+        <a href="index.html#about" onclick="toggleMobileMenu()">À Propos</a>
+        <a href="Connexion.html" onclick="toggleMobileMenu()" class="primary">Connexion</a>
+    </div>
+
+    <main>
+        <section class="hero">
+            <div class="hero-video-background">
+                <video src="r/brunel.mp4" autoplay muted loop playsinline></video>
+            </div>
+            <div class="hero-overlay"></div>
+            <div class="container hero-text-content">
+                <h1>La Révolution de la Carte de Visite.</h1>
+                <p>Connectez-vous instantanément avec une carte intelligente NFC. Partagez vos informations d'un simple contact.</p>
+                <a href="Boutique.html" class="btn btn-gradient">Découvrir nos cartes</a>
+            </div>
+        </section>
+
+        <section id="card-showcase">
+            <div class="container">
+                <h2 class="section-title">Un Visage de Nos Cartes</h2>
+                <p class="section-subtitle">Découvrez quelques-uns des designs élégants et professionnels que nous proposons.</p>
+            </div>
+            <div class="card-scroller">
+                <div class="card-scroller-inner">
+                    <!-- Les images sont dupliquées pour un défilement infini fluide -->
+                    <img src="r/1.svg" alt="Design de carte Brunel 1">
+                    <img src="r/2.svg" alt="Design de carte Brunel 2">
+                    <img src="r/3.svg" alt="Design de carte Brunel 3">
+                    <img src="r/4.svg" alt="Design de carte Brunel 4">
+                    <img src="r/5.svg" alt="Design de carte Brunel 5">
+                    <!-- Duplication -->
+                    <img src="r/1.svg" alt="Design de carte Brunel 1">
+                    <img src="r/2.svg" alt="Design de carte Brunel 2">
+                    <img src="r/3.svg" alt="Design de carte Brunel 3">
+                    <img src="r/4.svg" alt="Design de carte Brunel 4">
+                    <img src="r/5.svg" alt="Design de carte Brunel 5">
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="container">
+            <h2 class="section-title">À Propos de Brunel</h2>
+            <p class="section-subtitle">Nous réinventons la manière dont les professionnels se connectent. Fini les cartes en papier oubliées, place à une interaction mémorable et digitale.</p>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Notre Histoire</h3>
+                    <p>Fondée en 2024, Brunel est née d'une idée simple : rendre le networking plus efficace, plus moderne et plus respectueux de l'environnement. Nous avons combiné design et technologie pour créer un produit qui change la donne.</p>
+                </div>
+                <div class="card">
+                    <h3>Notre Mission</h3>
+                    <p>Notre mission est de fournir à chaque professionnel un outil de networking puissant qui reflète son identité numérique. Nous voulons simplifier le partage d'informations et créer des connexions durables grâce à une technologie intuitive.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="container">
+            <h2 class="section-title">Une Technologie Intuitive</h2>
+            <p class="section-subtitle">Découvrez les technologies qui rendent nos cartes si puissantes.</p>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Technologie NFC</h3>
+                    <p>Le NFC (Near Field Communication) est une technologie de communication sans fil à courte portée. En approchant simplement votre carte d'un smartphone compatible, vos informations de contact sont transférées instantanément, sans aucune application requise.</p>
+                </div>
+                <div class="card">
+                    <h3>Technologie RFID</h3>
+                    <p>Le RFID (Radio-Frequency Identification) est la technologie de base qui permet à la puce de votre carte de communiquer. Nos cartes utilisent une puce NFC passive (une forme de RFID) qui n'a pas besoin de batterie et est activée par le champ magnétique du téléphone.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="platform-features" class="container">
+            <h2 class="section-title">Au-delà de la Carte</h2>
+            <p class="section-subtitle">Votre carte Brunel est la porte d'entrée vers une plateforme de gestion puissante, conçue pour les professionnels modernes.</p>
+            <div class="grid-3">
+                <div class="card">
+                    <div class="feature-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--blue);"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                    </div>
+                    <h3>Tableau de Bord Intuitif</h3>
+                    <p>Suivez en temps réel les performances de votre carte : nombre de vues, clics sur vos liens, et prospects générés. Prenez des décisions basées sur des données concrètes.</p>
+                </div>
+                <div class="card">
+                    <div class="feature-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--blue);"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </div>
+                    <h3>Éditeur de Profil en Direct</h3>
+                    <p>Un changement de numéro ou de poste ? Mettez à jour votre profil en quelques clics depuis votre espace personnel. Les modifications sont appliquées instantanément sur votre carte.</p>
+                </div>
+                <div class="card">
+                    <div class="feature-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--blue);"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </div>
+                    <h3>Gestion d'Équipe (Bientôt)</h3>
+                    <p>Déployez et gérez les cartes de tous vos collaborateurs depuis une interface centralisée. Assurez une cohérence de marque et suivez les performances de votre équipe.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="trusted-by">
+            <h2 class="section-title" style="margin-bottom: 40px;">Approuvé par les marques du monde entier</h2>
+            <div class="logo-scroller">
+                <div class="logo-scroller-inner">
+                    <!-- Les logos sont dupliqués pour un défilement infini fluide -->
+                    <img src="r/a.webp" alt="Logo Marque A">
+                    <img src="r/b.webp" alt="Logo Marque B">
+                    <img src="r/c.webp" alt="Logo Marque C">
+                    <img src="r/d.webp" alt="Logo Marque D">
+                    <img src="r/e.webp" alt="Logo Marque E">
+                    <img src="r/f.webp" alt="Logo Marque F">
+                    <img src="r/h.webp" alt="Logo Marque H">
+                    <img src="r/i.webp" alt="Logo Marque I">
+                    <img src="r/j.webp" alt="Logo Marque J">
+                    
+                    <!-- Duplication pour un défilement infini et fluide -->
+                    <img src="r/a.webp" alt="Logo Marque A">
+                    <img src="r/b.webp" alt="Logo Marque B">
+                    <img src="r/c.webp" alt="Logo Marque C">
+                    <img src="r/d.webp" alt="Logo Marque D">
+                    <img src="r/e.webp" alt="Logo Marque E">
+                    <img src="r/f.webp" alt="Logo Marque F">
+                    <img src="r/h.webp" alt="Logo Marque H">
+                    <img src="r/i.webp" alt="Logo Marque I">
+                    <img src="r/j.webp" alt="Logo Marque J">
+                    
+                </div>
+            </div>
+        </section>
+
+        <section id="cards" class="container">
+            <h2 class="section-title">Nos Offres</h2>
+            <p class="section-subtitle">Trouvez la carte qui correspond à votre style. Chaque carte donne accès à vie à notre plateforme.</p>
+            <div class="grid-3">
+                <div class="card product-card">
+                    <h3>Carte Classique</h3>
+                    <p>La carte en PVC premium, durable et élégante. Personnalisable avec votre logo et QR code.</p> 
+                    <div class="price">29.99€ <span>/ unité</span></div>
+                    <a href="#" class="btn" onclick="event.preventDefault(); addToCart('pvc', 'Carte Classique PVC', 29.99)">Ajouter au panier</a>
+                </div>
+                <div class="card product-card">
+                    <h3>Carte Métal</h3>
+                    <p>Une finition luxueuse en métal brossé pour un impact maximal. Gravure laser de précision.</p>
+                    <div class="price">79.99€ <span>/ unité</span></div>
+                    <a href="#" class="btn" onclick="event.preventDefault(); addToCart('metal', 'Carte Métal Noir', 79.99)">Ajouter au panier</a>
+                </div>
+                <div class="card product-card">
+                    <h3>Carte Bois</h3>
+                    <p>Écologique et unique, chaque carte en bois véritable est une pièce d'artisanat.</p>
+                    <div class="price">59.99€ <span>/ unité</span></div>
+                    <a href="#" class="btn" onclick="event.preventDefault(); addToCart('wood', 'Carte Bois de Bambou', 59.99)">Ajouter au panier</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="<?!= getAppUrl() ?>?page=config"></script>
+
+    <script>
+        function addToCart(id, name, price) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const existingItem = cart.find(item => item.id === id);
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                cart.push({ id, name, price, quantity: 1 });
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            alert(name + ' a été ajouté au panier !');
+            updateCartCounter();
+        }
+
+        function toggleMobileMenu() {
+            const mobileMenu = document.querySelector('.nav-links-mobile');
+            const burgerIcon = document.querySelector('.menu-burger');
+            const body = document.body;
+
+            mobileMenu.classList.toggle('active');
+            body.classList.toggle('no-scroll');
+
+            if (mobileMenu.classList.contains('active')) {
+                burgerIcon.innerHTML = '✕'; // Icône de fermeture
+            } else {
+                burgerIcon.innerHTML = '☰';
+            }
+        }
+
+        function updateCartCounter() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const cartLink = document.getElementById('cart-link');
+            if (cartLink) {
+                cartLink.textContent = `Panier (${totalItems})`;
+            }
+        }
+
+        function updateLoginButton() {
+            if (typeof IS_LOGGED_IN !== 'undefined' && IS_LOGGED_IN) {
+                const loginLink = document.getElementById('login-link');
+                if(loginLink) {
+                    loginLink.textContent = 'Tableau de bord';
+                }
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => { updateCartCounter(); updateLoginButton(); });
+    </script>
+</body>
+</html>
