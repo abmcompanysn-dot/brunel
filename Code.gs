@@ -29,7 +29,7 @@ function doGet(e) {
 
   return ContentService.createTextOutput(JSON.stringify(result))
     .setMimeType(ContentService.MimeType.JSON)
-    .setHeader('Access-Control-Allow-Origin', '*') // IMPORTANT pour le développement local et les hébergements externes
+    .setHeader('Access-Control-Allow-Origin', 'https://brunel.abmcy.com') // Autorise votre site
     .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
 }
 
@@ -81,6 +81,21 @@ function doPost(e) {
       result = { error: 'Action POST non reconnue.' };
       break;
   }
+
+  return ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader('Access-Control-Allow-Origin', 'https://brunel.abmcy.com') // Autorise votre site
+    .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+}
+
+/**
+ * Gère les requêtes "preflight" CORS envoyées par les navigateurs.
+ */
+function doOptions(e) {
+  return ContentService.createTextOutput()
+    .setHeader('Access-Control-Allow-Origin', 'https://brunel.abmcy.com')
+    .setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+    .setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
 /**
