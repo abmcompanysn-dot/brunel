@@ -309,6 +309,19 @@
     <script src="config.js"></script>
 
     <script>
+        /**
+         * Fonction centralisée pour appeler l'API backend via POST.
+         */
+        function callApi(action, data = {}) {
+            const formData = new FormData();
+            formData.append('action', action);
+            for (const key in data) {
+                const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
+                formData.append(key, value);
+            }
+            return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
+        }
+
         function displayCart() {
             const cart = JSON.parse(localStorage.getItem('cart')) || [];
             const cartContainer = document.getElementById('cart-container');
@@ -412,24 +425,20 @@
                         checkoutButton.disabled = true;
                         checkoutButton.textContent = 'Préparation...';
 
-                        fetch(API_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                            body: JSON.stringify({ action: 'createCheckoutSession', payload: cart })
-                        })
-                        .then(res => res.json())
-                        .then(response => {
+                        callApi('createCheckoutSession', { payload: cart })
+                            .then(response => {
                                 if (response.checkoutUrl) {
                                     window.location.href = response.checkoutUrl; // Rediriger vers la page de paiement
                                 } else {
                                     alert(response.error || "Impossible de procéder au paiement.");
                                     checkoutButton.disabled = false;
                                     checkoutButton.textContent = 'Passer au paiement';
-                                }})
-                        .catch(err => {
-                            alert('Erreur de communication: ' + err.message);
-                            checkoutButton.disabled = false;
-                            checkoutButton.textContent = 'Passer au paiement';});
+                                }
+                            }).catch(err => {
+                                alert('Erreur de communication: ' + err.message);
+                                checkoutButton.disabled = false;
+                                checkoutButton.textContent = 'Passer au paiement';
+                            });
                     }
                 });
             }

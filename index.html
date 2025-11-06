@@ -571,6 +571,19 @@
     <script src="config.js"></script>
 
     <script>
+        /**
+         * Fonction centralisée pour appeler l'API backend via POST.
+         */
+        function callApi(action, data = {}) {
+            const formData = new FormData();
+            formData.append('action', action);
+            for (const key in data) {
+                const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
+                formData.append(key, value);
+            }
+            return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
+        }
+
         function addToCart(id, name, price) {
             let cart = JSON.parse(localStorage.getItem('cart')) || [];
             const existingItem = cart.find(item => item.id === id);
@@ -583,11 +596,7 @@
             alert(name + ' a été ajouté au panier !');
             // Si l'utilisateur est connecté, synchroniser le panier avec le backend
             if (localStorage.getItem('userIsLoggedIn') === 'true') {
-                fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ action: 'syncCart', payload: cart })
-                }).catch(err => console.error('Erreur de synchro panier:', err));
+                callApi('syncCart', { payload: cart }).catch(err => console.error('Erreur de synchro panier:', err));
             }
             updateCartCounter();
         }

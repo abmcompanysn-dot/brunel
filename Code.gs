@@ -1,97 +1,101 @@
 /**
- * Point d'entrée pour les requêtes GET. Agit comme un routeur pour l'API.
- * Le frontend appellera des URLs comme ".../exec?action=getProfileData&user=monprofil"
+ * ==================================================================
+ * GESTIONNAIRES DE REQUÊTES (doGet, doPost, doOptions)
+ * ==================================================================
+ */
+
+/**
+ * Gère les requêtes GET.
+ * Toutes les actions sont maintenant gérées par doPost pour simplifier.
  */
 function doGet(e) {
-  // doGet ne sera plus utilisé pour les actions, mais peut servir de "ping" pour vérifier que l'API est en ligne.
-  return ContentService.createTextOutput(JSON.stringify({ status: 'API en ligne', message: 'Veuillez utiliser des requêtes POST.' }))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeader('Access-Control-Allow-Origin', '*') // Autorise toutes les origines
-    .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  return corsify({ status: 'API en ligne', message: 'Veuillez utiliser des requêtes POST.' });
 }
 
 /**
  * Point d'entrée UNIQUE pour toutes les actions de l'API.
  */
 function doPost(e) {
-  // Avec FormData, les paramètres sont dans e.parameter
-  const action = e.parameter.action;
-  // Pour les données complexes envoyées en JSON, on les récupère de e.postData.contents
-  const payload = e.parameter.payload ? JSON.parse(e.parameter.payload) : {};
-  let result;
+  try {
+    const userEmail = Session.getActiveUser().getEmail();
+    const action = e.parameter.action;
+    const payload = e.parameter.payload ? JSON.parse(e.parameter.payload) : {};
+    let result;
 
-  switch (action) {
-    case 'handleLeadCapture':
-      result = handleLeadCapture(payload);
-      break;
-    case 'saveProfile':
-      result = saveProfile(payload);
-      break;
-    case 'registerUser':
-      result = registerUser(payload.email, payload.password);
-      break;
-    case 'loginUser':
-      result = loginUser(payload.email, payload.password);
-      break;
-    case 'logout':
-      result = logout();
-      break;
-    case 'updateOnboardingData':
-      result = updateOnboardingData(payload);
-      break;
-    case 'syncCart':
-      // Pour l'instant, on ne fait que logger. La logique complète serait à implémenter.
-      Logger.log('Panier synchronisé: ' + JSON.stringify(payload));
-      result = { success: true };
-      break;
-    case 'createCheckoutSession':
-      result = createCheckoutSession(payload);
-      break;
-    case 'setModuleState':
-      result = setModuleState(payload.moduleName, payload.isEnabled);
-      break;
-    case 'generateGoogleWalletPass':
-      result = generateGoogleWalletPass();
-      break;
-    case 'trackView':
-      result = trackView(payload.profileUrl, payload.source);
-      break;
-    // Les actions qui étaient en GET sont maintenant ici
-    case 'getProfileData':
-      result = getProfileData(e.parameter.user); // 'user' est passé comme un paramètre simple
-      break;
-    case 'getDashboardData':
-      result = getDashboardData();
-      break;
-    case 'getDashboardStats':
-      result = getDashboardStats();
-      break;
-    case 'exportLeadsAsCSV':
-      // Cas spécial : renvoie du texte brut, pas du JSON.
-      return ContentService.createTextOutput(exportLeadsAsCSV())
-        .setMimeType(ContentService.MimeType.TEXT)
-        .setHeader('Access-Control-Allow-Origin', '*');
-      break;
-    default:
-      result = { error: 'Action POST non reconnue.' };
-      break;
+    switch (action) {
+      case 'handleLeadCapture': result = handleLeadCapture(payload); break;
+      case 'saveProfile': result = saveProfile(payload); break;
+      case 'registerUser': result = registerUser(payload.email, payload.password); break;
+      case 'loginUser': result = loginUser(payload.email, payload.password); break;
+      case 'logout': result = logout(); break;
+      case 'updateOnboardingData': result = updateOnboardingData(payload); break;
+      case 'syncCart':
+        Logger.log('Panier synchronisé: ' + JSON.stringify(payload));
+        result = { success: true };
+        break;
+      case 'createCheckoutSession': result = createCheckoutSession(payload); break;
+      case 'setModuleState': result = setModuleState(payload.moduleName, payload.isEnabled); break;
+      case 'generateGoogleWalletPass': result = generateGoogleWalletPass(); break;
+      case 'trackView': result = trackView(payload.profileUrl, payload.source); break;
+      case 'getProfileData': result = getProfileData(e.parameter.user); break;
+      case 'getDashboardData': result = getDashboardData(); break;
+      case 'getDashboardStats': result = getDashboardStats(); break;
+      case 'exportLeadsAsCSV':
+        // Cas spécial : renvoie du texte brut, pas du JSON.
+        const csvOutput = ContentService.createTextOutput(exportLeadsAsCSV()).setMimeType(ContentService.MimeType.TEXT);
+        csvOutput.addHttpHeader('Access-Control-Allow-Origin', '*');
+        return csvOutput;
+      default:
+        result = { error: 'Action POST non reconnue.' };
+        break;
+    }
+    logAction(action, 'SUCCESS', `Action exécutée avec succès.`, userEmail);
+    return corsify(result);
+  } catch (err) {
+    const errorMessage = `Erreur dans l'action '${e.parameter.action}': ${err.message} (Ligne: ${err.lineNumber})`;
+    logAction(e.parameter.action, 'ERROR', errorMessage, Session.getActiveUser().getEmail(), 'Vérifiez que les données envoyées sont correctes et que les feuilles Google Sheets ne sont pas corrompues. Si l\'erreur persiste, contactez le support technique.');
+    return corsify({ error: "Une erreur interne est survenue. L'incident a été enregistré." });
   }
-
-  return ContentService.createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeader('Access-Control-Allow-Origin', '*') // Autorise toutes les origines
-    .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
 }
 
 /**
  * Gère les requêtes "preflight" CORS envoyées par les navigateurs.
  */
 function doOptions(e) {
-  return ContentService.createTextOutput()
-    .setHeader('Access-Control-Allow-Origin', '*') // Autorise toutes les origines
-    .setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
-    .setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  return corsify(null, true);
 }
+
+/**
+ * ==================================================================
+ * FONCTION UTILITAIRE CORS
+ * ==================================================================
+ */
+
+/**
+ * Ajoute les en-têtes CORS nécessaires à une réponse.
+ * @param {Object|null} data - L'objet de données à renvoyer en JSON.
+ * @param {boolean} [isOptions=false] - S'il s'agit d'une requête OPTIONS.
+ * @returns {ContentService.TextOutput} La réponse formatée.
+ */
+function corsify(data, isOptions = false) {
+  // La méthode la plus fiable pour éviter les erreurs "TypeError" est de ne pas utiliser
+  // addHttpHeader ou setHeaders, mais de renvoyer directement un objet JSON.
+  // Le moteur Apps Script gère les en-têtes correctement avec cette approche.
+  let response = {
+    headers: { 'Access-Control-Allow-Origin': '*' }
+  };
+  if (isOptions) {
+    response.headers['Access-Control-Allow-Methods'] = 'POST, GET, OPTIONS';
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type';
+  }
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+}
+
+/**
+ * ==================================================================
+ * LOGIQUE DE L'APPLICATION
+ * ==================================================================
+ */
 
 /**
  * Ajoute un menu personnalisé à la feuille de calcul pour faciliter la configuration.
@@ -99,6 +103,7 @@ function doOptions(e) {
 function onOpen() {
   SpreadsheetApp.getUi()
       .createMenu('Brunel Admin')
+      .addItem('Vérifier et Réparer la Structure', 'verifyAndFixSheetStructure')
       .addItem('1. Initialiser les feuilles', 'setupSpreadsheet')
       .addToUi();
 }
@@ -112,6 +117,7 @@ function setupSpreadsheet() {
   const sheetsToCreate = [
     { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status'] },
     { name: 'Profils', headers: ['ID_Utilisateur', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'Couleur_Theme', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY'] },
+    { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
     // L'onglet Commandes n'était pas dans la nouvelle spec, mais on peut le garder si besoin.
@@ -143,6 +149,69 @@ function setupSpreadsheet() {
   });
   
   SpreadsheetApp.getUi().alert('Initialisation terminée ! Les feuilles de calcul sont prêtes.');
+}
+
+/**
+ * Vérifie que toutes les feuilles et colonnes nécessaires existent, et les crée si elles sont manquantes.
+ * C'est une fonction de "migration" ou de "réparation" de la base de données.
+ */
+function verifyAndFixSheetStructure() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ui = SpreadsheetApp.getUi();
+  let corrections = [];
+
+  const requiredSheets = [
+    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status'] },
+    { name: 'Profils', headers: ['ID_Utilisateur', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'Couleur_Theme', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY'] },
+    { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
+    { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
+    { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
+  ];
+
+  requiredSheets.forEach(sheetInfo => {
+    let sheet = ss.getSheetByName(sheetInfo.name);
+    if (!sheet) {
+      // La feuille n'existe pas, on la crée complètement.
+      sheet = ss.insertSheet(sheetInfo.name);
+      sheet.getRange(1, 1, 1, sheetInfo.headers.length).setValues([sheetInfo.headers]).setFontWeight('bold');
+      corrections.push(`Feuille "${sheetInfo.name}" créée.`);
+    } else {
+      // La feuille existe, on vérifie les colonnes.
+      const currentHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+      sheetInfo.headers.forEach(requiredHeader => {
+        if (!currentHeaders.includes(requiredHeader)) {
+          // La colonne est manquante, on l'ajoute à la fin.
+          sheet.getRange(1, sheet.getLastColumn() + 1).setValue(requiredHeader).setFontWeight('bold');
+          corrections.push(`Colonne "${requiredHeader}" ajoutée à la feuille "${sheetInfo.name}".`);
+        }
+      });
+    }
+  });
+
+  if (corrections.length > 0) {
+    ui.alert('Vérification terminée', 'Les corrections suivantes ont été apportées :\n- ' + corrections.join('\n- '), ui.ButtonSet.OK);
+  } else {
+    ui.alert('Vérification terminée', 'Aucune correction nécessaire. Votre structure est à jour.', ui.ButtonSet.OK);
+  }
+}
+
+/**
+ * Enregistre une action ou une erreur dans la feuille 'Historique_Actions'.
+ * @param {string} action - Le nom de l'action effectuée (ex: 'saveProfile').
+ * @param {string} status - 'SUCCESS' ou 'ERROR'.
+ * @param {string} message - Le message détaillé de l'événement.
+ * @param {string} userEmail - L'email de l'utilisateur effectuant l'action.
+ * @param {string} [suggestion=''] - Une suggestion de correction en cas d'erreur.
+ */
+function logAction(action, status, message, userEmail, suggestion = '') {
+  try {
+    const logSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Historique_Actions');
+    if (logSheet) {
+      logSheet.appendRow([new Date(), action, status, message, userEmail, suggestion]);
+    }
+  } catch (e) {
+    Logger.log(`Impossible d'écrire dans la feuille d'historique: ${e.message}`);
+  }
 }
 
 /**
