@@ -37,7 +37,7 @@
         header {
             background-color: rgba(18, 18, 18, 0.85);
             backdrop-filter: blur(10px);
-            padding: 15px 0;
+            padding: 10px 0; /* Hauteur réduite */
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -345,7 +345,10 @@
                 grid-template-columns: 1fr;
             }
 
-            nav ul, .nav-contact-info, .nav-actions a:not(.primary) { display: none; }
+            nav ul, .nav-contact-info { display: none; }
+            .nav-actions a#cart-link { display: none; } /* Cache le panier */
+            .nav-actions a.primary { display: none; } /* Cache la connexion */
+
             .menu-burger { display: block; }
             .logo img { height: 50px !important; }
         }
@@ -363,8 +366,8 @@
             <div class="nav-actions">
                 <a href="Panier.html" id="cart-link">Panier (0)</a>
                 <a href="Connexion.html" class="primary" id="login-link">Connexion</a>
+                <div class="menu-burger" onclick="toggleMobileMenu()">☰</div>
             </div>
-            <div class="menu-burger" onclick="toggleMobileMenu()">☰</div>
         </nav>
     </header>
 

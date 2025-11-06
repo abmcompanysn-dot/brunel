@@ -34,7 +34,7 @@
         header {
             background-color: rgba(18, 18, 18, 0.85);
             backdrop-filter: blur(10px);
-            padding: 15px 0;
+            padding: 10px 0; /* Hauteur réduite */
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -174,6 +174,9 @@
             nav ul.desktop-links {
                 display: none;
             }
+            .nav-actions a#cart-link {
+                display: none; /* Cache le panier sur mobile */
+            }
             .nav-actions a.primary {
                 display: none; /* Cache le bouton connexion principal */
             }
@@ -240,18 +243,18 @@
 <body>
     <header>
         <nav class="container">
-            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Brunel" style="height: 65px; vertical-align: middle;"></a>
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Brunel" style="height: 50px; vertical-align: middle;"></a>
             <ul class="desktop-links">
                 <li><a href="index.html#features">Nos Solutions</a></li>
                 <li><a href="Boutique.html">Boutique</a></li>
                 <li><a href="index.html#about">À Propos</a></li>
             </ul>
             <div class="nav-actions">
-                <a href="Panier.html" id="cart-link">Panier</a>
+                <a href="Panier.html" id="cart-link">Panier (0)</a>
                 <a href="Connexion.html" class="primary" id="login-link">Connexion</a>
+                <div class="menu-burger" onclick="toggleMobileMenu()">☰</div>
             </div>
         </nav>
-        <div class="menu-burger" onclick="toggleMobileMenu()">☰</div>
     </header>
 
     <div class="nav-links-mobile">
@@ -259,6 +262,7 @@
         <a href="Boutique.html" onclick="toggleMobileMenu()">Boutique</a>
         <a href="index.html#about" onclick="toggleMobileMenu()">À Propos</a>
         <a href="Connexion.html" onclick="toggleMobileMenu()" class="primary">Connexion</a>
+        <a href="Panier.html" onclick="toggleMobileMenu()" id="mobile-cart-link">Panier (0)</a>
     </div>
 
     <main>
@@ -385,6 +389,10 @@
             const cartLink = document.getElementById('cart-link');
             if (cartLink) {
                 cartLink.textContent = `Panier (${totalItems})`;
+            }
+            const mobileCartLink = document.getElementById('mobile-cart-link');
+            if (mobileCartLink) {
+                mobileCartLink.textContent = `Panier (${totalItems})`;
             }
         }
 
