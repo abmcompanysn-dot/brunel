@@ -101,7 +101,7 @@ function setupSpreadsheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheetsToCreate = [
     { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status'] },
-    { name: 'Profils', headers: ['ID_Utilisateur', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'Couleur_Theme', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data'] },
+    { name: 'Profils', headers: ['ID_Utilisateur', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'Couleur_Theme', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
     // L'onglet Commandes n'était pas dans la nouvelle spec, mais on peut le garder si besoin.
@@ -204,6 +204,11 @@ function authenticateUser() {
     profileSheet.appendRow([newId, email.split('@')[0], '', '', '', '#007BFF', '', '', '[]', 'NON', 'NON', '']);
     
     SpreadsheetApp.flush();
+
+    // Pour la redirection côté client, on ajoute un flag
+    if (isNewRegistration) {
+      return { success: true, newUser: true };
+    }
   }
 
   // Convertir le tableau en objet pour une manipulation facile
@@ -508,15 +513,14 @@ function generateGoogleWalletPass() {
   try {
     const user = authenticateUser();
     const profile = getDashboardData().profile; // Récupère les données du profil
-
-    const properties = PropertiesService.getScriptProperties();
-    const issuerId = properties.getProperty('GOOGLE_WALLET_ISSUER_ID');
-    const classId = properties.getProperty('GOOGLE_WALLET_CLASS_ID');
-    const serviceAccountEmail = properties.getProperty('SERVICE_ACCOUNT_EMAIL');
-    const privateKey = properties.getProperty('SERVICE_ACCOUNT_PRIVATE_KEY');
+    
+    const issuerId = profile.WALLET_ISSUER_ID;
+    const classId = profile.WALLET_CLASS_ID;
+    const serviceAccountEmail = profile.WALLET_SERVICE_EMAIL;
+    const privateKey = profile.WALLET_PRIVATE_KEY;
 
     if (!issuerId || !classId || !serviceAccountEmail || !privateKey) {
-      throw new Error("Les propriétés du script pour Google Wallet ne sont pas configurées.");
+      throw new Error("Les informations pour Google Wallet ne sont pas configurées dans l'onglet Intégrations.");
     }
 
     const objectId = `${issuerId}.${user.ID_Unique.replace(/[^a-zA-Z0-9_.-]/g, '_')}`;

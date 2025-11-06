@@ -352,8 +352,11 @@
             .then(res => res.json())
             .then(response => {
                 if (response.success) {
-                    // Rediriger vers le tableau de bord
-                    window.location.href = 'Dashboard.html';
+                    if (response.newUser) {
+                        window.location.href = 'Onboarding.html'; // Redirection pour les nouveaux utilisateurs
+                    } else {
+                        window.location.href = 'Dashboard.html'; // Redirection pour les utilisateurs existants
+                    }
                 } else {
                     showError(formId, response.error || 'Une erreur est survenue.');
                     button.disabled = false;

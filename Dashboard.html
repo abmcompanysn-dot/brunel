@@ -514,9 +514,24 @@
             <!-- Panneau Intégrations -->
             <div id="integration-content" class="content-pane">
                 <h1>Intégrations</h1>
+                <p class="section-subtitle" style="max-width: 100%; text-align: left; margin-bottom: 20px;">Connectez Brunel à d'autres services. Les clés API sont stockées de manière sécurisée et ne sont jamais partagées publiquement.</p>
+                
                 <div class="card">
-                    <h3>Intégrations à venir</h3>
-                    <p>Nous travaillons sur des intégrations avec vos outils préférés (CRM, calendriers, etc.). Revenez bientôt !</p>
+                    <h3>Hébergement d'images (ImgBB)</h3>
+                    <p>Pour que l'upload de votre photo de profil et de votre image de couverture fonctionne, vous devez fournir une clé API gratuite de <a href="https://api.imgbb.com/" target="_blank">ImgBB</a>.</p>
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label for="imgbb-api-key">Clé API ImgBB</label>
+                        <input type="text" id="imgbb-api-key" class="form-control" placeholder="Entrez votre clé API ImgBB ici">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Google Wallet</h3>
+                    <p>Remplissez ces informations depuis votre <a href="https://pay.google.com/business/console" target="_blank">console Google Pay & Wallet</a> pour activer le bouton "Ajouter à Google Wallet".</p>
+                    <div class="form-group"><label for="wallet-issuer-id">ID de l'émetteur (Issuer ID)</label><input type="text" id="wallet-issuer-id" class="form-control"></div>
+                    <div class="form-group"><label for="wallet-class-id">ID de la classe (Class ID)</label><input type="text" id="wallet-class-id" class="form-control"></div>
+                    <div class="form-group"><label for="wallet-service-email">Email du compte de service</label><input type="text" id="wallet-service-email" class="form-control"></div>
+                    <div class="form-group"><label for="wallet-private-key">Clé privée du compte de service</label><textarea id="wallet-private-key" class="form-control" rows="4"></textarea></div>
                 </div>
             </div>
 
@@ -942,7 +957,7 @@
             }
 
             // --- Remplir le panneau d'aperçu du profil ---
-            const fullUrl = `${data.appUrl}?user=${data.user.URL_Profil}`;
+            const fullUrl = `${data.publicSiteUrl}?user=${data.user.URL_Profil}`;
             // Aperçu
             document.getElementById('profile-picture-preview').src = data.profile.URL_Photo || 'https://via.placeholder.com/150';
             document.getElementById('profile-cover-preview').style.backgroundImage = `url('${data.profile.URL_Couverture || 'https://via.placeholder.com/800x300?text=Couverture'}')`;
