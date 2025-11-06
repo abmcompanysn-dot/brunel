@@ -5,9 +5,8 @@
 function doGet(e) {
   // doGet ne sera plus utilisé pour les actions, mais peut servir de "ping" pour vérifier que l'API est en ligne.
   return ContentService.createTextOutput(JSON.stringify({ status: 'API en ligne', message: 'Veuillez utiliser des requêtes POST.' }))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeader('Access-Control-Allow-Origin', 'https://brunel.abmcy.com') // Autorise votre site
-    .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    .setMimeType(ContentService.MimeType.JSON);
+    // Les setHeader ont été supprimés pour éviter la TypeError.
 }
 
 /**
@@ -69,8 +68,7 @@ function doPost(e) {
     case 'exportLeadsAsCSV':
       // Cas spécial : renvoie du texte brut, pas du JSON.
       return ContentService.createTextOutput(exportLeadsAsCSV())
-        .setMimeType(ContentService.MimeType.TEXT)
-        .setHeader('Access-Control-Allow-Origin', 'https://brunel.abmcy.com');
+        .setMimeType(ContentService.MimeType.TEXT); // setHeader supprimé ici
       break;
     default:
       result = { error: 'Action POST non reconnue.' };
@@ -78,9 +76,8 @@ function doPost(e) {
   }
 
   return ContentService.createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeader('Access-Control-Allow-Origin', 'https://brunel.abmcy.com') // Autorise votre site
-    .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    .setMimeType(ContentService.MimeType.JSON);
+    // Les setHeader ont été supprimés ici pour éviter la TypeError.
 }
 
 /**
@@ -148,8 +145,7 @@ function setupSpreadsheet() {
 /**
  * Récupère les statistiques de vues depuis la feuille "Statistiques",
  * les agrège par source et les renvoie au format JSON pour Chart.js.
- * 
- * @returns {Object} Un objet contenant les labels et les données pour le graphique.
+ * * @returns {Object} Un objet contenant les labels et les données pour le graphique.
  */
 function getDashboardStats() {
   try {
@@ -216,6 +212,8 @@ function authenticateUser() {
     SpreadsheetApp.flush();
 
     // Pour la redirection côté client, on ajoute un flag
+    // NOTE: isNewRegistration n'est pas défini dans ce code snippet, 
+    // cette partie pourrait nécessiter une adaptation si vous utilisez un système de login externe.
     if (isNewRegistration) {
       return { success: true, newUser: true };
     }
@@ -252,9 +250,11 @@ function getDashboardData() {
 
     // Récupérer les prospects
     const prospectsSheet = ss.getSheetByName('Prospects');
-    const prospectsData = prospectsSheet.getRange('A2:D').getValues()
-      .filter(row => row[0] === user.ID_Unique) // Filtrer par ID_Profil_Source
-      .map(row => ({ nom: row[2], contact: row[3], date: row[1], note: row[4] })) // Formater pour le frontend
+    // Récupère uniquement les 4 premières colonnes (A à D) et filtre les lignes non vides
+    const prospectsData = prospectsSheet.getRange('A2:E').getValues() 
+      .filter(row => row[0] === user.ID_Unique) // Filtrer par ID_Profil_Source (colonne A)
+      // Formater pour le frontend (les indices sont pour les colonnes 0=ID_Profil_Source, 1=Date_Capture, 2=Nom_Prospect, 3=Contact_Prospect, 4=Message_Note)
+      .map(row => ({ id: row[0], date: row[1], nom: row[2], contact: row[3], note: row[4] })) 
       .slice(0, 10); // Limiter aux 10 derniers
 
     // Construire l'URL de base de l'application web
@@ -457,6 +457,7 @@ function exportLeadsAsCSV() {
 
     let csvContent = headers.join(',') + '\n';
     userProspects.forEach(row => {
+      // Les cellules sont entourées de guillemets et les guillemets internes sont échappés pour un bon format CSV
       csvContent += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',') + '\n';
     });
     return csvContent;
@@ -508,16 +509,16 @@ function updateOnboardingData(request) {
  * ==================================================================
  * Prérequis :
  * 1. Créez une "Classe de carte" dans la Google Pay & Wallet Console (https://pay.google.com/business/console).
- *    - Choisissez "Carte générique".
- *    - Notez l'ID de la classe (ex: "123456789.MyPassClass").
+ * - Choisissez "Carte générique".
+ * - Notez l'ID de la classe (ex: "123456789.MyPassClass").
  * 2. Créez un compte de service dans Google Cloud avec le rôle "Éditeur de l'API Wallet".
- *    - Téléchargez la clé JSON.
+ * - Téléchargez la clé JSON.
  * 3. Dans l'éditeur Apps Script, allez dans "Paramètres du projet" > "Propriétés du script".
- *    - Ajoutez 3 propriétés :
- *      - GOOGLE_WALLET_ISSUER_ID : (ID de l'émetteur, trouvé dans la console Wallet)
- *      - GOOGLE_WALLET_CLASS_ID  : (ID de la classe de carte que vous avez créée)
- *      - SERVICE_ACCOUNT_PRIVATE_KEY : (La clé privée de votre fichier JSON, commençant par "-----BEGIN PRIVATE KEY-----...")
- *      - SERVICE_ACCOUNT_EMAIL : (L'email de votre compte de service)
+ * - Ajoutez 3 propriétés :
+ * - GOOGLE_WALLET_ISSUER_ID : (ID de l'émetteur, trouvé dans la console Wallet)
+ * - GOOGLE_WALLET_CLASS_ID  : (ID de la classe de carte que vous avez créée)
+ * - SERVICE_ACCOUNT_PRIVATE_KEY : (La clé privée de votre fichier JSON, commençant par "-----BEGIN PRIVATE KEY-----...")
+ * - SERVICE_ACCOUNT_EMAIL : (L'email de votre compte de service)
  */
 function generateGoogleWalletPass() {
   try {
