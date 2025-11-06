@@ -565,7 +565,7 @@
         </section>
     </main>
 
-    <script src="<?!= getAppUrl() ?>?page=config"></script>
+    <script src="config.js"></script>
 
     <script>
         function addToCart(id, name, price) {
@@ -579,9 +579,12 @@
             localStorage.setItem('cart', JSON.stringify(cart));
             alert(name + ' a été ajouté au panier !');
             // Si l'utilisateur est connecté, synchroniser le panier avec le backend
-            if (typeof IS_LOGGED_IN !== 'undefined' && IS_LOGGED_IN) {
-                google.script.run.withFailureHandler(err => console.error('Erreur de synchro panier:', err))
-                                 .syncCart(cart);
+            if (localStorage.getItem('userIsLoggedIn') === 'true') {
+                fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'syncCart', payload: cart })
+                }).catch(err => console.error('Erreur de synchro panier:', err));
             }
             updateCartCounter();
         }
@@ -615,11 +618,11 @@
         }
 
         function updateLoginButton() {
-            if (typeof IS_LOGGED_IN !== 'undefined' && IS_LOGGED_IN) {
-                const loginLink = document.getElementById('login-link');
-                if(loginLink) {
-                    loginLink.textContent = 'Tableau de bord';
-                }
+            // Comme pour la boutique, on se base sur un flag local.
+            const loginLink = document.getElementById('login-link');
+            if (loginLink && localStorage.getItem('userIsLoggedIn') === 'true') {
+                loginLink.textContent = 'Tableau de bord';
+                loginLink.href = 'Dashboard.html';
             }
         }
         document.addEventListener('DOMContentLoaded', () => { updateCartCounter(); updateLoginButton(); });

@@ -1,36 +1,86 @@
 /**
- * Point d'entrée principal pour l'application web.
- * Gère le routage : profil public, onboarding pour les nouveaux, ou dashboard pour les anciens.
+ * Point d'entrée pour les requêtes GET. Agit comme un routeur pour l'API.
+ * Le frontend appellera des URLs comme ".../exec?action=getProfileData&user=monprofil"
  */
 function doGet(e) {
-  // 1. Routage pour les profils publics
-  if (e.parameter && e.parameter.user) {
-    return render('ProfilePublic.html', 'Profil Public');
+  const action = e.parameter.action;
+  let result;
+
+  // NOTE: La logique d'authentification doit être repensée pour une API (ex: avec des tokens JWT).
+  // Pour l'instant, on se base sur des actions publiques ou des actions qui nécessitent une session.
+  
+  switch (action) {
+    case 'getProfileData':
+      result = getProfileData(e.parameter.user);
+      break;
+    case 'getDashboardData':
+      result = getDashboardData(); // Supposera un utilisateur authentifié via sa session Google
+      break;
+    case 'getDashboardStats':
+      result = getDashboardStats();
+      break;
+    case 'exportLeadsAsCSV':
+      // Cette action renverra directement le contenu CSV
+      return ContentService.createTextOutput(exportLeadsAsCSV()).setMimeType(ContentService.MimeType.TEXT);
+    default:
+      result = { error: 'Action non reconnue.' };
+      break;
   }
 
-  // 2. Authentification et routage pour les utilisateurs connectés
-  const user = authenticateUser();
-  if (user.Onboarding_Status !== 'COMPLETED') {
-    // 3. Si l'utilisateur n'a pas fini l'inscription, on l'envoie sur la page d'accueil
-    return render('Onboarding.html', 'Bienvenue chez Brunel');
-  } else {
-    // 4. Sinon, on l'envoie au tableau de bord
-    return render('Dashboard.html', 'Tableau de Bord');
-  }
-}
-
-function render(file, title) {
-  const output = HtmlService.createTemplateFromFile(file).evaluate();
-  output.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
-  output.setTitle(title);
-  return output;
+  return ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader('Access-Control-Allow-Origin', '*') // IMPORTANT pour le développement local et les hébergements externes
+    .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
 }
 
 /**
- * Retourne l'URL de l'application web déployée.
+ * Point d'entrée pour les requêtes POST.
  */
-function getAppUrl() {
-  return "https://script.google.com/macros/s/AKfycbxaTz4mePxXYw9mArvGFXj2QLACCRi4vUBr6QMbCDU5zT9PMBcO_UOlDE7RMgZXLAp4ug/exec";
+function doPost(e) {
+  const requestData = JSON.parse(e.postData.contents);
+  const action = requestData.action;
+  let result;
+
+  switch (action) {
+    case 'handleLeadCapture':
+      result = handleLeadCapture(requestData.payload || {});
+      break;
+    case 'saveProfile':
+      result = saveProfile(requestData.payload || {});
+      break;
+    case 'registerUser':
+      result = registerUser(requestData.payload.email, requestData.payload.password);
+      break;
+    case 'loginUser':
+      result = loginUser(requestData.payload.email, requestData.payload.password);
+      break;
+    case 'logout':
+      result = logout();
+      break;
+    case 'updateOnboardingData':
+      result = updateOnboardingData(requestData.payload || {});
+      break;
+    case 'syncCart':
+      // Pour l'instant, on ne fait que logger. La logique complète serait à implémenter.
+      Logger.log('Panier synchronisé: ' + JSON.stringify(requestData.payload));
+      result = { success: true };
+      break;
+    case 'createCheckoutSession':
+      result = createCheckoutSession(requestData.payload || []);
+      break;
+    case 'setModuleState':
+      result = setModuleState(requestData.payload.moduleName, requestData.payload.isEnabled);
+      break;
+    case 'generateGoogleWalletPass':
+      result = generateGoogleWalletPass();
+      break;
+    case 'trackView':
+      result = trackView(requestData.payload.profileUrl, requestData.payload.source);
+      break;
+    default:
+      result = { error: 'Action POST non reconnue.' };
+      break;
+  }
 }
 
 /**
@@ -310,9 +360,12 @@ function saveProfile(data) {
  * @param {string} source - La source de la vue ('NFC', 'QR', 'Lien').
  */
 function trackView(profileUrl, source) {
-  const statsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Statistiques');
-  statsSheet.appendRow([profileUrl, new Date(), source]);
-  Logger.log(`Vue enregistrée pour ${profileUrl} depuis ${source}`);
+  try {
+    const statsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Statistiques');
+    statsSheet.appendRow([profileUrl, new Date(), source]);
+    Logger.log(`Vue enregistrée pour ${profileUrl} depuis ${source}`);
+    return { success: true };
+  } catch(e) { return { success: false, error: e.message }; }
 }
 
 /**
@@ -374,6 +427,29 @@ function setModuleState(moduleName, isEnabled) {
 }
 
 /**
+ * Exporte les prospects de l'utilisateur connecté au format CSV.
+ * @returns {string} Une chaîne de caractères contenant les données au format CSV.
+ */
+function exportLeadsAsCSV() {
+  try {
+    const user = authenticateUser();
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const prospectsSheet = ss.getSheetByName('Prospects');
+    const data = prospectsSheet.getDataRange().getValues();
+    const headers = data.shift();
+    
+    const userProspects = data.filter(row => row[0] === user.ID_Unique);
+
+    let csvContent = headers.join(',') + '\n';
+    userProspects.forEach(row => {
+      csvContent += row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',') + '\n';
+    });
+    return csvContent;
+  } catch (e) {
+    return "Erreur lors de la génération du CSV: " + e.message;
+  }
+}
+/**
  * Met à jour les données et le statut de l'utilisateur pendant l'onboarding.
  * @param {Object} request - Contient l'étape et les données à sauvegarder.
  */
@@ -395,21 +471,19 @@ function updateOnboardingData(request) {
       userSheet.getRange(sheetRow, statusCol).setValue('COMPLETED');
     } else if (request.data) {
       // Sauvegarder les données dans la feuille Profils via saveProfile
-      if (request.data.Nom_Complet) {
-        saveProfile(request.data); // Envoie tout l'objet de données
+      if (Object.keys(request.data).some(k => ['Nom_Complet', 'Profession', 'Compagnie', 'Location'].includes(k))) {
+        saveProfile(request.data);
       }
       // Sauvegarder les données dans la feuille Utilisateurs
       if (request.data.Role) {
         const roleCol = userHeaders.indexOf('Role') + 1;
         userSheet.getRange(sheetRow, roleCol).setValue(request.data.Role);
       }
-      if (request.data.Role) {
-        const roleCol = userHeaders.indexOf('Role') + 1;
-        userSheet.getRange(sheetRow, roleCol).setValue(request.data.Role);
-      }
     }
+    return { success: true };
   } catch (e) {
     Logger.log(`Erreur dans updateOnboardingData: ${e.message}`);
+    return { success: false, error: e.message };
   }
 }
 

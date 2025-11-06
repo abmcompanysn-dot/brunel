@@ -157,9 +157,7 @@
 
     </div>
 
-    <script src="<?!= getAppUrl() ?>?page=config"></script>
-
-    <script>const APP_URL = "<?!= getAppUrl() ?>";</script>
+    <script src="config.js"></script>
 
     <script>
         let currentStep = 1;
@@ -173,7 +171,7 @@
                 onboardingData.phone = document.getElementById('phone').value;
                 onboardingData.fullName = `${onboardingData.firstName} ${onboardingData.lastName}`;
                 // Envoyer les données de l'étape 1 au backend
-                google.script.run.updateOnboardingData({ step: 1, data: { Nom_Complet: onboardingData.fullName } });
+                updateOnboardingData({ step: 1, data: { Nom_Complet: onboardingData.fullName } });
             }
             if (currentStep === 3) {
                 const profileDetails = {
@@ -182,7 +180,7 @@
                     Location: document.getElementById('location').value,
                 };
                 // Envoyer les données de l'étape 3
-                google.script.run.updateOnboardingData({ step: 3, data: profileDetails });
+                updateOnboardingData({ step: 3, data: profileDetails });
             }
 
             // Cacher l'étape actuelle
@@ -196,19 +194,32 @@
         function selectPlatform(type) {
             onboardingData.accountType = type;
             // Sauvegarder le type de compte et mettre à jour le statut
-            google.script.run.updateOnboardingData({ step: 2, data: { Role: type === 'team' ? 'Admin' : 'Particulier' } });
+            updateOnboardingData({ step: 2, data: { Role: type === 'team' ? 'Admin' : 'Particulier' } });
             goToStep(3);
         }
 
         function finishOnboarding() {
             // Mettre à jour le statut final et rediriger
-            google.script.run
-                .withSuccessHandler(() => {
-                    // Rediriger vers l'URL de base, qui mènera maintenant au tableau de bord
-                    // Utilisation de top pour sortir de l'iframe d'Apps Script et de APP_URL pour la cohérence
-                    window.top.location.href = APP_URL;
-                })
-                .updateOnboardingData({ step: 'final', data: {} }); // Envoyer un objet de données vide pour la dernière étape
+            updateOnboardingData({ step: 'final', data: {} })
+                .then(() => {
+                    window.location.href = 'Dashboard.html';
+                });
+        }
+
+        function updateOnboardingData(payload) {
+            return fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'updateOnboardingData', payload: payload })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) {
+                    console.error('Erreur Onboarding:', data.error);
+                    alert('Une erreur est survenue durant la configuration.');
+                }
+                return data;
+            });
         }
     </script>
 </body>

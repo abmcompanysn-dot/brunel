@@ -297,9 +297,7 @@
         </div>
     </main>
 
-    <script src="<?!= getAppUrl() ?>?page=config"></script>
-
-    <script>const APP_URL = "<?!= getAppUrl() ?>";</script>
+    <script src="config.js"></script>
 
     <script>
         function toggleForms() {
@@ -339,35 +337,30 @@
             button.disabled = true;
             button.textContent = 'Chargement...';
 
-            const onSuccess = (response) => {
+            const payload = { email, password };
+            const action = isRegister ? 'registerUser' : 'loginUser';
+
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: action, payload: payload })
+            })
+            .then(res => res.json())
+            .then(response => {
                 if (response.success) {
-                    // Rediriger vers la page d'accueil, qui gérera la redirection finale
-                    window.location.href = APP_URL;
+                    // Rediriger vers le tableau de bord
+                    window.location.href = 'Dashboard.html';
                 } else {
-                    // Ce cas ne devrait pas arriver si une erreur est levée
-                    showError(formId, response.message || 'Une erreur est survenue.');
+                    showError(formId, response.error || 'Une erreur est survenue.');
                     button.disabled = false;
                     button.textContent = isRegister ? 'Créer un compte' : 'Se connecter';
                 }
-            };
-
-            const onFailure = (error) => {
-                showError(formId, error.message);
+            })
+            .catch(error => {
+                showError(formId, 'Erreur de communication avec le serveur.');
                 button.disabled = false;
                 button.textContent = isRegister ? 'Créer un compte' : 'Se connecter';
-            };
-
-            if (isRegister) {
-                google.script.run
-                    .withSuccessHandler(onSuccess)
-                    .withFailureHandler(onFailure)
-                    .registerUser(email, password);
-            } else {
-                google.script.run
-                    .withSuccessHandler(onSuccess)
-                    .withFailureHandler(onFailure)
-                    .loginUser(email, password);
-            }
+            });
         }
 
         // --- Fonctions pour le header ---

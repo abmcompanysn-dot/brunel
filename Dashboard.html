@@ -415,7 +415,7 @@
                 </a>
             </nav>
             <nav> <!-- Conteneur séparé pour le bouton de déconnexion -->
-                <a href="#" onclick="google.script.run.logout()" title="Déconnexion">
+                <a href="#" onclick="logout()" title="Déconnexion">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                     <span>Déconnexion</span>
                 </a>
@@ -658,7 +658,7 @@
         </div>
     </div>
 
-    <script src="<?!= getAppUrl() ?>?page=config"></script>
+    <script src="config.js"></script>
 
     <script>
         function toggleSidebar() {
@@ -730,11 +730,37 @@
 
         function toggleModule(moduleName, isEnabled) {
             console.log(`Module ${moduleName} : ${isEnabled}`);
-            google.script.run.withFailureHandler(err => alert(err.message)).setModuleState(moduleName, isEnabled);
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'setModuleState', payload: { moduleName, isEnabled } })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (!data.success) alert('Erreur lors de la mise à jour du module.');
+            })
+            .catch(err => alert('Erreur de communication.'));
         }
 
         function exportLeads() {
-            google.script.run.exportLeadsAsCSV();
+            fetch(`${API_URL}?action=exportLeadsAsCSV`)
+                .then(response => response.text())
+                .then(csvContent => {
+                    if (csvContent.startsWith("Erreur")) {
+                        alert(csvContent);
+                        return;
+                    }
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement("a");
+                    const url = URL.createObjectURL(blob);
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", "prospects_brunel.csv");
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                })
+                .catch(err => alert("Erreur lors de l'exportation : " + err));
         }
 
         function previewImage(event) {
@@ -826,17 +852,25 @@
         }
 
         function saveDataToSheet(data) {
-             google.script.run
-                 .withSuccessHandler(response => {
-                     alert(response.message || 'Profil sauvegardé !');
-                     document.getElementById('save-button').textContent = 'Sauvegarder les changements';
-                     document.getElementById('save-button').disabled = false;
-                     closeModal('profil-edit-modal');
-                     // Recharger les données pour voir les changements
-                     google.script.run.withSuccessHandler(populateDashboard).getDashboardData();
-                 })
-                 .withFailureHandler(err => alert(err.message))
-                 .saveProfile(data);
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'saveProfile', payload: data })
+            })
+            .then(res => res.json())
+            .then(response => {
+                alert(response.message || 'Profil sauvegardé !');
+                document.getElementById('save-button').textContent = 'Sauvegarder les changements';
+                document.getElementById('save-button').disabled = false;
+                closeModal('profil-edit-modal');
+                // Recharger les données pour voir les changements
+                fetchDashboardData();
+            })
+            .catch(err => {
+                alert('Erreur de sauvegarde: ' + err.message);
+                document.getElementById('save-button').textContent = 'Sauvegarder les changements';
+                document.getElementById('save-button').disabled = false;
+            });
         }
     </script>
 
@@ -851,16 +885,21 @@
             button.textContent = 'Génération...';
             button.disabled = true;
 
-            google.script.run
-                .withSuccessHandler(response => {
-                    if (response.success) {
-                        window.open(`https://pay.google.com/gp/v/save/${response.jwt}`, '_blank');
-                    } else {
-                        alert("Erreur lors de la génération de la carte Google Wallet : " + response.error);
-                    }
-                    button.textContent = 'Add to Google Wallet';
-                    button.disabled = false;
-                }).generateGoogleWalletPass();
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'generateGoogleWalletPass' })
+            })
+            .then(res => res.json())
+            .then(response => {
+                if (response.success) {
+                    window.open(`https://pay.google.com/gp/v/save/${response.jwt}`, '_blank');
+                } else {
+                    alert("Erreur lors de la génération de la carte Google Wallet : " + response.error);
+                }
+                button.textContent = 'Add to Google Wallet';
+                button.disabled = false;
+            }).catch(err => alert('Erreur de communication avec le serveur.'));
         } 
     </script>
     
@@ -869,21 +908,27 @@
     <script src="https://unpkg.com/feather-icons"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Appeler la fonction Apps Script pour obtenir les données du graphique
-            // ET les données du dashboard
-            google.script.run
-                .withSuccessHandler(drawChart)
-                .withFailureHandler(onChartError)
-                .getDashboardStats();
-            
-            google.script.run
-                .withSuccessHandler(populateDashboard)
-                .withFailureHandler(onDashboardError)
-                .getDashboardData();
+            fetchDashboardData();
+            fetchStatsData();
             
             // Initialiser les icônes Feather
             feather.replace();
         });
+
+        function fetchDashboardData() {
+            fetch(`${API_URL}?action=getDashboardData`)
+                .then(res => res.json())
+                .then(populateDashboard)
+                .catch(onDashboardError);
+        }
+
+        function fetchStatsData() {
+            fetch(`${API_URL}?action=getDashboardStats`)
+                .then(res => res.json())
+                .then(drawChart)
+                .catch(onChartError);
+        }
+
 
         function onDashboardError(error) {
             console.error("Erreur de chargement du dashboard:", error.message);
@@ -1149,6 +1194,15 @@
                     `;
                 }
             });
+        }
+
+        function logout() {
+            fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'logout' })
+            })
+            .finally(() => window.location.href = 'index.html'); // Redirige dans tous les cas
         }
     </script>
 </body>

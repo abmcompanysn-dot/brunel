@@ -479,7 +479,7 @@
 
     <div id="back-to-top" onclick="scrollToTop()">&#8679;</div>
 
-    <script src="<?!= getAppUrl() ?>?page=config"></script>
+    <script src="config.js"></script>
 
     <script>
         function addToCart(id, name, price) {
@@ -493,9 +493,12 @@
             localStorage.setItem('cart', JSON.stringify(cart));
             alert(name + ' a été ajouté au panier !');
             // Si l'utilisateur est connecté, synchroniser le panier avec le backend
-            if (typeof IS_LOGGED_IN !== 'undefined' && IS_LOGGED_IN) {
-                google.script.run.withFailureHandler(err => console.error('Erreur de synchro panier:', err))
-                                 .syncCart(cart);
+            if (localStorage.getItem('userIsLoggedIn') === 'true') { // On se base sur un flag simple
+                fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ action: 'syncCart', payload: cart })
+                }).catch(err => console.error('Erreur de synchro panier:', err));
             }
             updateCartCounter();
         }
@@ -567,11 +570,13 @@
         // Logique pour le bouton de connexion dynamique
         document.addEventListener('DOMContentLoaded', () => {
             updateCartCounter();
-            if (typeof IS_LOGGED_IN !== 'undefined' && IS_LOGGED_IN) {
-                const loginLink = document.querySelector('.nav-actions a.primary');
-                if(loginLink) {
-                    loginLink.textContent = 'Tableau de bord';
-                }
+            // On ne peut plus utiliser IS_LOGGED_IN. On pourrait utiliser un cookie ou localStorage
+            // après une connexion réussie. Pour l'instant, on laisse le bouton "Connexion".
+            // La redirection se fera côté serveur ou après la connexion.
+            const loginLink = document.getElementById('login-link');
+            if (loginLink && localStorage.getItem('userIsLoggedIn') === 'true') {
+                loginLink.textContent = 'Tableau de bord';
+                loginLink.href = 'Dashboard.html';
             }
         });
 

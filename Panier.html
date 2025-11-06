@@ -303,7 +303,7 @@
         </section>
     </main>
 
-    <script src="<?!= getAppUrl() ?>?page=config"></script>
+    <script src="config.js"></script>
 
     <script>
         function displayCart() {
@@ -409,18 +409,24 @@
                         checkoutButton.disabled = true;
                         checkoutButton.textContent = 'Préparation...';
 
-                        google.script.run
-                            .withSuccessHandler(response => {
+                        fetch(API_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify({ action: 'createCheckoutSession', payload: cart })
+                        })
+                        .then(res => res.json())
+                        .then(response => {
                                 if (response.checkoutUrl) {
                                     window.location.href = response.checkoutUrl; // Rediriger vers la page de paiement
                                 } else {
                                     alert(response.error || "Impossible de procéder au paiement.");
                                     checkoutButton.disabled = false;
                                     checkoutButton.textContent = 'Passer au paiement';
-                                }
-                            })
-                            .withFailureHandler(err => alert(err.message))
-                            .createCheckoutSession(cart);
+                                }})
+                        .catch(err => {
+                            alert('Erreur de communication: ' + err.message);
+                            checkoutButton.disabled = false;
+                            checkoutButton.textContent = 'Passer au paiement';});
                     }
                 });
             }
