@@ -5,8 +5,9 @@
 function doGet(e) {
   // doGet ne sera plus utilisé pour les actions, mais peut servir de "ping" pour vérifier que l'API est en ligne.
   return ContentService.createTextOutput(JSON.stringify({ status: 'API en ligne', message: 'Veuillez utiliser des requêtes POST.' }))
-    .setMimeType(ContentService.MimeType.JSON);
-    // Les setHeader ont été supprimés pour éviter la TypeError.
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader('Access-Control-Allow-Origin', '*') // Autorise toutes les origines
+    .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
 }
 
 /**
@@ -68,7 +69,8 @@ function doPost(e) {
     case 'exportLeadsAsCSV':
       // Cas spécial : renvoie du texte brut, pas du JSON.
       return ContentService.createTextOutput(exportLeadsAsCSV())
-        .setMimeType(ContentService.MimeType.TEXT); // setHeader supprimé ici
+        .setMimeType(ContentService.MimeType.TEXT)
+        .setHeader('Access-Control-Allow-Origin', '*');
       break;
     default:
       result = { error: 'Action POST non reconnue.' };
@@ -76,8 +78,9 @@ function doPost(e) {
   }
 
   return ContentService.createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON);
-    // Les setHeader ont été supprimés ici pour éviter la TypeError.
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader('Access-Control-Allow-Origin', '*') // Autorise toutes les origines
+    .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
 }
 
 /**
@@ -85,7 +88,7 @@ function doPost(e) {
  */
 function doOptions(e) {
   return ContentService.createTextOutput()
-    .setHeader('Access-Control-Allow-Origin', 'https://brunel.abmcy.com')
+    .setHeader('Access-Control-Allow-Origin', '*') // Autorise toutes les origines
     .setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
     .setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
