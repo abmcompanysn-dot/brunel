@@ -160,6 +160,26 @@
     <script src="config.js"></script>
 
     <script>
+        /**
+         * Fonction centralisée pour appeler l'API backend via POST.
+         * @param {string} action - Le nom de l'action à exécuter côté serveur.
+         * @param {Object} [data={}] - Un objet contenant les données à envoyer.
+         * @returns {Promise<Object>} Une promesse qui se résout avec la réponse JSON de l'API.
+         */
+        function callApi(action, data = {}) {
+            const formData = new FormData();
+            formData.append('action', action);
+
+            // Ajouter chaque clé de l'objet data au FormData
+            for (const key in data) {
+                // Si la valeur est un objet, la stringifier en JSON
+                const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
+                formData.append(key, value);
+            }
+
+            return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
+        }
+
         let currentStep = 1;
         const onboardingData = {};
 
@@ -207,19 +227,14 @@
         }
 
         function updateOnboardingData(payload) {
-            return fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'updateOnboardingData', payload: payload })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (!data.success) {
-                    console.error('Erreur Onboarding:', data.error);
-                    alert('Une erreur est survenue durant la configuration.');
-                }
-                return data;
-            });
+            return callApi('updateOnboardingData', { payload: payload })
+                .then(data => {
+                    if (!data.success) {
+                        console.error('Erreur Onboarding:', data.error);
+                        alert('Une erreur est survenue durant la configuration.');
+                    }
+                    return data;
+                });
         }
     </script>
 </body>

@@ -3,79 +3,74 @@
  * Le frontend appellera des URLs comme ".../exec?action=getProfileData&user=monprofil"
  */
 function doGet(e) {
-  const action = e.parameter.action;
-  let result;
-
-  // NOTE: La logique d'authentification doit être repensée pour une API (ex: avec des tokens JWT).
-  // Pour l'instant, on se base sur des actions publiques ou des actions qui nécessitent une session.
-  
-  switch (action) {
-    case 'getProfileData':
-      result = getProfileData(e.parameter.user);
-      break;
-    case 'getDashboardData':
-      result = getDashboardData(); // Supposera un utilisateur authentifié via sa session Google
-      break;
-    case 'getDashboardStats':
-      result = getDashboardStats();
-      break;
-    case 'exportLeadsAsCSV':
-      // Cette action renverra directement le contenu CSV
-      return ContentService.createTextOutput(exportLeadsAsCSV()).setMimeType(ContentService.MimeType.TEXT);
-    default:
-      result = { error: 'Action non reconnue.' };
-      break;
-  }
-
-  return ContentService.createTextOutput(JSON.stringify(result))
+  // doGet ne sera plus utilisé pour les actions, mais peut servir de "ping" pour vérifier que l'API est en ligne.
+  return ContentService.createTextOutput(JSON.stringify({ status: 'API en ligne', message: 'Veuillez utiliser des requêtes POST.' }))
     .setMimeType(ContentService.MimeType.JSON)
     .setHeader('Access-Control-Allow-Origin', 'https://brunel.abmcy.com') // Autorise votre site
     .setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
 }
 
 /**
- * Point d'entrée pour les requêtes POST.
+ * Point d'entrée UNIQUE pour toutes les actions de l'API.
  */
 function doPost(e) {
-  const requestData = JSON.parse(e.postData.contents);
-  const action = requestData.action;
+  // Avec FormData, les paramètres sont dans e.parameter
+  const action = e.parameter.action;
+  // Pour les données complexes envoyées en JSON, on les récupère de e.postData.contents
+  const payload = e.parameter.payload ? JSON.parse(e.parameter.payload) : {};
   let result;
 
   switch (action) {
     case 'handleLeadCapture':
-      result = handleLeadCapture(requestData.payload || {});
+      result = handleLeadCapture(payload);
       break;
     case 'saveProfile':
-      result = saveProfile(requestData.payload || {});
+      result = saveProfile(payload);
       break;
     case 'registerUser':
-      result = registerUser(requestData.payload.email, requestData.payload.password);
+      result = registerUser(payload.email, payload.password);
       break;
     case 'loginUser':
-      result = loginUser(requestData.payload.email, requestData.payload.password);
+      result = loginUser(payload.email, payload.password);
       break;
     case 'logout':
       result = logout();
       break;
     case 'updateOnboardingData':
-      result = updateOnboardingData(requestData.payload || {});
+      result = updateOnboardingData(payload);
       break;
     case 'syncCart':
       // Pour l'instant, on ne fait que logger. La logique complète serait à implémenter.
-      Logger.log('Panier synchronisé: ' + JSON.stringify(requestData.payload));
+      Logger.log('Panier synchronisé: ' + JSON.stringify(payload));
       result = { success: true };
       break;
     case 'createCheckoutSession':
-      result = createCheckoutSession(requestData.payload || []);
+      result = createCheckoutSession(payload);
       break;
     case 'setModuleState':
-      result = setModuleState(requestData.payload.moduleName, requestData.payload.isEnabled);
+      result = setModuleState(payload.moduleName, payload.isEnabled);
       break;
     case 'generateGoogleWalletPass':
       result = generateGoogleWalletPass();
       break;
     case 'trackView':
-      result = trackView(requestData.payload.profileUrl, requestData.payload.source);
+      result = trackView(payload.profileUrl, payload.source);
+      break;
+    // Les actions qui étaient en GET sont maintenant ici
+    case 'getProfileData':
+      result = getProfileData(e.parameter.user); // 'user' est passé comme un paramètre simple
+      break;
+    case 'getDashboardData':
+      result = getDashboardData();
+      break;
+    case 'getDashboardStats':
+      result = getDashboardStats();
+      break;
+    case 'exportLeadsAsCSV':
+      // Cas spécial : renvoie du texte brut, pas du JSON.
+      return ContentService.createTextOutput(exportLeadsAsCSV())
+        .setMimeType(ContentService.MimeType.TEXT)
+        .setHeader('Access-Control-Allow-Origin', 'https://brunel.abmcy.com');
       break;
     default:
       result = { error: 'Action POST non reconnue.' };

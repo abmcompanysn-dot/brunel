@@ -676,6 +676,26 @@
     <script src="config.js"></script>
 
     <script>
+        /**
+         * Fonction centralisée pour appeler l'API backend via POST.
+         * @param {string} action - Le nom de l'action à exécuter côté serveur.
+         * @param {Object} [data={}] - Un objet contenant les données à envoyer.
+         * @returns {Promise<Object>} Une promesse qui se résout avec la réponse JSON de l'API.
+         */
+        function callApi(action, data = {}) {
+            const formData = new FormData();
+            formData.append('action', action);
+
+            // Ajouter chaque clé de l'objet data au FormData
+            for (const key in data) {
+                // Si la valeur est un objet, la stringifier en JSON
+                const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
+                formData.append(key, value);
+            }
+
+            return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
+        }
+
         function toggleSidebar() {
             const sidebar = document.querySelector('.sidebar');
             const mainContent = document.querySelector('.main-content');
@@ -745,45 +765,6 @@
 
         function toggleModule(moduleName, isEnabled) {
             console.log(`Module ${moduleName} : ${isEnabled}`);
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'setModuleState', payload: { moduleName, isEnabled } })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (!data.success) alert('Erreur lors de la mise à jour du module.');
-            })
-            .catch(err => alert('Erreur de communication.'));
-        }
-
-        function exportLeads() {
-            fetch(`${API_URL}?action=exportLeadsAsCSV`)
-                .then(response => response.text())
-                .then(csvContent => {
-                    if (csvContent.startsWith("Erreur")) {
-                        alert(csvContent);
-                        return;
-                    }
-                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                    const link = document.createElement("a");
-                    const url = URL.createObjectURL(blob);
-                    link.setAttribute("href", url);
-                    link.setAttribute("download", "prospects_brunel.csv");
-                    link.style.visibility = 'hidden';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                })
-                .catch(err => alert("Erreur lors de l'exportation : " + err));
-        }
-
-        function previewImage(event) {
-            const reader = new FileReader();
-            reader.onload = function(){
-                const output = document.getElementById('image-preview');
-                output.src = reader.result;
-            };
             reader.readAsDataURL(event.target.files[0]);
         }
 
@@ -867,25 +848,19 @@
         }
 
         function saveDataToSheet(data) {
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'saveProfile', payload: data })
-            })
-            .then(res => res.json())
-            .then(response => {
-                alert(response.message || 'Profil sauvegardé !');
-                document.getElementById('save-button').textContent = 'Sauvegarder les changements';
-                document.getElementById('save-button').disabled = false;
-                closeModal('profil-edit-modal');
-                // Recharger les données pour voir les changements
-                fetchDashboardData();
-            })
-            .catch(err => {
-                alert('Erreur de sauvegarde: ' + err.message);
-                document.getElementById('save-button').textContent = 'Sauvegarder les changements';
-                document.getElementById('save-button').disabled = false;
-            });
+            callApi('saveProfile', { payload: data })
+                .then(response => {
+                    alert(response.message || 'Profil sauvegardé !');
+                    document.getElementById('save-button').textContent = 'Sauvegarder les changements';
+                    document.getElementById('save-button').disabled = false;
+                    closeModal('profil-edit-modal');
+                    fetchDashboardData(); // Recharger les données
+                })
+                .catch(err => {
+                    alert('Erreur de sauvegarde: ' + err.message);
+                    document.getElementById('save-button').textContent = 'Sauvegarder les changements';
+                    document.getElementById('save-button').disabled = false;
+                });
         }
     </script>
 
@@ -900,21 +875,17 @@
             button.textContent = 'Génération...';
             button.disabled = true;
 
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'generateGoogleWalletPass' })
-            })
-            .then(res => res.json())
-            .then(response => {
-                if (response.success) {
-                    window.open(`https://pay.google.com/gp/v/save/${response.jwt}`, '_blank');
-                } else {
-                    alert("Erreur lors de la génération de la carte Google Wallet : " + response.error);
-                }
-                button.textContent = 'Add to Google Wallet';
-                button.disabled = false;
-            }).catch(err => alert('Erreur de communication avec le serveur.'));
+            callApi('generateGoogleWalletPass')
+                .then(response => {
+                    if (response.success) {
+                        window.open(`https://pay.google.com/gp/v/save/${response.jwt}`, '_blank');
+                    } else {
+                        alert("Erreur lors de la génération de la carte Google Wallet : " + response.error);
+                    }
+                    button.textContent = 'Add to Google Wallet';
+                    button.disabled = false;
+                })
+                .catch(err => alert('Erreur de communication avec le serveur.'));
         } 
     </script>
     
@@ -925,21 +896,17 @@
         document.addEventListener('DOMContentLoaded', function() {
             fetchDashboardData();
             fetchStatsData();
-            
-            // Initialiser les icônes Feather
             feather.replace();
         });
 
         function fetchDashboardData() {
-            fetch(`${API_URL}?action=getDashboardData`)
-                .then(res => res.json())
+            callApi('getDashboardData')
                 .then(populateDashboard)
                 .catch(onDashboardError);
         }
 
         function fetchStatsData() {
-            fetch(`${API_URL}?action=getDashboardStats`)
-                .then(res => res.json())
+            callApi('getDashboardStats')
                 .then(drawChart)
                 .catch(onChartError);
         }
@@ -1212,12 +1179,8 @@
         }
 
         function logout() {
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: 'logout' })
-            })
-            .finally(() => window.location.href = 'index.html'); // Redirige dans tous les cas
+            callApi('logout')
+                .finally(() => window.location.href = 'index.html');
         }
     </script>
 </body>

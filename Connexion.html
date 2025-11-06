@@ -304,6 +304,26 @@
     <script src="config.js"></script>
 
     <script>
+        /**
+         * Fonction centralisée pour appeler l'API backend via POST.
+         * @param {string} action - Le nom de l'action à exécuter côté serveur.
+         * @param {Object} [data={}] - Un objet contenant les données à envoyer.
+         * @returns {Promise<Object>} Une promesse qui se résout avec la réponse JSON de l'API.
+         */
+        function callApi(action, data = {}) {
+            const formData = new FormData();
+            formData.append('action', action);
+
+            // Ajouter chaque clé de l'objet data au FormData
+            for (const key in data) {
+                // Si la valeur est un objet, la stringifier en JSON
+                const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
+                formData.append(key, value);
+            }
+
+            return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
+        }
+
         function toggleForms() {
             const loginForm = document.getElementById('login-form');
             const registerForm = document.getElementById('register-form');
@@ -341,33 +361,27 @@
             button.disabled = true;
             button.textContent = 'Chargement...';
 
-            const payload = { email, password };
             const action = isRegister ? 'registerUser' : 'loginUser';
 
-            fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify({ action: action, payload: payload })
-            })
-            .then(res => res.json())
-            .then(response => {
-                if (response.success) {
-                    if (response.newUser) {
-                        window.location.href = 'Onboarding.html'; // Redirection pour les nouveaux utilisateurs
+            callApi(action, { payload: { email, password } })
+                .then(response => {
+                    if (response.success) {
+                        if (response.newUser) {
+                            window.location.href = 'Onboarding.html'; // Redirection pour les nouveaux utilisateurs
+                        } else {
+                            window.location.href = 'Dashboard.html'; // Redirection pour les utilisateurs existants
+                        }
                     } else {
-                        window.location.href = 'Dashboard.html'; // Redirection pour les utilisateurs existants
+                        showError(formId, response.error || 'Une erreur est survenue.');
+                        button.disabled = false;
+                        button.textContent = isRegister ? 'Créer un compte' : 'Se connecter';
                     }
-                } else {
-                    showError(formId, response.error || 'Une erreur est survenue.');
+                })
+                .catch(error => {
+                    showError(formId, 'Erreur de communication avec le serveur.');
                     button.disabled = false;
                     button.textContent = isRegister ? 'Créer un compte' : 'Se connecter';
-                }
-            })
-            .catch(error => {
-                showError(formId, 'Erreur de communication avec le serveur.');
-                button.disabled = false;
-                button.textContent = isRegister ? 'Créer un compte' : 'Se connecter';
-            });
+                });
         }
 
         // --- Fonctions pour le header ---
