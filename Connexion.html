@@ -366,6 +366,8 @@
             callApi(action, { payload: { email, password } })
                 .then(response => {
                     if (response.success) {
+                        localStorage.setItem('authToken', response.token); // Sauvegarder le token !
+                        localStorage.setItem('userIsLoggedIn', 'true');
                         if (response.newUser) {
                             window.location.href = 'Onboarding.html'; // Redirection pour les nouveaux utilisateurs
                         } else {

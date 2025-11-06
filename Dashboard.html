@@ -684,6 +684,11 @@
          */
         function callApi(action, data = {}) {
             const formData = new FormData();
+            const token = localStorage.getItem('authToken');
+            if (!token && action !== 'loginUser' && action !== 'registerUser') {
+                // Si pas de token et que l'action n'est pas une connexion/inscription, rediriger.
+                window.location.href = 'Connexion.html';
+            }
             formData.append('action', action);
 
             // Ajouter chaque clé de l'objet data au FormData
@@ -692,6 +697,7 @@
                 const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
                 formData.append(key, value);
             }
+            formData.append('token', token); // Ajouter le token à chaque requête !
 
             return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
         }
@@ -1180,6 +1186,7 @@
 
         function logout() {
             callApi('logout')
+                .then(() => localStorage.removeItem('authToken')) // Supprimer le token
                 .finally(() => window.location.href = 'index.html');
         }
     </script>

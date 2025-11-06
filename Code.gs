@@ -17,7 +17,7 @@ function doGet(e) {
  */
 function doPost(e) {
   try {
-    const userEmail = Session.getActiveUser().getEmail();
+    const userEmail = e.parameter.token ? getUserByToken(e.parameter.token)?.Email : 'anonyme';
     const action = e.parameter.action;
     const payload = e.parameter.payload ? JSON.parse(e.parameter.payload) : {};
     let result;
@@ -53,7 +53,7 @@ function doPost(e) {
     return corsify(result);
   } catch (err) {
     const errorMessage = `Erreur dans l'action '${e.parameter.action}': ${err.message} (Ligne: ${err.lineNumber})`;
-    logAction(e.parameter.action, 'ERROR', errorMessage, Session.getActiveUser().getEmail(), 'Vérifiez que les données envoyées sont correctes et que les feuilles Google Sheets ne sont pas corrompues. Si l\'erreur persiste, contactez le support technique.');
+    logAction(e.parameter.action, 'ERROR', errorMessage, e.parameter.token ? 'Token: ' + e.parameter.token : 'anonyme', 'Vérifiez que les données envoyées sont correctes et que les feuilles Google Sheets ne sont pas corrompues. Si l\'erreur persiste, contactez le support technique.');
     return corsify({ error: "Une erreur interne est survenue. L'incident a été enregistré." });
   }
 }
@@ -115,7 +115,7 @@ function onOpen() {
 function setupSpreadsheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheetsToCreate = [
-    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status'] },
+    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration'] },
     { name: 'Profils', headers: ['ID_Utilisateur', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'Couleur_Theme', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
@@ -161,7 +161,7 @@ function verifyAndFixSheetStructure() {
   let corrections = [];
 
   const requiredSheets = [
-    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status'] },
+    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration'] },
     { name: 'Profils', headers: ['ID_Utilisateur', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'Couleur_Theme', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
@@ -276,7 +276,10 @@ function registerUser(email, password) {
   // Créer le nouvel utilisateur
   const newId = 'user_' + Utilities.getUuid();
   const profileUrl = email.split('@')[0].replace(/[^a-z0-9]/gi, '') + Math.floor(Math.random() * 1000);
-  const newUserRow = [newId, email, '', 'Particulier', profileUrl, '[]', 'ONBOARDING_STARTED'];
+  const token = Utilities.getUuid();
+  const expiration = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000); // Expire dans 7 jours
+
+  const newUserRow = [newId, email, '', 'Particulier', profileUrl, '[]', 'ONBOARDING_STARTED', token, expiration];
   userSheet.appendRow(newUserRow);
 
   // Créer un profil de base associé
@@ -286,9 +289,7 @@ function registerUser(email, password) {
   SpreadsheetApp.flush();
   logAction('registerUser', 'SUCCESS', `Nouvel utilisateur créé: ${email}`, email);
   
-  // NOTE: La gestion de session/token serait nécessaire ici pour une vraie authentification.
-  // Pour l'instant, on se contente de créer l'utilisateur.
-  return { success: true, newUser: true };
+  return { success: true, newUser: true, token: token };
 }
 
 /**
@@ -302,41 +303,34 @@ function loginUser(email, password) {
   // de vérifier le mot de passe (qui devrait être chiffré).
   // Pour l'instant, on vérifie juste si l'utilisateur existe.
   const user = findUserByEmail(email);
-  if (user) {
-    return { success: true, newUser: user.Onboarding_Status !== 'COMPLETED' };
-  } else {
+  if (!user) {
     return { success: false, error: "Email ou mot de passe incorrect." };
   }
-}
-/**
- * Vérifie si l'utilisateur Google actif existe dans la feuille 'Utilisateurs'.
- * S'il n'existe pas, le crée avec un rôle par défaut.
- * @returns {Object} Les informations de l'utilisateur.
- */
-function authenticateUser() {
-  const email = Session.getActiveUser().getEmail();
-  Logger.log(`Authentification pour : ${email}`);
+
+  // Générer et sauvegarder un nouveau token
+  const token = Utilities.getUuid();
+  const expiration = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000); // 7 jours
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const userSheet = ss.getSheetByName('Utilisateurs');
   const usersData = userSheet.getDataRange().getValues();
-  const headers = usersData[0].slice(); // Copie des en-têtes
-  const users = usersData.slice(1); // Données sans en-têtes
+  const headers = usersData[0];
   const emailCol = headers.indexOf('Email');
+  const tokenCol = headers.indexOf('Auth_Token');
+  const expCol = headers.indexOf('Token_Expiration');
 
-  const userRow = users.find(row => row[emailCol] === email);
+  const userRowIndex = usersData.findIndex(row => row[emailCol] === email);
+  if (userRowIndex !== -1) {
+    userSheet.getRange(userRowIndex + 1, tokenCol + 1).setValue(token);
+    userSheet.getRange(userRowIndex + 1, expCol + 1).setValue(expiration);
+  }
 
-  // Cette fonction est pour les utilisateurs déjà connectés à Google (pour le dashboard),
-  // elle ne devrait pas créer d'utilisateur.
-  if (!userRow) throw new Error("Utilisateur non authentifié ou introuvable.");
-
-  // Convertir le tableau en objet pour une manipulation facile
-  const userObject = headers.reduce((obj, header, index) => {
-    obj[header] = userRow[index];
-    return obj;
-  }, {});
-
-  return userObject;
+  return { success: true, newUser: user.Onboarding_Status !== 'COMPLETED', token: token };
 }
+/**
+ * Récupère l'utilisateur basé sur le token fourni.
+ * @returns {Object} Les informations de l'utilisateur.
+ */
+function authenticateUser() { throw new Error("authenticateUser est obsolète. Utilisez getUserByToken."); }
 
 /**
  * Trouve un utilisateur par son email.
@@ -356,6 +350,26 @@ function findUserByEmail(email) {
   return headers.reduce((obj, header, index) => { obj[header] = userRow[index]; return obj; }, {});
 }
 
+/**
+ * Trouve un utilisateur par son token d'authentification.
+ * @param {string} token - Le token à rechercher.
+ * @returns {Object|null} L'objet utilisateur ou null s'il n'est pas trouvé ou a expiré.
+ */
+function getUserByToken(token) {
+  if (!token) return null;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const userSheet = ss.getSheetByName('Utilisateurs');
+  const usersData = userSheet.getDataRange().getValues();
+  const headers = usersData.shift();
+  const tokenCol = headers.indexOf('Auth_Token');
+  const expCol = headers.indexOf('Token_Expiration');
+
+  const userRow = usersData.find(row => row[tokenCol] === token);
+  if (!userRow || new Date(userRow[expCol]) < new Date()) {
+    return null; // Token non trouvé ou expiré
+  }
+  return headers.reduce((obj, header, index) => { obj[header] = userRow[index]; return obj; }, {});
+}
 
 /**
  * Fonction centrale pour charger toutes les données du tableau de bord en un seul appel.
@@ -363,7 +377,9 @@ function findUserByEmail(email) {
  */
 function getDashboardData() {
   try {
-    const user = authenticateUser();
+    const user = getUserByToken(e.parameter.token); // 'e' n'est pas défini ici, il faut le passer en paramètre
+    if (!user) throw new Error("Token invalide ou expiré.");
+
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     
     // Récupérer les données du profil
@@ -387,7 +403,7 @@ function getDashboardData() {
       .slice(0, 10); // Limiter aux 10 derniers
 
     // Construire l'URL de base de l'application web
-    const appUrl = ScriptApp.getService().getUrl();
+    const appUrl = "https://brunel.abmcy.com/ProfilePublic.html";
 
     return {
       user: user,
