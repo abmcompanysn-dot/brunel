@@ -253,6 +253,62 @@ function getDashboardStats() {
 }
 
 /**
+ * Gère l'inscription d'un nouvel utilisateur.
+ * @param {string} email - L'email de l'utilisateur.
+ * @param {string} password - Le mot de passe (sera stocké en clair, non recommandé pour la production).
+ * @returns {Object} Un objet indiquant le succès ou l'échec.
+ */
+function registerUser(email, password) {
+  if (!email || !password) {
+    throw new Error("L'email et le mot de passe sont requis.");
+  }
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const userSheet = ss.getSheetByName('Utilisateurs');
+  const usersData = userSheet.getDataRange().getValues();
+  const emailCol = usersData[0].indexOf('Email');
+
+  const userExists = usersData.slice(1).some(row => row[emailCol] === email);
+  if (userExists) {
+    return { success: false, error: "Cet email est déjà utilisé." };
+  }
+
+  // Créer le nouvel utilisateur
+  const newId = 'user_' + Utilities.getUuid();
+  const profileUrl = email.split('@')[0].replace(/[^a-z0-9]/gi, '') + Math.floor(Math.random() * 1000);
+  const newUserRow = [newId, email, '', 'Particulier', profileUrl, '[]', 'ONBOARDING_STARTED'];
+  userSheet.appendRow(newUserRow);
+
+  // Créer un profil de base associé
+  const profileSheet = ss.getSheetByName('Profils');
+  profileSheet.appendRow([newId, email.split('@')[0], '', '', '', '#007BFF', '', '', '[]', 'NON', 'NON', '']);
+
+  SpreadsheetApp.flush();
+  logAction('registerUser', 'SUCCESS', `Nouvel utilisateur créé: ${email}`, email);
+  
+  // NOTE: La gestion de session/token serait nécessaire ici pour une vraie authentification.
+  // Pour l'instant, on se contente de créer l'utilisateur.
+  return { success: true, newUser: true };
+}
+
+/**
+ * Gère la connexion d'un utilisateur.
+ * @param {string} email - L'email de l'utilisateur.
+ * @param {string} password - Le mot de passe.
+ * @returns {Object} Un objet indiquant le succès ou l'échec.
+ */
+function loginUser(email, password) {
+  // NOTE: Cette fonction est un placeholder. Une vraie authentification nécessiterait
+  // de vérifier le mot de passe (qui devrait être chiffré).
+  // Pour l'instant, on vérifie juste si l'utilisateur existe.
+  const user = findUserByEmail(email);
+  if (user) {
+    return { success: true, newUser: user.Onboarding_Status !== 'COMPLETED' };
+  } else {
+    return { success: false, error: "Email ou mot de passe incorrect." };
+  }
+}
+/**
  * Vérifie si l'utilisateur Google actif existe dans la feuille 'Utilisateurs'.
  * S'il n'existe pas, le crée avec un rôle par défaut.
  * @returns {Object} Les informations de l'utilisateur.
@@ -267,29 +323,11 @@ function authenticateUser() {
   const users = usersData.slice(1); // Données sans en-têtes
   const emailCol = headers.indexOf('Email');
 
-  let userRow = users.find(row => row[emailCol] === email);
+  const userRow = users.find(row => row[emailCol] === email);
 
-  if (!userRow) {
-    Logger.log(`Nouvel utilisateur : ${email}. Création du compte.`);
-    const newId = 'user_' + Utilities.getUuid();
-    const profileUrl = email.split('@')[0].replace(/[^a-z0-9]/gi, '') + Math.floor(Math.random() * 1000);
-    
-    userRow = [newId, email, '', 'Particulier', profileUrl, '[]', 'ONBOARDING_STARTED'];
-    userSheet.appendRow(userRow);
-
-    // Créer un profil de base associé
-    const profileSheet = ss.getSheetByName('Profils');
-    profileSheet.appendRow([newId, email.split('@')[0], '', '', '', '#007BFF', '', '', '[]', 'NON', 'NON', '']);
-    
-    SpreadsheetApp.flush();
-
-    // Pour la redirection côté client, on ajoute un flag
-    // NOTE: isNewRegistration n'est pas défini dans ce code snippet, 
-    // cette partie pourrait nécessiter une adaptation si vous utilisez un système de login externe.
-    if (isNewRegistration) {
-      return { success: true, newUser: true };
-    }
-  }
+  // Cette fonction est pour les utilisateurs déjà connectés à Google (pour le dashboard),
+  // elle ne devrait pas créer d'utilisateur.
+  if (!userRow) throw new Error("Utilisateur non authentifié ou introuvable.");
 
   // Convertir le tableau en objet pour une manipulation facile
   const userObject = headers.reduce((obj, header, index) => {
@@ -299,6 +337,25 @@ function authenticateUser() {
 
   return userObject;
 }
+
+/**
+ * Trouve un utilisateur par son email.
+ * @param {string} email - L'email à rechercher.
+ * @returns {Object|null} L'objet utilisateur ou null s'il n'est pas trouvé.
+ */
+function findUserByEmail(email) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const userSheet = ss.getSheetByName('Utilisateurs');
+  const usersData = userSheet.getDataRange().getValues();
+  const headers = usersData.shift();
+  const emailCol = headers.indexOf('Email');
+  const userRow = usersData.find(row => row[emailCol] === email);
+
+  if (!userRow) return null;
+
+  return headers.reduce((obj, header, index) => { obj[header] = userRow[index]; return obj; }, {});
+}
+
 
 /**
  * Fonction centrale pour charger toutes les données du tableau de bord en un seul appel.
