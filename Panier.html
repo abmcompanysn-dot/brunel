@@ -228,16 +228,25 @@
             .hero-content {
                 grid-template-columns: 1fr;
             }
+            nav ul, .nav-contact-info, .nav-actions a:not(.primary) { display: none; }
+            .menu-burger { display: block; }
+            .logo img { height: 50px !important; }
         }
 
         /* Styles spécifiques au panier */
         .cart-item {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
             padding: 20px 0;
             border-bottom: 1px solid var(--border-color);
         }
+        .cart-item-details { flex-grow: 1; }
+        .cart-item-actions { display: flex; align-items: center; gap: 10px; }
+        .quantity-input { width: 50px; text-align: center; background-color: #333; border: 1px solid #555; color: white; border-radius: 4px; }
+        .remove-btn { background: none; border: none; color: var(--red); cursor: pointer; font-size: 1.2em; }
+
         .cart-total {
             margin-top: 30px;
             text-align: right;
@@ -249,6 +258,8 @@
             width: auto;
             padding: 12px 30px;
         }
+        .menu-burger { display: none; cursor: pointer; font-size: 1.8em; }
+        .nav-links-mobile { display: none; }
 
     </style>
 </head>
@@ -256,22 +267,26 @@
     <header>
         <nav class="container">
             <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Brunel" style="height: 65px; vertical-align: middle;"></a> 
-            <ul>
+            <ul class="desktop-links">
                 <li><a href="index.html#platform-features">Nos Services</a></li>
                 <li><a href="Boutique.html">Boutique</a></li>
                 <li><a href="index.html#about">À Propos</a></li> 
-                <li><a href="#contact">Contact</a></li>
             </ul>
             <div class="nav-actions">
-                <div class="nav-contact-info">
-                    <span>📞</span>
-                    <span>+221 76 904 79 99</span>
-                </div>
                 <a href="Panier.html" id="cart-link" style="color: var(--text-light);">Panier (0)</a>
-                <a href="Connexion.html" class="primary">Connexion</a>
+                <a href="Connexion.html" class="primary" id="login-link">Connexion</a>
             </div>
+            <div class="menu-burger" onclick="toggleMobileMenu()">☰</div>
         </nav>
     </header>
+
+    <div class="nav-links-mobile">
+        <a href="index.html#platform-features" onclick="toggleMobileMenu()">Nos Services</a>
+        <a href="Boutique.html" onclick="toggleMobileMenu()">Boutique</a>
+        <a href="index.html#about" onclick="toggleMobileMenu()">À Propos</a>
+        <a href="Connexion.html" onclick="toggleMobileMenu()" class="primary">Connexion</a>
+        <a href="Panier.html" onclick="toggleMobileMenu()" id="mobile-cart-link">Panier (0)</a>
+    </div>
 
     <main>
         <section class="container">
@@ -283,7 +298,7 @@
             </div>
 
             <!-- Le bouton n'apparaît que si le panier n'est pas vide -->
-            <a href="#" id="checkout-btn" class="btn btn-gradient checkout-btn" style="display: none;">Passer au paiement</a>
+            <button id="checkout-btn" class="btn btn-gradient checkout-btn" style="display: none;">Passer au paiement</button>
 
         </section>
     </main>
@@ -311,13 +326,15 @@
                     const itemElement = document.createElement('div');
                     itemElement.className = 'cart-item';
                     const subtotal = item.price * item.quantity;
-                    itemElement.innerHTML = `
-                        <div>
+                    itemElement.innerHTML = ` 
+                        <div class="cart-item-details">
                             <h3>${item.name}</h3>
-                            <p>Quantité: ${item.quantity}</p>
+                            <p>${item.price.toFixed(2)}€ / unité</p>
                         </div>
-                        <div>
+                        <div class="cart-item-actions">
+                            <input type="number" class="quantity-input" value="${item.quantity}" min="1" onchange="updateQuantity('${item.id}', this.value)">
                             <strong>${subtotal.toFixed(2)}€</strong>
+                            <button class="remove-btn" onclick="removeFromCart('${item.id}')">&times;</button>
                         </div>
                     `;
                     cartContainer.appendChild(itemElement);
@@ -333,6 +350,26 @@
             updateCartCounter();
         }
 
+        function updateQuantity(itemId, newQuantity) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const item = cart.find(i => i.id === itemId);
+            if (item) {
+                item.quantity = parseInt(newQuantity, 10);
+                if (item.quantity < 1) {
+                    item.quantity = 1; // Quantité minimale est 1
+                }
+            }
+            localStorage.setItem('cart', JSON.stringify(cart));
+            displayCart();
+        }
+
+        function removeFromCart(itemId) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            cart = cart.filter(i => i.id !== itemId);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            displayCart();
+        }
+
         function updateCartCounter() {
             const cart = JSON.parse(localStorage.getItem('cart')) || [];
             const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -340,14 +377,57 @@
             if (cartLink) {
                 cartLink.textContent = `Panier (${totalItems})`;
             }
+            const mobileCartLink = document.getElementById('mobile-cart-link');
+            if (mobileCartLink) {
+                mobileCartLink.textContent = `Panier (${totalItems})`;
+            }
+        }
+
+        function toggleMobileMenu() {
+            const mobileMenu = document.querySelector('.nav-links-mobile');
+            const burgerIcon = document.querySelector('.menu-burger');
+            const body = document.body;
+
+            mobileMenu.classList.toggle('active');
+            body.classList.toggle('no-scroll');
+
+            if (mobileMenu.classList.contains('active')) {
+                burgerIcon.innerHTML = '✕'; // Icône de fermeture
+            } else {
+                burgerIcon.innerHTML = '☰';
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             displayCart();
+
+            const checkoutButton = document.getElementById('checkout-btn');
+            if(checkoutButton) {
+                checkoutButton.addEventListener('click', () => {
+                    const cart = JSON.parse(localStorage.getItem('cart')) || [];
+                    if (cart.length > 0) {
+                        checkoutButton.disabled = true;
+                        checkoutButton.textContent = 'Préparation...';
+
+                        google.script.run
+                            .withSuccessHandler(response => {
+                                if (response.checkoutUrl) {
+                                    window.location.href = response.checkoutUrl; // Rediriger vers la page de paiement
+                                } else {
+                                    alert(response.error || "Impossible de procéder au paiement.");
+                                    checkoutButton.disabled = false;
+                                    checkoutButton.textContent = 'Passer au paiement';
+                                }
+                            })
+                            .withFailureHandler(err => alert(err.message))
+                            .createCheckoutSession(cart);
+                    }
+                });
+            }
             // Logique pour le bouton de connexion dynamique
             if (typeof IS_LOGGED_IN !== 'undefined' && IS_LOGGED_IN) {
                 const loginLink = document.querySelector('.nav-actions a.primary');
-                if(loginLink) {
+                if (loginLink) {
                     loginLink.textContent = 'Tableau de bord';
                 }
             }

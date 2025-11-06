@@ -344,6 +344,10 @@
             .hero-content {
                 grid-template-columns: 1fr;
             }
+
+            nav ul, .nav-contact-info, .nav-actions a:not(.primary) { display: none; }
+            .menu-burger { display: block; }
+            .logo img { height: 50px !important; }
         }
     </style>
 </head>
@@ -351,22 +355,26 @@
     <header>
         <nav class="container">
             <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Brunel" style="height: 50px; vertical-align: middle;"></a>
-            <ul>
+            <ul class="desktop-links">
                 <li><a href="index.html#platform-features">Nos Services</a></li>
                 <li><a href="Boutique.html" style="color: var(--text-light);">Boutique</a></li>
                 <li><a href="index.html#about">À Propos</a></li>
-                <li><a href="#contact">Contact</a></li>
             </ul>
             <div class="nav-actions">
-                <div class="nav-contact-info">
-                    <span>📞</span>
-                    <span>+221 76 904 79 99</span>
-                </div>
-                <a href="Panier.html">Panier</a>
-                <a href="Connexion.html" class="primary">Connexion</a>
+                <a href="Panier.html" id="cart-link">Panier (0)</a>
+                <a href="Connexion.html" class="primary" id="login-link">Connexion</a>
             </div>
+            <div class="menu-burger" onclick="toggleMobileMenu()">☰</div>
         </nav>
     </header>
+
+    <div class="nav-links-mobile">
+        <a href="index.html#platform-features" onclick="toggleMobileMenu()">Nos Services</a>
+        <a href="Boutique.html" onclick="toggleMobileMenu()">Boutique</a>
+        <a href="index.html#about" onclick="toggleMobileMenu()">À Propos</a>
+        <a href="Connexion.html" onclick="toggleMobileMenu()" class="primary">Connexion</a>
+        <a href="Panier.html" onclick="toggleMobileMenu()" id="mobile-cart-link">Panier (0)</a>
+    </div>
 
     <main>
         <section class="container">
@@ -484,6 +492,12 @@
             }
             localStorage.setItem('cart', JSON.stringify(cart));
             alert(name + ' a été ajouté au panier !');
+            // Si l'utilisateur est connecté, synchroniser le panier avec le backend
+            if (typeof IS_LOGGED_IN !== 'undefined' && IS_LOGGED_IN) {
+                google.script.run.withFailureHandler(err => console.error('Erreur de synchro panier:', err))
+                                 .syncCart(cart);
+            }
+            updateCartCounter();
         }
 
         // Logique pour les carrousels
@@ -522,8 +536,37 @@
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
+        function toggleMobileMenu() {
+            const mobileMenu = document.querySelector('.nav-links-mobile');
+            const burgerIcon = document.querySelector('.menu-burger');
+            const body = document.body;
+
+            mobileMenu.classList.toggle('active');
+            body.classList.toggle('no-scroll');
+
+            if (mobileMenu.classList.contains('active')) {
+                burgerIcon.innerHTML = '✕'; // Icône de fermeture
+            } else {
+                burgerIcon.innerHTML = '☰';
+            }
+        }
+
+        function updateCartCounter() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const cartLink = document.getElementById('cart-link');
+            if (cartLink) {
+                cartLink.textContent = `Panier (${totalItems})`;
+            }
+            const mobileCartLink = document.getElementById('mobile-cart-link');
+            if (mobileCartLink) {
+                mobileCartLink.textContent = `Panier (${totalItems})`;
+            }
+        }
+
         // Logique pour le bouton de connexion dynamique
         document.addEventListener('DOMContentLoaded', () => {
+            updateCartCounter();
             if (typeof IS_LOGGED_IN !== 'undefined' && IS_LOGGED_IN) {
                 const loginLink = document.querySelector('.nav-actions a.primary');
                 if(loginLink) {
@@ -531,6 +574,7 @@
                 }
             }
         });
+
     </script>
 </body>
 </html>

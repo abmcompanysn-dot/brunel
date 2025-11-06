@@ -470,13 +470,14 @@
                         <table>
                         <thead>
                             <tr>
-                                <th>Nom</th>
+                                <th>Nom du Prospect</th>
+                                <th>Contact (Email/Tél)</th>
                                 <th>Date</th>
                                 <th>Note</th>
                             </tr>
                         </thead>
                         <tbody id="prospects-table-body">
-                            <tr><td colspan="3" style="text-align: center;">Chargement des prospects...</td></tr>
+                            <tr><td colspan="4" style="text-align: center;">Chargement des prospects...</td></tr>
                         </tbody>
                     </table>
                     </div>
@@ -973,10 +974,10 @@
             prospectsBody.innerHTML = '';
             if (data.prospects.length > 0) {
                 data.prospects.forEach(p => {
-                    prospectsBody.innerHTML += `<tr><td>${p.nom}</td><td>${new Date(p.date).toLocaleDateString()}</td><td>${p.note}</td></tr>`;
+                    prospectsBody.innerHTML += `<tr><td>${p.nom || ''}</td><td>${p.contact || ''}</td><td>${new Date(p.date).toLocaleDateString()}</td><td>${p.note || ''}</td></tr>`;
                 });
             } else {
-                prospectsBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Aucun prospect pour le moment.</td></tr>';
+                prospectsBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Aucun prospect pour le moment.</td></tr>';
             }
 
             // Mettre à jour les toggles des modules

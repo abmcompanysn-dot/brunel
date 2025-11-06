@@ -412,6 +412,7 @@
         <a href="Boutique.html" onclick="toggleMobileMenu()">Boutique</a>
         <a href="index.html#about" onclick="toggleMobileMenu()">À Propos</a>
         <a href="Connexion.html" onclick="toggleMobileMenu()" class="primary">Connexion</a>
+        <a href="Panier.html" onclick="toggleMobileMenu()" id="mobile-cart-link">Panier (0)</a>
     </div>
 
     <main>
@@ -577,6 +578,11 @@
             }
             localStorage.setItem('cart', JSON.stringify(cart));
             alert(name + ' a été ajouté au panier !');
+            // Si l'utilisateur est connecté, synchroniser le panier avec le backend
+            if (typeof IS_LOGGED_IN !== 'undefined' && IS_LOGGED_IN) {
+                google.script.run.withFailureHandler(err => console.error('Erreur de synchro panier:', err))
+                                 .syncCart(cart);
+            }
             updateCartCounter();
         }
 
@@ -601,6 +607,10 @@
             const cartLink = document.getElementById('cart-link');
             if (cartLink) {
                 cartLink.textContent = `Panier (${totalItems})`;
+            }
+            const mobileCartLink = document.getElementById('mobile-cart-link');
+            if (mobileCartLink) {
+                mobileCartLink.textContent = `Panier (${totalItems})`;
             }
         }
 

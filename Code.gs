@@ -52,7 +52,7 @@ function setupSpreadsheet() {
   const sheetsToCreate = [
     { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status'] },
     { name: 'Profils', headers: ['ID_Utilisateur', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'Couleur_Theme', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data'] },
-    { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Message_Note'] },
+    { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
     // L'onglet Commandes n'était pas dans la nouvelle spec, mais on peut le garder si besoin.
     // { name: 'Commandes NFC', headers: ['ID_Commande', 'ID_Utilisateur', 'Type_Carte', 'Quantite', 'Date_Commande', 'Statut'] },
@@ -189,7 +189,7 @@ function getDashboardData() {
     const prospectsSheet = ss.getSheetByName('Prospects');
     const prospectsData = prospectsSheet.getRange('A2:D').getValues()
       .filter(row => row[0] === user.ID_Unique) // Filtrer par ID_Profil_Source
-      .map(row => ({ nom: row[2], date: row[1], note: row[3] })) // Formater pour le frontend
+      .map(row => ({ nom: row[2], contact: row[3], date: row[1], note: row[4] })) // Formater pour le frontend
       .slice(0, 10); // Limiter aux 10 derniers
 
     // Construire l'URL de base de l'application web
@@ -320,9 +320,30 @@ function trackView(profileUrl, source) {
  * @param {Object} leadData - Données du prospect (nom, message, etc.) et ID du profil source.
  */
 function handleLeadCapture(leadData) {
-  const prospectsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Prospects');
-  prospectsSheet.appendRow([leadData.profileId, new Date(), leadData.name, leadData.message]);
-  Logger.log(`Nouveau prospect capturé pour ${leadData.profileId}: ${leadData.name}`);
+  try {
+    if (!leadData || !leadData.profileUrl || !leadData.name || !leadData.contact) {
+      throw new Error("Données de prospect incomplètes.");
+    }
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const usersSheet = ss.getSheetByName('Utilisateurs');
+    const usersData = usersSheet.getDataRange().getValues();
+    const urlCol = usersData[0].indexOf('URL_Profil');
+    const idCol = usersData[0].indexOf('ID_Unique');
+
+    const userRow = usersData.find(row => row[urlCol] === leadData.profileUrl);
+    if (!userRow) throw new Error("Profil source introuvable.");
+
+    const profileOwnerId = userRow[idCol];
+
+    const prospectsSheet = ss.getSheetByName('Prospects');
+    prospectsSheet.appendRow([profileOwnerId, new Date(), leadData.name, leadData.contact, leadData.message]);
+    Logger.log(`Nouveau prospect capturé pour ${profileOwnerId}: ${leadData.name}`);
+    return { success: true };
+  } catch (e) {
+    Logger.log(`Erreur dans handleLeadCapture: ${e.message}`);
+    return { success: false, error: e.message };
+  }
 }
 
 /**
