@@ -417,7 +417,15 @@
 
         document.addEventListener('DOMContentLoaded', () => { 
             updateCartCounter(); 
-            // Le bouton de connexion est déjà correct sur cette page
+            
+            const loginLink = document.getElementById('login-link');
+            if (loginLink && localStorage.getItem('userIsLoggedIn') === 'true') {
+                loginLink.textContent = 'Tableau de bord';
+                loginLink.href = 'Dashboard.html';
+            }
+            // Le bouton principal de la page de connexion reste "Connexion", 
+            // mais celui du header et du menu mobile peut changer si l'utilisateur est déjà loggué
+            // et visite cette page par erreur.
         });
     </script>
 </body>

@@ -405,6 +405,13 @@
             <div class="nav-actions">
                 <a href="Panier.html" id="cart-link">Panier (0)</a>
                 <a href="Connexion.html" class="primary" id="login-link">Connexion</a>
+                <!-- Conteneur pour le QR Code, caché par défaut -->
+                <div id="nav-qrcode-container" style="display: none;">
+                    <img src="r/qr-code-icon.svg" id="nav-qrcode-icon" alt="QR Code" style="height: 24px; cursor: pointer;" onclick="toggleQrPopup()">
+                    <div id="nav-qrcode-popup">
+                        <img id="nav-qrcode-img" src="" alt="Votre QR Code" style="width: 100%; height: auto;">
+                    </div>
+                </div>
                 <div class="menu-burger" onclick="toggleMobileMenu()">☰</div>
             </div>
         </nav>
@@ -577,6 +584,7 @@
         function callApi(action, data = {}) {
             const formData = new FormData();
             formData.append('action', action);
+            formData.append('token', localStorage.getItem('authToken')); // Toujours envoyer le token
             for (const key in data) {
                 const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
                 formData.append(key, value);
@@ -636,8 +644,52 @@
                 loginLink.textContent = 'Tableau de bord';
                 loginLink.href = 'Dashboard.html';
             }
+
+            // Si l'utilisateur est connecté, afficher l'icône QR Code
+            if (localStorage.getItem('userIsLoggedIn') === 'true') {
+                const qrContainer = document.getElementById('nav-qrcode-container');
+                if (qrContainer) {
+                    qrContainer.style.display = 'block';
+                    // Appeler l'API pour obtenir l'URL du profil et générer le QR code
+                    callApi('getPublicProfileUrl')
+                        .then(data => {
+                            if (data.success) {
+                                const publicProfileUrl = `ProfilePublic.html?user=${data.profileUrl}`;
+                                const qrCodeUrl = `https://quickchart.io/qr?text=${encodeURIComponent(publicProfileUrl)}&size=150`;
+                                document.getElementById('nav-qrcode-img').src = qrCodeUrl;
+                            }
+                        });
+                }
+            }
         }
-        document.addEventListener('DOMContentLoaded', () => { updateCartCounter(); updateLoginButton(); });
+
+        function toggleQrPopup() {
+            const popup = document.getElementById('nav-qrcode-popup');
+            if (popup.style.display === 'block') {
+                popup.style.display = 'none';
+            } else {
+                popup.style.display = 'block';
+            }
+        }
+
+        // Fermer le popup si on clique en dehors
+        document.addEventListener('click', function(event) {
+            const qrContainer = document.getElementById('nav-qrcode-container'); // Correction: ajout de la virgule
+            if (qrContainer && !qrContainer.contains(event.target)) { // Correction: ajout de la virgule
+                document.getElementById('nav-qrcode-popup').style.display = 'none';
+            }
+        }); // Correction: ajout de la parenthèse et du point-virgule
+        document.addEventListener('DOMContentLoaded', () => { 
+            updateCartCounter(); 
+            updateLoginButton(); 
+
+            // Mettre à jour le bouton de connexion dans le menu mobile également
+            const mobileLoginLink = document.querySelector('.nav-links-mobile a.primary');
+            if (mobileLoginLink && localStorage.getItem('userIsLoggedIn') === 'true') {
+                mobileLoginLink.textContent = 'Tableau de bord';
+                mobileLoginLink.href = 'Dashboard.html';
+            }
+        });
     </script>
 </body>
 </html>

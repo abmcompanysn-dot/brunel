@@ -449,6 +449,7 @@
                         <div class="card">
                             <h3>QR Code</h3>
                             <img id="profile-qrcode" src="https://via.placeholder.com/150?text=Chargement" alt="QR Code" style="width: 100%; height: auto; border-radius: 8px;">
+                            <a id="download-qrcode-btn" href="#" class="btn btn-secondary" download="qrcode-brunel.png" style="margin-top: 15px; width:100%; box-sizing: border-box;">Télécharger (HD)</a>
                         </div>
                         <div class="card share-actions">
                             <h3>Partager le Profil</h3>
@@ -942,6 +943,11 @@
             // Utilisation de quickchart.io pour un QR code avec logo
             const logoUrl = 'https://i.ibb.co/L6fKz3C/logo.png'; // Logo hébergé publiquement
             document.getElementById('profile-qrcode').src = `https://quickchart.io/qr?text=${encodeURIComponent(fullUrl)}&logo=${logoUrl}&size=250&centerImage=true`;
+            
+            // Générer le lien de téléchargement en haute résolution
+            const highResQrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(fullUrl)}&logo=${logoUrl}&size=1024&format=png&centerImage=true`;
+            document.getElementById('download-qrcode-btn').href = highResQrUrl;
+
             const shareLinkBtn = document.getElementById('share-link');
             shareLinkBtn.onclick = () => { navigator.clipboard.writeText(fullUrl); alert('Lien copié !'); };
             document.getElementById('share-email').href = `mailto:?subject=Découvrez mon profil Brunel&body=Voici mon profil numérique : ${fullUrl}`;

@@ -582,13 +582,18 @@
         // Logique pour le bouton de connexion dynamique
         document.addEventListener('DOMContentLoaded', () => {
             updateCartCounter();
-            // On ne peut plus utiliser IS_LOGGED_IN. On pourrait utiliser un cookie ou localStorage
-            // après une connexion réussie. Pour l'instant, on laisse le bouton "Connexion".
-            // La redirection se fera côté serveur ou après la connexion.
+
             const loginLink = document.getElementById('login-link');
             if (loginLink && localStorage.getItem('userIsLoggedIn') === 'true') {
                 loginLink.textContent = 'Tableau de bord';
                 loginLink.href = 'Dashboard.html';
+            }
+
+            // Mettre à jour le bouton de connexion dans le menu mobile également
+            const mobileLoginLink = document.querySelector('.nav-links-mobile a.primary');
+            if (mobileLoginLink && localStorage.getItem('userIsLoggedIn') === 'true') {
+                mobileLoginLink.textContent = 'Tableau de bord';
+                mobileLoginLink.href = 'Dashboard.html';
             }
         });
 

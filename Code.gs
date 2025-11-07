@@ -39,6 +39,7 @@ function doPost(e) {
       case 'trackView': result = trackView(payload.profileUrl, payload.source); break;
       case 'getProfileData': result = getProfileData(e.parameter.user); break;
       case 'getDashboardData': result = getDashboardData(); break;
+      case 'getPublicProfileUrl': result = getPublicProfileUrl(); break; // Nouvelle action
       case 'getDashboardStats': result = getDashboardStats(); break;
       case 'exportLeadsAsCSV':
         // Cas spécial : renvoie du texte brut, pas du JSON.
@@ -116,7 +117,7 @@ function setupSpreadsheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheetsToCreate = [
     { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration'] },
-    { name: 'Profils', headers: ['ID_Utilisateur', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'Couleur_Theme', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY'] },
+    { name: 'Profils', headers: ['ID_Utilisateur', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY', 'Mise_En_Page', 'Police', 'Couleur_Texte', 'Couleur_Texte_Secondaire', 'Couleur_Arriere_Plan', 'Couleur_Bouton', 'Couleur_Texte_Bouton', 'Cacher_Marque', 'Langue'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
@@ -162,7 +163,7 @@ function verifyAndFixSheetStructure() {
 
   const requiredSheets = [
     { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration'] },
-    { name: 'Profils', headers: ['ID_Utilisateur', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'Couleur_Theme', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY'] },
+    { name: 'Profils', headers: ['ID_Utilisateur', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY', 'Mise_En_Page', 'Police', 'Couleur_Texte', 'Couleur_Texte_Secondaire', 'Couleur_Arriere_Plan', 'Couleur_Bouton', 'Couleur_Texte_Bouton', 'Cacher_Marque', 'Langue'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
@@ -284,7 +285,7 @@ function registerUser(email, password) {
 
   // Créer un profil de base associé
   const profileSheet = ss.getSheetByName('Profils');
-  profileSheet.appendRow([newId, email.split('@')[0], '', '', '', '#007BFF', '', '', '[]', 'NON', 'NON', '']);
+  profileSheet.appendRow([newId, email.split('@')[0], '', '', '', '', '', '[]', 'NON', 'NON', '']); // Ligne de profil initial sans les nouvelles colonnes, elles seront remplies plus tard
 
   SpreadsheetApp.flush();
   logAction('registerUser', 'SUCCESS', `Nouvel utilisateur créé: ${email}`, email);
@@ -414,6 +415,23 @@ function getDashboardData() {
   } catch (e) {
     Logger.log(`Erreur dans getDashboardData: ${e.message}`);
     return { error: e.message };
+  }
+}
+
+/**
+ * Récupère uniquement l'URL du profil public de l'utilisateur connecté.
+ * C'est une fonction légère pour les pages publiques.
+ * @returns {Object} Un objet contenant l'URL du profil.
+ */
+function getPublicProfileUrl() {
+  try {
+    const user = getUserByToken(e.parameter.token);
+    if (!user) {
+      throw new Error("Token invalide ou expiré pour getPublicProfileUrl.");
+    }
+    return { success: true, profileUrl: user.URL_Profil };
+  } catch (e) {
+    return { success: false, error: e.message };
   }
 }
 
