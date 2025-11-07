@@ -167,6 +167,12 @@
          * @returns {Promise<Object>} Une promesse qui se résout avec la réponse JSON de l'API.
          */
         function callApi(action, data = {}) {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert("Session invalide. Veuillez vous reconnecter.");
+                window.location.href = 'Connexion.html';
+                return Promise.reject("No token found");
+            }
             const formData = new FormData();
             formData.append('action', action);
 
@@ -176,6 +182,7 @@
                 const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
                 formData.append(key, value);
             }
+            formData.append('token', token);
 
             return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
         }

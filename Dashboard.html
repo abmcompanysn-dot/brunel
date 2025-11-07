@@ -930,7 +930,7 @@
             }
 
             // --- Remplir le panneau d'aperçu du profil ---
-            const fullUrl = `${data.publicSiteUrl}?user=${data.user.URL_Profil}`;
+            const fullUrl = `ProfilePublic.html?user=${data.user.URL_Profil}`;
             // Aperçu
             document.getElementById('profile-picture-preview').src = data.profile.URL_Photo || 'https://via.placeholder.com/150';
             document.getElementById('profile-cover-preview').style.backgroundImage = `url('${data.profile.URL_Couverture || 'https://via.placeholder.com/800x300?text=Couverture'}')`;
