@@ -4,178 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mahu - Votre Carte de Visite Numérique</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-        /* mahu-styles.css */
-        :root {
-            --primary-color: #0a0a0a; /* Noir profond */
-            --secondary-color: #ffffff; /* Blanc pur */
-            --background-color: #f4f4f4; /* Gris très clair */
-            --card-background: #ffffff;
-            --text-primary: #0a0a0a;
-            --text-secondary: #555555;
-            --border-color: #eeeeee;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            margin: 0;
-            background-color: var(--background-color);
-            color: var(--text-primary);
-            font-size: 16px;
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        /* Barre de Navigation Améliorée */
-        header {
-            background-color: var(--primary-color);
-            backdrop-filter: blur(10px);
-            padding: 10px 0;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            border-bottom: 1px solid #333; /* Bordure plus sombre pour le thème noir */
-        }
-
-        nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-weight: bold;
-            font-size: 1.5em;
-            color: var(--secondary-color);
-            text-decoration: none;
-        }
-
-        .logo img {
-            transition: transform 0.3s ease;
-        }
-
-        .logo:hover img {
-            transform: scale(1.05);
-        }
-
-        nav ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            gap: 30px;
-        }
-
-        nav a {
-            color: var(--secondary-color);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-            position: relative;
-            padding-bottom: 5px;
-        }
-
-        nav ul a::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: 0;
-            left: 50%;
-            background-color: var(--secondary-color);
-            transition: all 0.3s ease-in-out;
-        }
-
-        nav ul a:hover::after {
-            width: 100%;
-            left: 0;
-        }
-
-        nav a:hover, .logo:hover {
-            color: #cccccc; /* Léger gris au survol */
-        }
-
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .nav-actions a.primary {
-            background-color: var(--secondary-color);
-            color: var(--primary-color);
-            padding: 8px 15px;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-
-        .nav-actions a.primary:hover {
-            background-color: #e0e0e0;
-            color: var(--primary-color);
-        }
-
-        /* Menu Burger pour mobile */
-        .menu-burger {
-            display: none; /* Caché sur bureau */
-            font-size: 1.8em;
-            cursor: pointer;
-            color: var(--secondary-color);
-            z-index: 1001;
-        }
-
-        .nav-links-mobile {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.98);
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 40px;
-            font-size: 1.5em;
-        }
-        .nav-links-mobile.active {
-            display: flex;
-        }
-        .nav-links-mobile a {
-            color: var(--text-primary);
-        }
-        body.no-scroll {
-            overflow: hidden;
-        }
-
-        /* Sections Générales */
-        section {
-            padding: 80px 0;
-        }
-
-        h1, h2, h3 {
-            line-height: 1.2;
-        }
-
-        .section-title {
-            text-align: center;
-            font-size: 2.8em;
-            margin-bottom: 10px;
-        }
-
-        .section-subtitle {
-            text-align: center;
-            font-size: 1.1em;
-            color: var(--text-primary);
-            max-width: 600px;
-            margin: 0 auto 60px auto;
-        }
-
         /* Section Hero spécifique */
         .hero {
             position: relative;
@@ -219,53 +49,6 @@
             margin: 0 auto 30px auto;
         }
 
-        /* Grilles et Cartes */
-        .grid-2, .grid-3 { display: grid; gap: 30px; }
-        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-
-        .card {
-            background-color: var(--card-background);
-            padding: 30px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-
-        .card h3 {
-            color: var(--text-primary);
-            margin-top: 0;
-        }
-
-        /* Boutons */
-        .btn {
-            display: inline-block;
-            width: 100%;
-            text-align: center;
-            padding: 15px;
-            background: var(--primary-color);
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: transform 0.2s, opacity 0.2s;
-            border: none;
-            cursor: pointer;
-            font-size: 1em;
-        }
-        .btn:hover {
-            opacity: 0.9;
-            transform: scale(1.02);
-        }
-        .btn-gradient {
-            background: var(--primary-color);
-        }
-
         /* Section Showcase Cartes */
         #card-showcase {
             background-color: var(--background-color);
@@ -307,9 +90,6 @@
             .nav-actions a.primary {
                 display: none; /* Cache le bouton connexion principal */
             }
-            .nav-actions a#cart-link {
-                display: none; /* Cache le panier sur mobile */
-            }
             .menu-burger {
                 display: block;
             }
@@ -319,9 +99,6 @@
 
             .section-title {
                 font-size: 2.2em;
-            }
-            .grid-2, .grid-3 {
-                grid-template-columns: 1fr;
             }
             .hero {
                 height: 70vh;
@@ -385,7 +162,7 @@
 
     <header>
         <nav class="container">
-            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 50px; vertical-align: middle;"></a>
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu"></a>
             <ul class="desktop-links">
                 <li><a href="index.html#features">Nos Solutions</a></li>
                 <li><a href="Boutique.html">Boutique</a></li>
