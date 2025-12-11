@@ -24,12 +24,13 @@
 
         /* Par défaut (sur la vidéo), cacher les éléments sauf l'icône de profil */
         header:not(.scrolled) .logo,
-        header:not(.scrolled) .desktop-links,
-        header:not(.scrolled) #cart-link {
+        header:not(.scrolled) .desktop-links {
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
+        /* Cacher le nouveau menu sur la vidéo */
+        header:not(.scrolled) .more-menu-container { display: none; }
 
         /* Style de l'icône de profil (remplace le bouton Connexion sur la vidéo) */
         header:not(.scrolled) #login-link {
@@ -54,6 +55,43 @@
         /* Cacher l'icône SVG quand on défile */
         header.scrolled #login-link .profile-icon {
             display: none;
+        }
+
+        /* Styles pour le nouveau menu "trois points" */
+        .more-menu-container {
+            position: relative;
+        }
+        .more-menu-icon {
+            cursor: pointer;
+            padding: 5px;
+        }
+        .more-menu-icon svg {
+            stroke: white;
+            width: 28px;
+            height: 28px;
+        }
+        header.scrolled .more-menu-icon svg {
+            stroke: var(--text-primary);
+        }
+
+        .more-menu-dropdown {
+            display: none; /* Caché par défaut */
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: rgba(10, 10, 10, 0.95); /* Fond noir */
+            backdrop-filter: blur(5px);
+            border-radius: 8px;
+            padding: 10px;
+            min-width: 160px;
+            z-index: 1001;
+            border: 1px solid #333;
+        }
+        .more-menu-dropdown a {
+            display: block;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
         }
 
         /* Section Hero spécifique */
@@ -214,16 +252,24 @@
         <nav class="container">
             <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu"></a>
             <ul class="desktop-links">
-                <li><a href="index.html#features">Nos Solutions</a></li>
-                <li><a href="Boutique.html">Boutique</a></li>
+                <li><a href="index.html#features">Technologie</a></li>
                 <li><a href="index.html#about">À Propos</a></li>
+                <li><a href="index.html#cards">Nos Offres</a></li>
             </ul>
             <div class="nav-actions">
-                <a href="Panier.html" id="cart-link">Panier (0)</a>
                 <a href="Connexion.html" class="primary" id="login-link">
                     <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     <span class="login-text">Connexion</span>
                 </a> 
+                <div class="more-menu-container">
+                    <div class="more-menu-icon" onclick="toggleMoreMenu(event)">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                    </div>
+                    <div class="more-menu-dropdown">
+                        <a href="Boutique.html">Boutique</a>
+                        <a href="Panier.html" id="cart-link">Panier (0)</a>
+                    </div>
+                </div>
                 <!-- Conteneur pour le QR Code, caché par défaut -->
                 <div id="nav-qrcode-container" style="display: none;">
                     <img src="r/qr-code-icon.svg" id="nav-qrcode-icon" alt="QR Code" style="height: 24px; cursor: pointer;" onclick="toggleQrPopup()">
@@ -518,6 +564,25 @@
                 popup.style.display = 'block';
             }
         }
+
+        /**
+         * Affiche ou cache le menu "trois points".
+         */
+        function toggleMoreMenu(event) {
+            event.stopPropagation(); // Empêche le clic de se propager au document
+            const dropdown = document.querySelector('.more-menu-dropdown');
+            const isVisible = dropdown.style.display === 'block';
+            dropdown.style.display = isVisible ? 'none' : 'block';
+        }
+
+        // Fermer le menu si on clique ailleurs
+        document.addEventListener('click', function(event) {
+            const dropdown = document.querySelector('.more-menu-dropdown');
+            const menuContainer = document.querySelector('.more-menu-container');
+            if (dropdown && !menuContainer.contains(event.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
 
         /**
          * Logique exécutée au chargement du DOM.
