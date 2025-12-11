@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bienvenue chez Brunel</title>
+    <title>Bienvenue chez Mahu</title>
     <style>
         :root {
-            --blue: #007bff;
-            --red: #dc3545;
-            --dark-card: #1e1e1e;
-            --text-light: #f8f9fa;
-            --text-secondary: #adb5bd;
-            --border-color: #333;
+            --primary-color: #0a0a0a; /* Noir profond */
+            --secondary-color: #ffffff; /* Blanc pur */
+            --background-color: #f4f4f4; /* Gris très clair */
+            --card-background: #ffffff;
+            --text-primary: #0a0a0a;
+            --text-secondary: #555555;
+            --border-color: #eeeeee;
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
-            background: linear-gradient(120deg, var(--blue) 0%, var(--red) 100%);
-            background-attachment: fixed;
-            color: var(--text-light);
+            background-color: var(--background-color);
+            color: var(--text-primary);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -26,13 +26,13 @@
             padding: 20px;
         }
         .onboarding-container {
-            background-color: var(--dark-card);
+            background-color: var(--card-background);
             padding: 40px;
-            border-radius: 10px;
+            border-radius: 8px;
             border: 1px solid var(--border-color);
             width: 100%;
             max-width: 500px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
         .step {
             display: none;
@@ -51,24 +51,24 @@
         .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
         .form-control {
             width: 100%; padding: 12px; background-color: #121212;
-            border: 1px solid var(--border-color); border-radius: 5px;
-            color: var(--text-light); font-size: 1em; box-sizing: border-box;
+            background-color: var(--background-color); border: 1px solid var(--border-color);
+            border-radius: 5px; color: var(--text-primary); font-size: 1em; box-sizing: border-box;
         }
         .btn {
             display: block; width: 100%; text-align: center; padding: 12px;
-            background: var(--blue); color: white; text-decoration: none;
+            background: var(--primary-color); color: white; text-decoration: none;
             border-radius: 5px; font-weight: bold; transition: transform 0.2s, opacity 0.2s;
             border: none; cursor: pointer; font-size: 1em; margin-top: 20px;
         }
-        .btn-gradient { background: linear-gradient(90deg, var(--blue), var(--red)); }
+        .btn-gradient { background: var(--primary-color); }
         .platform-choice {
             border: 1px solid var(--border-color); padding: 20px; border-radius: 8px;
             cursor: pointer; transition: background-color 0.3s; margin-bottom: 15px;
         }
-        .platform-choice:hover { background-color: rgba(255,255,255,0.1); }
+        .platform-choice:hover { background-color: #f0f0f0; }
         .platform-choice h3 { margin-top: 0; }
         .info-step { text-align: center; }
-        .info-step img { max-width: 80%; height: auto; margin: 20px 0; }
+        .info-step img { max-width: 80%; height: auto; margin: 20px 0; border-radius: 8px; background-color: #e0e0e0; }
         .wallet-buttons { display: flex; gap: 15px; margin-top: 20px; }
     </style>
 </head>
@@ -99,7 +99,7 @@
 
         <!-- Étape 2: Sélectionner la plateforme -->
         <div id="step-2" class="step">
-            <h1>Comment souhaitez-vous utiliser Brunel?</h1>
+            <h1>Comment souhaitez-vous utiliser Mahu?</h1>
             <p class="subtitle">Cela garantit que votre compte est correctement configuré.</p>
             <div class="platform-choice" onclick="selectPlatform('individual')">
                 <h3>Pour moi-même</h3>
@@ -135,7 +135,7 @@
         <!-- Étape 4: Info Partage Carte -->
         <div id="step-4" class="step info-step">
             <h1>Comment partager avec une carte</h1>
-            <p class="subtitle">Tenez votre carte Brunel devant un téléphone pour partager vos informations.</p>
+            <p class="subtitle">Tenez votre carte Mahu devant un téléphone pour partager vos informations.</p>
             <img src="https://via.placeholder.com/300x200.png?text=Animation+NFC" alt="Animation partage NFC">
             <button class="btn" onclick="goToStep(5)">Suivant</button>
         </div>
@@ -151,7 +151,7 @@
         <!-- Étape 6: Ajout au Wallet -->
         <div id="step-6" class="step info-step">
             <h1>Ajoutez votre code QR au portefeuille</h1>
-            <p class="subtitle">Enregistrez votre carte d'affaire numérique dans Apple Wallet ou Google Wallet.</p>
+            <p class="subtitle">Enregistrez votre carte de visite numérique dans Apple Wallet ou Google Wallet.</p>
             <button class="btn btn-gradient" onclick="finishOnboarding()">Aller au tableau de bord</button>
         </div>
 

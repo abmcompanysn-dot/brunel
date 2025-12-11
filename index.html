@@ -3,26 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brunel - Votre Carte de Visite Numérique</title>
+    <title>Mahu - Votre Carte de Visite Numérique</title>
     <style>
-        /* public-styles.css */
+        /* mahu-styles.css */
         :root {
-            --blue: #007bff;
-            --red: #dc3545;
-            --dark-bg: #121212;
-            --dark-card: #1e1e1e;
-            --text-light: #f8f9fa;
-            --text-secondary: #adb5bd;
-            --border-color: #333;
+            --primary-color: #0a0a0a; /* Noir profond */
+            --secondary-color: #ffffff; /* Blanc pur */
+            --background-color: #f4f4f4; /* Gris très clair */
+            --card-background: #ffffff;
+            --text-primary: #0a0a0a;
+            --text-secondary: #555555;
+            --border-color: #eeeeee;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
-            /* Application du dégradé sur tout l'arrière-plan */
-            background: linear-gradient(120deg, var(--blue) 0%, var(--red) 100%);
-            background-attachment: fixed; /* Le dégradé reste fixe au défilement */
-            color: var(--text-light);
+            background-color: var(--background-color);
+            color: var(--text-primary);
             font-size: 16px;
             line-height: 1.6;
         }
@@ -35,9 +33,9 @@
 
         /* Barre de Navigation Améliorée */
         header {
-            background-color: rgba(18, 18, 18, 0.85);
+            background-color: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(10px);
-            padding: 10px 0; /* Hauteur réduite */
+            padding: 10px 0;
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -53,7 +51,7 @@
         .logo {
             font-weight: bold;
             font-size: 1.5em;
-            color: var(--text-light);
+            color: var(--text-primary);
             text-decoration: none;
         }
 
@@ -74,7 +72,7 @@
         }
 
         nav a {
-            color: var(--text-secondary);
+            color: var(--text-primary);
             text-decoration: none;
             font-weight: 500;
             transition: color 0.3s;
@@ -89,7 +87,7 @@
             height: 2px;
             bottom: 0;
             left: 50%;
-            background: linear-gradient(90deg, var(--blue), var(--red));
+            background-color: var(--primary-color);
             transition: all 0.3s ease-in-out;
         }
 
@@ -98,8 +96,8 @@
             left: 0;
         }
 
-        nav a:hover, .nav-actions a.primary {
-            color: var(--text-light);
+        nav a:hover {
+            color: var(--primary-color);
         }
 
         .nav-actions {
@@ -109,10 +107,12 @@
         }
 
         .nav-actions a.primary {
-            background: linear-gradient(90deg, var(--blue), var(--red));
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
             padding: 8px 15px;
             border-radius: 5px;
             font-weight: bold;
+            transition: background-color 0.3s;
         }
 
         /* Menu Burger pour mobile */
@@ -120,7 +120,7 @@
             display: none; /* Caché sur bureau */
             font-size: 1.8em;
             cursor: pointer;
-            color: var(--text-light);
+            color: var(--text-primary);
             z-index: 1001;
         }
 
@@ -131,7 +131,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(18, 18, 18, 0.98);
+            background-color: rgba(255, 255, 255, 0.98);
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -142,7 +142,7 @@
             display: flex;
         }
         .nav-links-mobile a {
-            color: var(--text-light);
+            color: var(--text-primary);
         }
         body.no-scroll {
             overflow: hidden;
@@ -166,7 +166,7 @@
         .section-subtitle {
             text-align: center;
             font-size: 1.1em;
-            color: var(--text-secondary);
+            color: var(--text-primary);
             max-width: 600px;
             margin: 0 auto 60px auto;
         }
@@ -201,7 +201,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.5); /* Voile sombre pour la lisibilité */
+            background-color: rgba(255, 255, 255, 0.3); /* Voile clair pour la lisibilité */
             z-index: -1;
         }
         .hero-text-content h1 {
@@ -214,28 +214,13 @@
             margin: 0 auto 30px auto;
         }
 
-        /* Cartes Produit spécifiques */
-        .product-card .price {
-            font-size: 2em;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-        .price span {
-            font-size: 0.5em;
-            font-weight: normal;
-            color: var(--text-secondary);
-        }
-
         /* Grilles et Cartes */
-        .grid-2, .grid-3 {
-            display: grid;
-            gap: 30px;
-        }
+        .grid-2, .grid-3 { display: grid; gap: 30px; }
         .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
         .grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
 
         .card {
-            background-color: var(--dark-card);
+            background-color: var(--card-background);
             padding: 30px;
             border-radius: 10px;
             border: 1px solid var(--border-color);
@@ -248,7 +233,7 @@
         }
 
         .card h3 {
-            color: var(--blue);
+            color: var(--text-primary);
             margin-top: 0;
         }
 
@@ -257,8 +242,8 @@
             display: inline-block;
             width: 100%;
             text-align: center;
-            padding: 12px;
-            background: var(--blue);
+            padding: 15px;
+            background: var(--primary-color);
             color: white;
             text-decoration: none;
             border-radius: 5px;
@@ -273,12 +258,12 @@
             transform: scale(1.02);
         }
         .btn-gradient {
-            background: linear-gradient(90deg, var(--blue), var(--red));
+            background: var(--primary-color);
         }
 
         /* Section Showcase Cartes */
         #card-showcase {
-            background-color: var(--dark-bg);
+            background-color: var(--background-color);
             padding: 60px 0;
         }
         .card-scroller {
@@ -343,7 +328,7 @@
 
         /* Styles pour le défilement des logos */
         .logo-scroller {
-            max-width: 100%;
+            max-width: 90%;
             overflow: hidden;
             -webkit-mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
             mask: linear-gradient(90deg, transparent, white 20%, white 80%, transparent);
@@ -359,7 +344,8 @@
         .logo-scroller-inner img {
             height: 75px; /* Taille des logos agrandie */
             width: auto;
-            opacity: 0.8; /* Légère transparence pour un effet doux */
+            filter: grayscale(100%);
+            opacity: 0.6; /* Légère transparence pour un effet doux */
             transition: filter 0.3s;
         }
 
@@ -368,7 +354,8 @@
         }
 
         .logo-scroller-inner img:hover {
-            opacity: 1; /* Le logo survolé devient totalement opaque */
+            opacity: 1;
+            filter: grayscale(0%);
         }
 
         @keyframes scroll {
@@ -378,25 +365,22 @@
         }
 
         #trusted-by {
-            background-color: white;
+            background-color: var(--background-color);
             padding-top: 40px; /* Réduction du padding pour un look plus intégré */
             padding-bottom: 40px;
         }
 
         #trusted-by .section-title {
-            /* Applique le dégradé du site au texte du titre */
-            background: linear-gradient(90deg, var(--blue), var(--red));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            color: var(--text-primary);
         }
+
     </style>
 </head>
 <body>
 
     <header>
         <nav class="container">
-            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Brunel" style="height: 50px; vertical-align: middle;"></a>
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 50px; vertical-align: middle;"></a>
             <ul class="desktop-links">
                 <li><a href="index.html#features">Nos Solutions</a></li>
                 <li><a href="Boutique.html">Boutique</a></li>
@@ -432,7 +416,7 @@
             </div>
             <div class="hero-overlay"></div>
             <div class="container hero-text-content">
-                <h1>La Révolution de la Carte de Visite.</h1>
+                <h1>La nouvelle ère de la connexion.</h1>
                 <p>Connectez-vous instantanément avec une carte intelligente NFC. Partagez vos informations d'un simple contact.</p>
                 <a href="Boutique.html" class="btn btn-gradient">Découvrir nos cartes</a>
             </div>
@@ -445,29 +429,29 @@
             </div>
             <div class="card-scroller">
                 <div class="card-scroller-inner">
-                    <!-- Les images sont dupliquées pour un défilement infini fluide -->
-                    <img src="r/1.svg" alt="Design de carte Brunel 1">
-                    <img src="r/2.svg" alt="Design de carte Brunel 2">
-                    <img src="r/3.svg" alt="Design de carte Brunel 3">
-                    <img src="r/4.svg" alt="Design de carte Brunel 4">
-                    <img src="r/5.svg" alt="Design de carte Brunel 5">
+                    <!-- Les images sont dupliquées pour un défilement infini fluide. Mettre des designs en noir et blanc -->
+                    <img src="r/1.svg" alt="Design de carte Mahu 1">
+                    <img src="r/2.svg" alt="Design de carte Mahu 2">
+                    <img src="r/3.svg" alt="Design de carte Mahu 3">
+                    <img src="r/4.svg" alt="Design de carte Mahu 4">
+                    <img src="r/5.svg" alt="Design de carte Mahu 5">
                     <!-- Duplication -->
-                    <img src="r/1.svg" alt="Design de carte Brunel 1">
-                    <img src="r/2.svg" alt="Design de carte Brunel 2">
-                    <img src="r/3.svg" alt="Design de carte Brunel 3">
-                    <img src="r/4.svg" alt="Design de carte Brunel 4">
-                    <img src="r/5.svg" alt="Design de carte Brunel 5">
+                    <img src="r/1.svg" alt="Design de carte Mahu 1">
+                    <img src="r/2.svg" alt="Design de carte Mahu 2">
+                    <img src="r/3.svg" alt="Design de carte Mahu 3">
+                    <img src="r/4.svg" alt="Design de carte Mahu 4">
+                    <img src="r/5.svg" alt="Design de carte Mahu 5">
                 </div>
             </div>
         </section>
 
         <section id="about" class="container">
-            <h2 class="section-title">À Propos de Brunel</h2>
+            <h2 class="section-title">À Propos de Mahu</h2>
             <p class="section-subtitle">Nous réinventons la manière dont les professionnels se connectent. Fini les cartes en papier oubliées, place à une interaction mémorable et digitale.</p>
             <div class="grid-2">
                 <div class="card">
-                    <h3>Notre Histoire</h3>
-                    <p>Fondée en 2024, Brunel est née d'une idée simple : rendre le networking plus efficace, plus moderne et plus respectueux de l'environnement. Nous avons combiné design et technologie pour créer un produit qui change la donne.</p>
+                    <h3>Notre Vision</h3>
+                    <p>Mahu est née d'une idée simple : rendre le networking plus efficace, plus moderne et plus respectueux de l'environnement. Nous avons combiné design et technologie pour créer un produit qui change la donne.</p>
                 </div>
                 <div class="card">
                     <h3>Notre Mission</h3>
@@ -493,7 +477,7 @@
 
         <section id="platform-features" class="container">
             <h2 class="section-title">Au-delà de la Carte</h2>
-            <p class="section-subtitle">Votre carte Brunel est la porte d'entrée vers une plateforme de gestion puissante, conçue pour les professionnels modernes.</p>
+            <p class="section-subtitle">Votre carte Mahu est la porte d'entrée vers une plateforme de gestion puissante, conçue pour les professionnels modernes.</p>
             <div class="grid-3">
                 <div class="card">
                     <div class="feature-card-icon">
@@ -554,21 +538,21 @@
             <p class="section-subtitle">Trouvez la carte qui correspond à votre style. Chaque carte donne accès à vie à notre plateforme.</p>
             <div class="grid-3">
                 <div class="card product-card">
-                    <h3>Carte Classique</h3>
+                    <h3>Carte Classique PVC</h3>
                     <p>La carte en PVC premium, durable et élégante. Personnalisable avec votre logo et QR code.</p> 
-                    <div class="price">29.99€ <span>/ unité</span></div>
+                    <div class="price" style="font-size: 2em; font-weight: bold; margin: 20px 0;">29.99€ <span style="font-size: 0.5em; font-weight: normal; color: var(--text-secondary);">/ unité</span></div>
                     <a href="#" class="btn" onclick="event.preventDefault(); addToCart('pvc', 'Carte Classique PVC', 29.99)">Ajouter au panier</a>
                 </div>
                 <div class="card product-card">
-                    <h3>Carte Métal</h3>
+                    <h3>Carte Métal Noir</h3>
                     <p>Une finition luxueuse en métal brossé pour un impact maximal. Gravure laser de précision.</p>
-                    <div class="price">79.99€ <span>/ unité</span></div>
+                    <div class="price" style="font-size: 2em; font-weight: bold; margin: 20px 0;">79.99€ <span style="font-size: 0.5em; font-weight: normal; color: var(--text-secondary);">/ unité</span></div>
                     <a href="#" class="btn" onclick="event.preventDefault(); addToCart('metal', 'Carte Métal Noir', 79.99)">Ajouter au panier</a>
                 </div>
                 <div class="card product-card">
-                    <h3>Carte Bois</h3>
+                    <h3>Carte Bois de Bambou</h3>
                     <p>Écologique et unique, chaque carte en bois véritable est une pièce d'artisanat.</p>
-                    <div class="price">59.99€ <span>/ unité</span></div>
+                    <div class="price" style="font-size: 2em; font-weight: bold; margin: 20px 0;">59.99€ <span style="font-size: 0.5em; font-weight: normal; color: var(--text-secondary);">/ unité</span></div>
                     <a href="#" class="btn" onclick="event.preventDefault(); addToCart('wood', 'Carte Bois de Bambou', 59.99)">Ajouter au panier</a>
                 </div>
             </div>
@@ -579,6 +563,10 @@
 
     <script>
         /**
+         * ===================================================================
+         *                        SCRIPT CENTRALISÉ
+         * ===================================================================
+         * Les fonctions communes sont définies ici pour éviter la répétition.
          * Fonction centralisée pour appeler l'API backend via POST.
          */
         function callApi(action, data = {}) {
@@ -592,6 +580,9 @@
             return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
         }
 
+        /**
+         * Ajoute un produit au panier (localStorage) et synchronise si l'utilisateur est connecté.
+         */
         function addToCart(id, name, price) {
             let cart = JSON.parse(localStorage.getItem('cart')) || [];
             const existingItem = cart.find(item => item.id === id);
@@ -609,6 +600,9 @@
             updateCartCounter();
         }
 
+        /**
+         * Gère l'affichage du menu mobile.
+         */
         function toggleMobileMenu() {
             const mobileMenu = document.querySelector('.nav-links-mobile');
             const burgerIcon = document.querySelector('.menu-burger');
@@ -624,6 +618,9 @@
             }
         }
 
+        /**
+         * Met à jour le compteur d'articles dans le header.
+         */
         function updateCartCounter() {
             const cart = JSON.parse(localStorage.getItem('cart')) || [];
             const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -637,8 +634,10 @@
             }
         }
 
+        /**
+         * Met à jour le bouton de connexion en "Tableau de bord" si l'utilisateur est connecté.
+         */
         function updateLoginButton() {
-            // Comme pour la boutique, on se base sur un flag local.
             const loginLink = document.getElementById('login-link');
             if (loginLink && localStorage.getItem('userIsLoggedIn') === 'true') {
                 loginLink.textContent = 'Tableau de bord';
@@ -652,7 +651,7 @@
                     qrContainer.style.display = 'block';
                     // Appeler l'API pour obtenir l'URL du profil et générer le QR code
                     callApi('getPublicProfileUrl')
-                        .then(data => {
+                        .then(data => { // NOSONAR
                             if (data.success) {
                                 const publicProfileUrl = `ProfilePublic.html?user=${data.profileUrl}`;
                                 const qrCodeUrl = `https://quickchart.io/qr?text=${encodeURIComponent(publicProfileUrl)}&size=150`;
@@ -663,6 +662,9 @@
             }
         }
 
+        /**
+         * Affiche ou cache le popup du QR code.
+         */
         function toggleQrPopup() {
             const popup = document.getElementById('nav-qrcode-popup');
             if (popup.style.display === 'block') {
@@ -672,13 +674,17 @@
             }
         }
 
-        // Fermer le popup si on clique en dehors
+        /**
+         * Logique exécutée au chargement du DOM.
+         */
         document.addEventListener('click', function(event) {
-            const qrContainer = document.getElementById('nav-qrcode-container'); // Correction: ajout de la virgule
-            if (qrContainer && !qrContainer.contains(event.target)) { // Correction: ajout de la virgule
+            const qrContainer = document.getElementById('nav-qrcode-container');
+            if (qrContainer && !qrContainer.contains(event.target)) {
                 document.getElementById('nav-qrcode-popup').style.display = 'none';
             }
-        }); // Correction: ajout de la parenthèse et du point-virgule
+        });
+
+
         document.addEventListener('DOMContentLoaded', () => { 
             updateCartCounter(); 
             updateLoginButton(); 

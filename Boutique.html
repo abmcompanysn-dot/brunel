@@ -3,26 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boutique - Brunel</title>
+    <title>Boutique - Mahu</title>
     <style>
-        /* public-styles.css */
+        /* mahu-styles.css */
         :root {
-            --blue: #007bff;
-            --red: #dc3545;
-            --dark-bg: #121212;
-            --dark-card: #1e1e1e;
-            --text-light: #f8f9fa;
-            --text-secondary: #adb5bd;
-            --border-color: #333;
+            --primary-color: #0a0a0a; /* Noir profond */
+            --secondary-color: #ffffff; /* Blanc pur */
+            --background-color: #f4f4f4; /* Gris très clair */
+            --card-background: #ffffff;
+            --text-primary: #0a0a0a;
+            --text-secondary: #555555;
+            --border-color: #eeeeee;
         }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
-            /* Application du dégradé sur tout l'arrière-plan */
-            background: linear-gradient(120deg, var(--blue) 0%, var(--red) 100%);
-            background-attachment: fixed; /* Le dégradé reste fixe au défilement */
-            color: var(--text-light);
+            background-color: var(--background-color);
+            color: var(--text-primary);
             font-size: 16px;
             line-height: 1.6;
         }
@@ -35,9 +33,9 @@
 
         /* Barre de Navigation Améliorée */
         header {
-            background-color: rgba(18, 18, 18, 0.85);
+            background-color: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(10px);
-            padding: 10px 0; /* Hauteur réduite */
+            padding: 10px 0;
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -53,7 +51,7 @@
         .logo {
             font-weight: bold;
             font-size: 1.5em;
-            color: var(--text-light);
+            color: var(--text-primary);
             text-decoration: none;
         }
 
@@ -74,7 +72,7 @@
         }
 
         nav a {
-            color: var(--text-secondary);
+            color: var(--text-primary);
             text-decoration: none;
             font-weight: 500;
             transition: color 0.3s;
@@ -89,7 +87,7 @@
             height: 2px;
             bottom: 0;
             left: 50%;
-            background: linear-gradient(90deg, var(--blue), var(--red));
+            background-color: var(--primary-color);
             transition: all 0.3s ease-in-out;
         }
 
@@ -98,8 +96,8 @@
             left: 0;
         }
 
-        nav a:hover, .nav-actions a.primary {
-            color: var(--text-light);
+        nav a:hover {
+            color: var(--primary-color);
         }
 
         .nav-actions {
@@ -109,10 +107,12 @@
         }
 
         .nav-actions a.primary {
-            background: linear-gradient(90deg, var(--blue), var(--red));
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
             padding: 8px 15px;
             border-radius: 5px;
             font-weight: bold;
+            transition: background-color 0.3s;
         }
 
         /* Sections Générales */
@@ -133,26 +133,9 @@
         .section-subtitle {
             text-align: center;
             font-size: 1.1em;
-            color: var(--text-secondary);
+            color: var(--text-primary);
             max-width: 600px;
             margin: 0 auto 60px auto;
-        }
-
-        /* Section Hero spécifique */
-        .hero {
-            padding-top: 60px;
-            padding-bottom: 60px;
-        }
-        .hero-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 50px;
-            align-items: center;
-        }
-        .hero-video video {
-            width: 100%;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
         /* Cartes Produit spécifiques */
@@ -165,20 +148,17 @@
             font-size: 0.5em;
             font-weight: normal;
             color: var(--text-secondary);
-        }
+        } 
 
-        /* Grilles et Cartes */
-        .grid-2, .grid-3 {
-            display: grid;
-            gap: 30px;
-        }
+        /* Grilles */
+        .grid-3 { display: grid; gap: 30px; }
         .grid-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
         .grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
 
         .card {
-            background-color: var(--dark-card);
+            background-color: var(--card-background);
             padding: 30px;
-            border-radius: 10px;
+            border-radius: 8px;
             border: 1px solid var(--border-color);
             transition: transform 0.3s, box-shadow 0.3s;
         }
@@ -195,8 +175,8 @@
             height: 180px;
             border-radius: 8px;
             overflow: hidden;
-            margin: 0 auto 20px auto;
-            background-color: #222; /* Fond par défaut */
+            margin: -30px -30px 20px -30px; /* Pour toucher les bords */
+            background-color: #e0e0e0; /* Fond par défaut */
         }
         .carousel-inner {
             display: flex;
@@ -224,9 +204,9 @@
             box-sizing: border-box;
         }
         .carousel-btn {
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(255, 255, 255, 0.7);
             border: none;
-            color: white;
+            color: var(--text-primary);
             font-size: 1.5em;
             cursor: pointer;
             border-radius: 50%;
@@ -241,29 +221,11 @@
             opacity: 1;
         }
 
-        /* L'animation se lance uniquement au survol */
-        .product-carousel:hover .carousel-inner {
-            animation-play-state: running;
-        }
-
-        /* Styles spécifiques aux matériaux pour le fond du carrousel */
-        .pvc-style { background: #1a1a1a; }
-        .metal-style { 
-            background: linear-gradient(145deg, #2d2d2d, #4a4a4a); 
-            background-image: url('https://www.transparenttextures.com/patterns/brushed-alum.png');
-        }
-        .wood-style { 
-            background-color: #5D4037;
-            background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png');
-        }
-        .sticker-style { background: #f0f0f0; }
-
-        /* Nouveaux styles pour les variations de métal et de bois */
-        .metal-gold { background: linear-gradient(145deg, #D4AF37, #B48811); background-image: url('https://www.transparenttextures.com/patterns/brushed-alum.png'); }
-        .metal-rose-gold { background: linear-gradient(145deg, #B76E79, #995A64); background-image: url('https://www.transparenttextures.com/patterns/brushed-alum.png'); }
-        
-        .wood-dark { background-color: #3E2723; background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png');}
-        .wood-light { background-color: #A1887F; background-image: url('https://www.transparenttextures.com/patterns/wood-pattern.png');}
+        /* Styles simplifiés pour le fond du carrousel (thème noir/blanc) */
+        .pvc-style { background-color: #e0e0e0; }
+        .metal-style { background-color: #333333; }
+        .wood-style { background-color: #d7ccc8; }
+        .sticker-style { background-color: #f5f5f5; }
 
         /* Superposition du design de la carte (transparent) */
         .card-design-overlay {
@@ -275,25 +237,25 @@
             z-index: 2;
         }
 
-        /* Superposition du logo Brunel sur chaque carte */
-        .brunel-logo-overlay {
+        /* Superposition du logo Mahu sur chaque carte */
+        .mahu-logo-overlay {
             position: absolute;
             top: 15px; left: 20px;
             width: 45px;
             height: auto;
             z-index: 4;
             opacity: 0.8;
-            filter: brightness(0) invert(1); /* Logo Brunel en blanc */
+            filter: brightness(0); /* Logo Mahu en noir par défaut */
         }
 
         .card h3 {
-            color: var(--blue);
+            color: var(--text-primary);
             margin-top: 0;
         }
 
         /* Boutons */
         .btn {
-            display: inline-block;
+            display: block;
             width: 100%;
             text-align: center;
             padding: 12px;
@@ -312,13 +274,13 @@
             transform: scale(1.02);
         }
         .btn-gradient {
-            background: linear-gradient(90deg, var(--blue), var(--red));
+            background: var(--primary-color);
         }
 
         /* Bouton Retour en Haut */
         #back-to-top {
             position: fixed;
-            bottom: 20px;
+            bottom: 30px;
             right: 20px;
             background-color: var(--blue);
             color: white;
@@ -334,15 +296,13 @@
         }
 
         /* Responsive */
-        @media (max-width: 768px) {
-            nav ul {
-                display: none; /* Cacher pour un menu burger en JS */
-            }
+        @media (max-width: 992px) {
+            nav ul.desktop-links { display: none; }
+            .nav-actions a.primary { display: none; }
+            .nav-actions a#cart-link { display: none; }
+            .menu-burger { display: block; }
             .section-title {
                 font-size: 2.2em;
-            }
-            .hero-content {
-                grid-template-columns: 1fr;
             }
 
             nav ul, .nav-contact-info { display: none; }
@@ -352,15 +312,42 @@
             .menu-burger { display: block; }
             .logo img { height: 50px !important; }
         }
+
+        /* Menu Burger pour mobile */
+        .menu-burger {
+            display: none; /* Caché sur bureau */
+            font-size: 1.8em;
+            cursor: pointer;
+            color: var(--text-primary);
+            z-index: 1001;
+        }
+
+        .nav-links-mobile {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.98);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            font-size: 1.5em;
+        }
+        .nav-links-mobile.active { display: flex; }
+        .nav-links-mobile a { color: var(--text-primary); }
+        body.no-scroll { overflow: hidden; }
     </style>
 </head>
 <body>
     <header>
         <nav class="container">
-            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Brunel" style="height: 50px; vertical-align: middle;"></a>
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 50px; vertical-align: middle;"></a>
             <ul class="desktop-links">
                 <li><a href="index.html#platform-features">Nos Services</a></li>
-                <li><a href="Boutique.html" style="color: var(--text-light);">Boutique</a></li>
+                <li><a href="Boutique.html" style="font-weight: bold;">Boutique</a></li>
                 <li><a href="index.html#about">À Propos</a></li>
             </ul>
             <div class="nav-actions">
@@ -382,7 +369,7 @@
     <main>
         <section class="container">
             <h1 class="section-title">Notre Boutique</h1>
-            <p class="section-subtitle">Choisissez la carte qui vous représente. Toutes nos cartes sont équipées de la dernière technologie NFC et donnent un accès à vie à notre plateforme de gestion.</p>
+            <p class="section-subtitle">Choisissez la carte qui vous représente. Chaque carte est équipée de la technologie NFC et donne un accès à vie à notre plateforme de gestion.</p>
 
             <div class="grid-3">
                 <div class="card product-card">
@@ -390,16 +377,16 @@
                         <button class="carousel-btn prev" onclick="navigateCarousel(this, -1)">&#10094;</button>
                         <div class="carousel-inner">
                             <div class="carousel-item pvc-style" style="background: #1a1a1a;">
-                                <img src="r/v/1.svg" class="card-design-overlay"><img src="r/logo.png" class="brunel-logo-overlay">
+                                <img src="r/v/1.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay" style="filter: invert(1);">
                             </div>
-                            <div class="carousel-item pvc-style" style="background: #003366;"> <!-- Bleu foncé -->
-                                <img src="r/v/2.svg" class="card-design-overlay"><img src="r/logo.png" class="brunel-logo-overlay">
+                            <div class="carousel-item pvc-style" style="background: #f0f0f0;">
+                                <img src="r/v/2.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
                             </div>
-                            <div class="carousel-item pvc-style" style="background: #800000;"> <!-- Rouge bordeaux -->
-                                <img src="r/v/3.svg" class="card-design-overlay"><img src="r/logo.png" class="brunel-logo-overlay">
+                            <div class="carousel-item pvc-style" style="background: #cccccc;">
+                                <img src="r/v/3.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
                             </div>
-                            <div class="carousel-item pvc-style" style="background: #e0e0e0;"> <!-- Gris clair -->
-                                <img src="r/v/4.svg" class="card-design-overlay"><img src="r/logo.png" class="brunel-logo-overlay" style="filter: invert(1);">
+                            <div class="carousel-item pvc-style" style="background: #ffffff;">
+                                <img src="r/v/4.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
                             </div>
                         </div>
                         <button class="carousel-btn next" onclick="navigateCarousel(this, 1)">&#10095;</button>
@@ -407,23 +394,23 @@
                     <h3>Carte Classique PVC</h3>
                     <p>La carte en PVC premium, durable et élégante. Personnalisable avec votre logo et QR code. Le standard de l'efficacité.</p>
                     <div class="price">29.99€ <span>/ unité</span></div>
-                    <a href="#" class="btn" onclick="event.preventDefault(); addToCart('pvc', 'Carte Classique PVC', 29.99)">Ajouter au Panier</a>
+                    <a href="#" class="btn" onclick="addToCart('pvc', 'Carte Classique PVC', 29.99); return false;">Ajouter au Panier</a>
                 </div>
                 <div class="card product-card">
                     <div class="product-carousel">
                         <button class="carousel-btn prev" onclick="navigateCarousel(this, -1)">&#10094;</button>
                         <div class="carousel-inner">
-                            <div class="carousel-item metal-black-gold"> <!-- Noir et Or -->
-                                <img src="r/v/2.svg" class="card-design-overlay" style="filter: invert(85%) sepia(30%) saturate(2000%) hue-rotate(10deg) brightness(1.1);"><img src="r/logo.png" class="brunel-logo-overlay">
+                            <div class="carousel-item metal-style" style="background: #111111;"> <!-- Noir Mat -->
+                                <img src="r/v/2.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay" style="filter: invert(1);">
                             </div>
-                            <div class="carousel-item metal-style"> <!-- Noir brossé -->
-                                <img src="r/v/1.svg" class="card-design-overlay"><img src="r/logo.png" class="brunel-logo-overlay">
+                            <div class="carousel-item metal-style" style="background: #333333;"> <!-- Noir brossé -->
+                                <img src="r/v/1.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay" style="filter: invert(1);">
                             </div>
-                            <div class="carousel-item metal-style" style="background: linear-gradient(145deg, #c0c0c0, #a0a0a0);"> <!-- Argent -->
-                                <img src="r/v/3.svg" class="card-design-overlay"><img src="r/logo.png" class="brunel-logo-overlay" style="filter: invert(1);">
+                            <div class="carousel-item metal-style" style="background: #e0e0e0;"> <!-- Argent -->
+                                <img src="r/v/3.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
                             </div>
-                            <div class="carousel-item metal-rose-gold"> <!-- Or rose -->
-                                <img src="r/v/4.svg" class="card-design-overlay"><img src="r/logo.png" class="brunel-logo-overlay">
+                            <div class="carousel-item metal-style" style="background: #f5f5f5;"> <!-- Blanc -->
+                                <img src="r/v/4.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
                             </div>
                         </div>
                         <button class="carousel-btn next" onclick="navigateCarousel(this, 1)">&#10095;</button>
@@ -431,23 +418,23 @@
                     <h3>Carte Métal Noir</h3>
                     <p>Une finition luxueuse en métal brossé noir pour un impact maximal. Gravure laser de précision pour un rendu inoubliable.</p>
                     <div class="price">79.99€ <span>/ unité</span></div>
-                    <a href="#" class="btn" onclick="event.preventDefault(); addToCart('metal', 'Carte Métal', 79.99)">Ajouter au Panier</a>
+                    <a href="#" class="btn" onclick="addToCart('metal', 'Carte Métal', 79.99); return false;">Ajouter au Panier</a>
                 </div>
                 <div class="card product-card">
                     <div class="product-carousel">
                         <button class="carousel-btn prev" onclick="navigateCarousel(this, -1)">&#10094;</button>
                         <div class="carousel-inner">
-                            <div class="carousel-item wood-style"> <!-- Bambou -->
-                                <img src="r/v/1.svg" class="card-design-overlay"><img src="r/logo.png" class="brunel-logo-overlay">
+                            <div class="carousel-item wood-style" style="background-color: #d7ccc8;"> <!-- Bambou -->
+                                <img src="r/v/1.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
                             </div>
-                            <div class="carousel-item wood-dark"> <!-- Bois foncé -->
-                                <img src="r/v/2.svg" class="card-design-overlay"><img src="r/logo.png" class="brunel-logo-overlay">
+                            <div class="carousel-item wood-style" style="background-color: #a1887f;"> <!-- Bois foncé -->
+                                <img src="r/v/2.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay" style="filter: invert(1);">
                             </div>
-                            <div class="carousel-item wood-light"> <!-- Bois clair -->
-                                <img src="r/v/3.svg" class="card-design-overlay"><img src="r/logo.png" class="brunel-logo-overlay" style="filter: invert(1);">
+                            <div class="carousel-item wood-style" style="background-color: #efebe9;"> <!-- Bois clair -->
+                                <img src="r/v/3.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
                             </div>
-                            <div class="carousel-item wood-style" style="background-color: #6D4C41;"> <!-- Bois cerisier -->
-                                <img src="r/v/4.svg" class="card-design-overlay"><img src="r/logo.png" class="brunel-logo-overlay">
+                            <div class="carousel-item wood-style" style="background-color: #8d6e63;"> <!-- Bois cerisier -->
+                                <img src="r/v/4.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay" style="filter: invert(1);">
                             </div>
                         </div>
                         <button class="carousel-btn next" onclick="navigateCarousel(this, 1)">&#10095;</button>
@@ -455,26 +442,26 @@
                     <h3>Carte Bois de Bambou</h3>
                     <p>Écologique et unique, chaque carte en bois de bambou véritable est une pièce d'artisanat. Pour ceux qui veulent se démarquer durablement.</p>
                     <div class="price">59.99€ <span>/ unité</span></div>
-                    <a href="#" class="btn" onclick="event.preventDefault(); addToCart('wood', 'Carte Bois', 59.99)">Ajouter au Panier</a>
+                    <a href="#" class="btn" onclick="addToCart('wood', 'Carte Bois', 59.99); return false;">Ajouter au Panier</a>
                 </div>
                  <div class="card product-card">
-                    <div class="product-carousel sticker-style" style="display: flex; align-items: center; justify-content: center;">
+                    <div class="product-carousel sticker-style" style="display: flex; align-items: center; justify-content: center; background-color: #f5f5f5;">
                         <img src="r/v/4.svg" style="height: 120px; width: auto;">
                     </div>
                     <h3>Sticker NFC</h3>
                     <p>Transformez n'importe quel objet en carte de visite. Collez ce sticker discret au dos de votre téléphone et partagez vos infos instantanément.</p>
                     <div class="price">19.99€ <span>/ unité</span></div>
-                    <a href="#" class="btn" onclick="event.preventDefault(); addToCart('sticker', 'Sticker NFC', 19.99)">Ajouter au Panier</a>
+                    <a href="#" class="btn" onclick="addToCart('sticker', 'Sticker NFC', 19.99); return false;">Ajouter au Panier</a>
                 </div>
                  <div class="card product-card">
                     <!-- Pour le pack, on peut montrer une seule image ou un montage -->
-                    <div class="product-carousel" style="height: 180px; background: #222; display: flex; align-items: center; justify-content: center;">
+                    <div class="product-carousel" style="height: 180px; background: #e0e0e0; display: flex; align-items: center; justify-content: center;">
                         <img src="r/v/1.svg" style="height: 120px; width: auto;">
                     </div>
                     <h3>Pack Équipe (10 Cartes)</h3>
                     <p>Équipez toute votre équipe avec nos cartes classiques. Gestion centralisée des profils depuis un seul tableau de bord administrateur.</p>
                     <div class="price">249.99€ <span>/ pack</span></div>
-                    <a href="#" class="btn" onclick="addToCart('pack10', 'Pack Équipe (10 Cartes)', 249.99)">Ajouter au Panier</a>
+                    <a href="#" class="btn" onclick="addToCart('pack10', 'Pack Équipe (10 Cartes)', 249.99); return false;">Ajouter au Panier</a>
                 </div>
             </div>
         </section>
@@ -486,6 +473,10 @@
 
     <script>
         /**
+         * ===================================================================
+         *                        SCRIPT CENTRALISÉ
+         * ===================================================================
+         * Les fonctions communes sont définies ici pour éviter la répétition.
          * Fonction centralisée pour appeler l'API backend via POST.
          */
         function callApi(action, data = {}) {
@@ -498,6 +489,9 @@
             return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
         }
 
+        /**
+         * Ajoute un produit au panier (localStorage) et synchronise si l'utilisateur est connecté.
+         */
         function addToCart(id, name, price) {
             let cart = JSON.parse(localStorage.getItem('cart')) || [];
             const existingItem = cart.find(item => item.id === id);
@@ -515,11 +509,41 @@
             updateCartCounter();
         }
 
-        // Logique pour les carrousels
-        document.querySelectorAll('.product-carousel').forEach(carousel => {
-            carousel.dataset.index = 0;
-        });
+        /**
+         * Gère l'affichage du menu mobile.
+         */
+        function toggleMobileMenu() {
+            const mobileMenu = document.querySelector('.nav-links-mobile');
+            const burgerIcon = document.querySelector('.menu-burger');
+            const body = document.body;
 
+            mobileMenu.classList.toggle('active');
+            body.classList.toggle('no-scroll');
+
+            if (mobileMenu.classList.contains('active')) {
+                burgerIcon.innerHTML = '✕'; // Icône de fermeture
+            } else {
+                burgerIcon.innerHTML = '☰';
+            }
+        }
+
+        /**
+         * Met à jour le compteur d'articles dans le header.
+         */
+        function updateCartCounter() {
+            const cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cart-link').textContent = `Panier (${totalItems})`;
+            document.getElementById('mobile-cart-link').textContent = `Panier (${totalItems})`;
+        }
+
+        // ===================================================================
+        //                  SCRIPTS SPÉCIFIQUES À LA PAGE
+        // ===================================================================
+
+        // Logique pour les carrousels
+        document.querySelectorAll('.product-carousel').forEach(carousel => { carousel.dataset.index = 0; });
+        
         function navigateCarousel(button, direction) {
             const carousel = button.closest('.product-carousel');
             const inner = carousel.querySelector('.carousel-inner');
@@ -551,35 +575,9 @@
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
-        function toggleMobileMenu() {
-            const mobileMenu = document.querySelector('.nav-links-mobile');
-            const burgerIcon = document.querySelector('.menu-burger');
-            const body = document.body;
-
-            mobileMenu.classList.toggle('active');
-            body.classList.toggle('no-scroll');
-
-            if (mobileMenu.classList.contains('active')) {
-                burgerIcon.innerHTML = '✕'; // Icône de fermeture
-            } else {
-                burgerIcon.innerHTML = '☰';
-            }
-        }
-
-        function updateCartCounter() {
-            const cart = JSON.parse(localStorage.getItem('cart')) || [];
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            const cartLink = document.getElementById('cart-link');
-            if (cartLink) {
-                cartLink.textContent = `Panier (${totalItems})`;
-            }
-            const mobileCartLink = document.getElementById('mobile-cart-link');
-            if (mobileCartLink) {
-                mobileCartLink.textContent = `Panier (${totalItems})`;
-            }
-        }
-
-        // Logique pour le bouton de connexion dynamique
+        /**
+         * Logique exécutée au chargement du DOM.
+         */
         document.addEventListener('DOMContentLoaded', () => {
             updateCartCounter();
 

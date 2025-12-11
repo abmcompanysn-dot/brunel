@@ -620,10 +620,7 @@
                         <h4 style="margin-top: 25px;">Typographie</h4>
                         <p class="text-secondary" style="color: var(--text-secondary); margin-top:-10px; margin-bottom: 10px;">Modifier la police et les couleurs du texte de votre profil.</p>
                         <div class="form-grid">
-                            <div class="form-group"><label for="Police">Police</label><select id="Police" name="Police" class="form-control"><option>DM Sans</option><option>Roboto</option><option>Montserrat</option></select></div>
-                            <div class="form-group"><label for="Couleur_Texte">Couleur du texte</label><input type="color" id="Couleur_Texte" name="Couleur_Texte" class="form-control" value="#000000" style="padding: 5px; height: 45px;"></div>
-                            <div class="form-group"><label for="Couleur_Texte_Secondaire">Texte secondaire</label><input type="color" id="Couleur_Texte_Secondaire" name="Couleur_Texte_Secondaire" class="form-control" value="#737373" style="padding: 5px; height: 45px;"></div>
-                            <div class="form-group"><label for="Couleur_Arriere_Plan">Arrière-plan</label><input type="color" id="Couleur_Arriere_Plan" name="Couleur_Arriere_Plan" class="form-control" value="#FFFFFF" style="padding: 5px; height: 45px;"></div>
+                            <div class="form-group"><label for="Couleur_Theme">Couleur du Thème</label><input type="color" id="Couleur_Theme" name="Couleur_Theme" class="form-control" value="#007BFF" style="padding: 5px; height: 45px;"></div>
                         </div>
 
                         <h4 style="margin-top: 25px;">Style des boutons</h4>
@@ -642,16 +639,10 @@
                         <div class="form-group" style="margin-top: 25px;"><label for="Langue">Langue</label><select id="Langue" name="Langue" class="form-control"><option value="fr">Français</option><option value="en">English</option></select></div>
                     </div>
                     <!-- Panneau d'édition "Liens" -->
-                    <div id="edit-pane-links" class="edit-pane">
+                    <div id="edit-pane-links" class="edit-pane active"> <!-- Rendre les liens actifs par défaut après suppression des modules -->
                         <h3>Réseaux Sociaux & Liens</h3>
                         <div id="social-links-container"></div>
                         <button type="button" class="btn btn-secondary" onclick="addSocialLink()" style="width: auto; margin-top: 10px;">Ajouter un lien</button>
-                    </div>
-                    <!-- Panneau d'édition "Modules" -->
-                    <div id="edit-pane-modules" class="edit-pane">
-                        <h3>Modules Actifs</h3>
-                        <div class="toggle-switch"><span>Activer le module CV/Portfolio</span><input type="checkbox" id="toggle-cv-edit" onchange="toggleModule('CV_Actif', this.checked)"></div>
-                        <div class="toggle-switch"><span>Activer la capture de prospects</span><input type="checkbox" id="toggle-lead-edit" onchange="toggleModule('Lead_Capture_Actif', this.checked)"></div>
                     </div>
                     <hr style="border-color: var(--border-color); margin: 30px 0;">
                     <button type="submit" id="save-button" class="btn btn-primary">Sauvegarder les changements</button>
@@ -793,11 +784,7 @@
                 // Panneau "Apparence"
                 Mise_En_Page: profileForm.Mise_En_Page.value,
                 Police: profileForm.Police.value,
-                Couleur_Texte: profileForm.Couleur_Texte.value,
-                Couleur_Texte_Secondaire: profileForm.Couleur_Texte_Secondaire.value,
-                Couleur_Arriere_Plan: profileForm.Couleur_Arriere_Plan.value,
-                Couleur_Bouton: profileForm.Couleur_Bouton.value,
-                Couleur_Texte_Bouton: profileForm.Couleur_Texte_Bouton.value,
+                Couleur_Theme: profileForm.Couleur_Theme.value, // Nouveau champ
                 Cacher_Marque: document.getElementById('toggle-branding').checked,
                 Langue: profileForm.Langue.value,
 
@@ -972,8 +959,7 @@
             // Panneau "Apparence"
             // Remplir les champs d'apparence avec les données sauvegardées (ou des valeurs par défaut)
             document.querySelector('select[name="Mise_En_Page"]').value = data.profile.Mise_En_Page || 'default';
-            document.getElementById('Police').value = data.profile.Police || 'DM Sans';
-            // ... (les autres champs de couleur sont déjà initialisés, mais pourraient être remplis ici aussi)
+            document.getElementById('Couleur_Theme').value = data.profile.Couleur_Theme || '#007BFF'; // Nouveau champ
             // document.getElementById('Couleur_Theme').value = data.profile.Couleur_Theme || '#007BFF'; // Remplacé par les nouveaux champs
             if (data.profile.URL_Photo) {
                 document.getElementById('image-preview').src = data.profile.URL_Photo;
@@ -985,7 +971,7 @@
             document.getElementById('phone-name-preview').textContent = data.profile.Nom_Complet || 'Nom non défini';
             const phoneSubtitleParts = [data.profile.Profession, data.profile.Compagnie, data.profile.Location].filter(Boolean);
             document.getElementById('phone-details-preview').textContent = phoneSubtitleParts.join(' | ') || 'Informations non disponibles';
-            // document.querySelector('.phone-header img').style.borderColor = data.profile.Couleur_Theme || '#007BFF';
+            document.querySelector('.phone-header img').style.borderColor = data.profile.Couleur_Theme || '#007BFF'; // Utilise la couleur du thème
             
             // Remplir les liens sociaux dans l'éditeur
             updatePhoneSocialLinks(); // Mettre à jour l'aperçu
@@ -1022,8 +1008,6 @@
             // Mettre à jour les toggles des modules
             document.getElementById('toggle-cv').checked = data.profile.CV_Actif === 'OUI';
             document.getElementById('toggle-lead').checked = data.profile.Lead_Capture_Actif === 'OUI';
-            document.getElementById('toggle-cv-edit').checked = data.profile.CV_Actif === 'OUI';
-            document.getElementById('toggle-lead-edit').checked = data.profile.Lead_Capture_Actif === 'OUI'; 
 
             // Remplir les paramètres
             document.getElementById('account-email').textContent = data.user.Email;
@@ -1153,8 +1137,8 @@
             previewContainer.innerHTML = '';
 
             // Récupérer les couleurs actuelles des boutons pour l'aperçu
-            const buttonColor = document.getElementById('Couleur_Bouton').value;
-            const buttonTextColor = document.getElementById('Couleur_Texte_Bouton').value;
+            const themeColor = document.getElementById('Couleur_Theme').value;
+            const buttonTextColor = 'white'; // Texte blanc sur la couleur du thème pour les boutons
 
             const entries = container.querySelectorAll('.social-link-entry');
             // Nouvelle table de correspondance pour vos logos SVG
@@ -1182,7 +1166,7 @@
 
                     previewContainer.innerHTML += `
                         <a href="#" class="phone-social-link" style="background-color: ${buttonColor};">
-                            ${iconHtml}
+                            ${iconHtml} <!-- L'icône sera blanche grâce au filtre invert(1) -->
                             <span style="color: ${buttonTextColor};">${linkName}</span>
                         </a>
                     `;

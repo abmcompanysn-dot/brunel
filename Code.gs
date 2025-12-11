@@ -117,7 +117,7 @@ function setupSpreadsheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheetsToCreate = [
     { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration'] },
-    { name: 'Profils', headers: ['ID_Utilisateur', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY', 'Mise_En_Page', 'Police', 'Couleur_Texte', 'Couleur_Texte_Secondaire', 'Couleur_Arriere_Plan', 'Couleur_Bouton', 'Couleur_Texte_Bouton', 'Cacher_Marque', 'Langue'] },
+    { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
@@ -163,7 +163,7 @@ function verifyAndFixSheetStructure() {
 
   const requiredSheets = [
     { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration'] },
-    { name: 'Profils', headers: ['ID_Utilisateur', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY', 'Mise_En_Page', 'Police', 'Couleur_Texte', 'Couleur_Texte_Secondaire', 'Couleur_Arriere_Plan', 'Couleur_Bouton', 'Couleur_Texte_Bouton', 'Cacher_Marque', 'Langue'] },
+    { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
@@ -285,7 +285,7 @@ function registerUser(email, password) {
 
   // Créer un profil de base associé
   const profileSheet = ss.getSheetByName('Profils');
-  profileSheet.appendRow([newId, email.split('@')[0], '', '', '', '', '', '[]', 'NON', 'NON', '']); // Ligne de profil initial sans les nouvelles colonnes, elles seront remplies plus tard
+  profileSheet.appendRow([newId, email, email.split('@')[0], '', '', '', '', '', '[]', 'NON', 'NON', '']); // Ligne de profil initial
 
   SpreadsheetApp.flush();
   logAction('registerUser', 'SUCCESS', `Nouvel utilisateur créé: ${email}`, email);
@@ -377,8 +377,10 @@ function getUserByToken(token) {
  * @returns {Object} Un objet contenant toutes les données nécessaires pour le dashboard.
  */
 function getDashboardData() {
+  // Cette fonction est appelée par doPost, qui ne passe pas 'e'. 
+  // Le token doit être récupéré des propriétés de la requête en cours.
   try {
-    const user = getUserByToken(e.parameter.token); // 'e' n'est pas défini ici, il faut le passer en paramètre
+    const user = getUserByToken(JSON.parse(e.postData.contents).token);
     if (!user) throw new Error("Token invalide ou expiré.");
 
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -505,18 +507,21 @@ function getProfileData(profileUrl) {
  */
 function saveProfile(data) {
   try {
-    const user = authenticateUser();
+    const user = getUserByToken(JSON.parse(e.postData.contents).token);
+    if (!user) throw new Error("Token invalide ou expiré pour saveProfile.");
+
     const profileSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Profils');
     const profilesData = profileSheet.getDataRange().getValues();
     const headers = profilesData.shift();
     const userIdCol = headers.indexOf('ID_Utilisateur');
 
     const rowIndex = profilesData.findIndex(row => row[userIdCol] === user.ID_Unique);
-    
+
     if (rowIndex !== -1) {
       // Mettre à jour la ligne existante (l'index est 0-based, mais la plage est 1-based, +2 pour la ligne de données)
       const rowToUpdate = rowIndex + 2;
       // Mettre à jour les valeurs en fonction des en-têtes
+      // Cela met à jour uniquement les colonnes pour lesquelles des données sont fournies.
       headers.forEach((header, index) => {
         if (data.hasOwnProperty(header)) {
           profileSheet.getRange(rowToUpdate, index + 1).setValue(data[header]);
@@ -525,7 +530,7 @@ function saveProfile(data) {
       Logger.log(`Profil pour ${user.Email} mis à jour.`);
       return { success: true, message: "Profil sauvegardé avec succès." };
     }
-    return { success: false, message: "Profil non trouvé pour la mise à jour." };
+    return { success: false, error: "Profil non trouvé pour la mise à jour." };
   } catch (e) {
     Logger.log(`Erreur dans saveProfile: ${e.message}`);
     return { error: e.message };
