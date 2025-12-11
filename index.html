@@ -15,6 +15,7 @@
             z-index: 1000;
             background-color: transparent; /* Fond transparent par défaut */
             transition: background-color 0.3s ease;
+            border-bottom: 1px solid transparent; /* Bordure transparente par défaut */
         }
         header.scrolled {
             background-color: rgba(10, 10, 10, 0.85); /* Fond noir semi-transparent au défilement */
@@ -86,12 +87,22 @@
             min-width: 160px;
             z-index: 1001;
             border: 1px solid #333;
+            transform: translateY(10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: transform 0.2s ease, opacity 0.2s ease, visibility 0.2s;
+        }
+        .more-menu-dropdown.visible {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
         }
         .more-menu-dropdown a {
             display: block;
             color: white;
             padding: 10px 15px;
             border-radius: 5px;
+            transition: background-color 0.2s ease;
         }
 
         /* Section Hero spécifique */
@@ -186,9 +197,6 @@
             .section-title {
                 font-size: 2.2em;
             }
-            .hero {
-                height: 70vh;
-            }
             .hero-text-content h1 {
                 font-size: 2.5em;
             }
@@ -225,6 +233,10 @@
             opacity: 1;
             filter: grayscale(0%);
         }
+        
+        #trusted-by .container {
+            padding: 0; /* Supprime le padding pour que le scroller prenne toute la largeur */
+        }
 
         @keyframes scroll {
             to {
@@ -260,7 +272,7 @@
                 </a> 
                 <div class="more-menu-container">
                     <div class="more-menu-icon" onclick="toggleMoreMenu(event)">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
                     </div>
                     <div class="more-menu-dropdown">
                         <a href="Boutique.html">Boutique</a>
@@ -364,7 +376,7 @@
         </section>
 
         <section id="trusted-by">
-            <h2 class="section-title" style="margin-bottom: 40px;">Approuvé par les marques du monde entier</h2>
+            <h2 class="section-title" style="margin-bottom: 40px; padding: 0 20px;">Approuvé par les marques du monde entier</h2>
             <div class="logo-scroller">
                 <div class="logo-scroller-inner">
                     <!-- Les logos sont dupliqués pour un défilement infini fluide -->
@@ -491,16 +503,15 @@
         function toggleMoreMenu(event) {
             event.stopPropagation(); // Empêche le clic de se propager au document
             const dropdown = document.querySelector('.more-menu-dropdown');
-            const isVisible = dropdown.style.display === 'block';
-            dropdown.style.display = isVisible ? 'none' : 'block';
+            dropdown.classList.toggle('visible');
         }
 
         // Fermer le menu si on clique ailleurs
         document.addEventListener('click', function(event) {
             const dropdown = document.querySelector('.more-menu-dropdown');
             const menuContainer = document.querySelector('.more-menu-container');
-            if (dropdown && !menuContainer.contains(event.target)) {
-                dropdown.style.display = 'none';
+            if (dropdown && dropdown.classList.contains('visible') && !menuContainer.contains(event.target)) {
+                dropdown.classList.remove('visible');
             }
         });
 
