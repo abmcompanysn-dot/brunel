@@ -1,12 +1,13 @@
 /* mahu-styles.css - Fichier de style centralisé */
 :root {
-    --primary-color: #0a0a0a; /* Noir profond */
-    --secondary-color: #ffffff; /* Blanc pur */
-    --background-color: #f4f4f4; /* Gris très clair */
-    --card-background: #ffffff;
-    --text-primary: #0a0a0a;
-    --text-secondary: #555555;
-    --border-color: #eeeeee;
+    /* Thème Sombre */
+    --primary-color: #ffffff; /* Blanc pour les éléments principaux (boutons, etc.) */
+    --secondary-color: #0a0a0a; /* Noir pour le texte sur les éléments clairs */
+    --background-color: #000000; /* Fond noir pur */
+    --card-background: #1a1a1a; /* Gris foncé pour les cartes */
+    --text-primary: #f0f0f0; /* Blanc cassé pour le texte principal */
+    --text-secondary: #a0a0a0; /* Gris clair pour le texte secondaire */
+    --border-color: #333333; /* Gris foncé pour les bordures */
     --blue: #007bff; /* Gardé pour certains éléments comme les icônes */
 }
 
@@ -17,6 +18,23 @@ body {
     color: var(--text-primary);
     font-size: 16px;
     line-height: 1.6;
+    position: relative; /* Nécessaire pour l'effet de lumière */
+    overflow-x: hidden; /* Empêche le défilement horizontal causé par l'effet */
+}
+
+/* Effet de lumière blanche floue */
+body::before {
+    content: '';
+    position: absolute;
+    top: -200px; /* Positionné en haut */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 800px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 60%);
+    filter: blur(100px);
+    z-index: -1; /* Derrière tout le contenu */
+    pointer-events: none; /* Non cliquable */
 }
 
 .container {
@@ -27,7 +45,7 @@ body {
 
 /* Barre de Navigation Améliorée */
 header {
-    background-color: var(--primary-color);
+    background-color: transparent; /* Le fond est géré dans index.html */
     backdrop-filter: blur(10px);
     padding: 10px 0;
     position: sticky;
@@ -45,7 +63,7 @@ nav {
 .logo {
     font-weight: bold;
     font-size: 1.5em;
-    color: var(--secondary-color);
+    color: var(--text-primary);
     text-decoration: none;
 }
 
@@ -68,7 +86,7 @@ nav ul {
 }
 
 nav a {
-    color: var(--secondary-color);
+    color: var(--text-primary);
     text-decoration: none;
     font-weight: 500;
     transition: color 0.3s;
@@ -83,7 +101,7 @@ nav ul a::after {
     height: 2px;
     bottom: 0;
     left: 50%;
-    background-color: var(--secondary-color);
+    background-color: var(--text-primary);
     transition: all 0.3s ease-in-out;
 }
 
@@ -103,8 +121,8 @@ nav a:hover, .logo:hover {
 }
 
 .nav-actions a.primary {
-    background-color: var(--secondary-color);
-    color: var(--primary-color);
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
     padding: 8px 15px;
     border-radius: 5px;
     font-weight: bold;
@@ -112,8 +130,8 @@ nav a:hover, .logo:hover {
 }
 
 .nav-actions a.primary:hover {
-    background-color: #e0e0e0;
-    color: var(--primary-color);
+    background-color: #f0f0f0;
+    color: var(--secondary-color);
 }
 
 /* Menu Burger pour mobile */
@@ -121,7 +139,7 @@ nav a:hover, .logo:hover {
     display: none; /* Caché sur bureau */
     font-size: 1.8em;
     cursor: pointer;
-    color: var(--secondary-color);
+    color: var(--text-primary);
     z-index: 1001;
 }
 
@@ -132,7 +150,7 @@ nav a:hover, .logo:hover {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(255, 255, 255, 0.98);
+    background-color: rgba(10, 10, 10, 0.98); /* Fond sombre pour le menu mobile */
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -143,7 +161,7 @@ nav a:hover, .logo:hover {
     display: flex;
 }
 .nav-links-mobile a {
-    color: var(--text-primary);
+    color: var(--text-primary); /* Le texte est déjà clair, c'est parfait */
 }
 body.no-scroll {
     overflow: hidden;
@@ -167,7 +185,7 @@ h1, h2, h3 {
 .section-subtitle {
     text-align: center;
     font-size: 1.1em;
-    color: var(--text-primary);
+    color: var(--text-secondary);
     max-width: 600px;
     margin: 0 auto 60px auto;
 }
@@ -187,7 +205,7 @@ h1, h2, h3 {
 
 .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
 }
 
 .card h3 {
@@ -201,8 +219,8 @@ h1, h2, h3 {
     width: 100%;
     text-align: center;
     padding: 15px;
-    background: var(--primary-color);
-    color: white;
+    background: var(--text-primary); /* Bouton blanc */
+    color: var(--secondary-color); /* Texte noir */
     text-decoration: none;
     border-radius: 5px;
     font-weight: bold;
@@ -216,5 +234,5 @@ h1, h2, h3 {
     transform: scale(1.02);
 }
 .btn-gradient {
-    background: var(--primary-color);
+    background: var(--text-primary);
 }
