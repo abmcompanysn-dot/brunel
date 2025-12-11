@@ -24,13 +24,12 @@
 
         /* Par défaut (sur la vidéo), cacher les éléments sauf l'icône de profil */
         header:not(.scrolled) .logo,
-        header:not(.scrolled) .desktop-links {
+        header:not(.scrolled) .desktop-links,
+        header:not(.scrolled) .more-menu-container {
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
-        /* Cacher le nouveau menu sur la vidéo */
-        header:not(.scrolled) .more-menu-container { display: none; }
 
         /* Style de l'icône de profil (remplace le bouton Connexion sur la vidéo) */
         header:not(.scrolled) #login-link {
@@ -39,22 +38,17 @@
             padding: 5px; /* Petite marge cliquable */
         }
 
-        /* Cacher le texte du bouton sur la vidéo */
-        header:not(.scrolled) #login-link .login-text {
-            display: none;
-        }
-
-        /* Afficher et styliser l'icône SVG sur la vidéo */
-        header:not(.scrolled) #login-link .profile-icon {
-            display: block;
+        /* Style de l'icône de profil */
+        #login-link .profile-icon {
             stroke: white; /* Couleur de l'icône */
             width: 28px;
             height: 28px;
+            transition: stroke 0.3s ease;
         }
 
-        /* Cacher l'icône SVG quand on défile */
+        /* Changer la couleur de l'icône au défilement */
         header.scrolled #login-link .profile-icon {
-            display: none;
+            stroke: var(--text-primary);
         }
 
         /* Styles pour le nouveau menu "trois points" */
@@ -258,8 +252,7 @@
             </ul>
             <div class="nav-actions">
                 <a href="Connexion.html" class="primary" id="login-link">
-                    <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                    <span class="login-text">Connexion</span>
+                    <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> 
                 </a> 
                 <div class="more-menu-container">
                     <div class="more-menu-icon" onclick="toggleMoreMenu(event)">
@@ -519,20 +512,9 @@
         function updateLoginButton() {
             const loginLink = document.getElementById('login-link');
             if (loginLink && localStorage.getItem('userIsLoggedIn') === 'true') {
-                loginLink.querySelector('.login-text').textContent = 'Tableau de bord';
                 loginLink.href = 'Dashboard.html';
             } else {
-                // Si non connecté, s'assurer que le texte est "Connexion" pour le style de l'icône
-                loginLink.querySelector('.login-text').textContent = 'Connexion';
                 loginLink.href = 'Connexion.html';
-            }
-
-            // Quand le header est "scrolled", s'assurer que le texte est visible
-            const header = document.querySelector('header');
-            const loginText = loginLink.querySelector('.login-text').textContent;
-            if (header.classList.contains('scrolled') && loginText === 'Tableau de bord') {
-                // Pas besoin de changer le texte ici, le CSS s'en charge.
-                // Le JS ci-dessus a déjà mis le bon texte.
             }
 
             // Si l'utilisateur est connecté, afficher l'icône QR Code
@@ -616,15 +598,6 @@
                 header.classList.add('scrolled');
             } else {
                 header.classList.remove('scrolled');
-            }
-
-            // Gérer le texte du bouton de connexion/dashboard au scroll
-            const loginLink = document.getElementById('login-link');
-            const loginText = loginLink.querySelector('.login-text');
-            if (localStorage.getItem('userIsLoggedIn') === 'true') {
-                loginText.textContent = 'Tableau de bord';
-            } else {
-                loginText.textContent = 'Connexion';
             }
 
         });
