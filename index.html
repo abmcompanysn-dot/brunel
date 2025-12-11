@@ -24,8 +24,7 @@
 
         /* Par défaut (sur la vidéo), cacher les éléments sauf l'icône de profil */
         header:not(.scrolled) .logo,
-        header:not(.scrolled) .desktop-links,
-        header:not(.scrolled) .more-menu-container {
+        header:not(.scrolled) .desktop-links {
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -33,7 +32,7 @@
 
         /* Style de l'icône de profil (remplace le bouton Connexion sur la vidéo) */
         header:not(.scrolled) #login-link {
-            background: none;
+            background: transparent;
             border: none;
             padding: 5px; /* Petite marge cliquable */
         }
@@ -48,6 +47,13 @@
 
         /* Changer la couleur de l'icône au défilement */
         header.scrolled #login-link .profile-icon {
+            stroke: var(--text-primary);
+        }
+
+        /* Style de l'icône de profil au scroll pour qu'elle n'ait pas de fond */
+        header.scrolled #login-link {
+            background: transparent;
+            border: none;
             stroke: var(--text-primary);
         }
 
@@ -168,12 +174,10 @@
         @media (max-width: 992px) { /* Point de rupture ajusté pour une meilleure transition */
             nav ul.desktop-links {
                 display: none;
-            }
-            .nav-actions a.primary {
-                display: none; /* Cache le bouton connexion principal */
-            }
-            .menu-burger {
-                display: block;
+            } 
+            .nav-actions {
+                flex-grow: 1;
+                justify-content: flex-end;
             }
             .nav-actions {
                 gap: 15px; /* Réduit l'espace pour le panier */
@@ -263,25 +267,9 @@
                         <a href="Panier.html" id="cart-link">Panier (0)</a>
                     </div>
                 </div>
-                <!-- Conteneur pour le QR Code, caché par défaut -->
-                <div id="nav-qrcode-container" style="display: none;">
-                    <img src="r/qr-code-icon.svg" id="nav-qrcode-icon" alt="QR Code" style="height: 24px; cursor: pointer;" onclick="toggleQrPopup()">
-                    <div id="nav-qrcode-popup">
-                        <img id="nav-qrcode-img" src="" alt="Votre QR Code" style="width: 100%; height: auto;">
-                    </div>
-                </div>
-                <div class="menu-burger" onclick="toggleMobileMenu()">☰</div>
             </div>
         </nav>
     </header>
-
-    <div class="nav-links-mobile">
-        <a href="index.html#features" onclick="toggleMobileMenu()">Nos Solutions</a>
-        <a href="Boutique.html" onclick="toggleMobileMenu()">Boutique</a>
-        <a href="index.html#about" onclick="toggleMobileMenu()">À Propos</a>
-        <a href="Connexion.html" onclick="toggleMobileMenu()" class="primary">Connexion</a>
-        <a href="Panier.html" onclick="toggleMobileMenu()" id="mobile-cart-link">Panier (0)</a>
-    </div>
 
     <main>
         <section class="hero">
@@ -473,24 +461,6 @@
         }
 
         /**
-         * Gère l'affichage du menu mobile.
-         */
-        function toggleMobileMenu() {
-            const mobileMenu = document.querySelector('.nav-links-mobile');
-            const burgerIcon = document.querySelector('.menu-burger');
-            const body = document.body;
-
-            mobileMenu.classList.toggle('active');
-            body.classList.toggle('no-scroll');
-
-            if (mobileMenu.classList.contains('active')) {
-                burgerIcon.innerHTML = '✕'; // Icône de fermeture
-            } else {
-                burgerIcon.innerHTML = '☰';
-            }
-        }
-
-        /**
          * Met à jour le compteur d'articles dans le header.
          */
         function updateCartCounter() {
@@ -499,10 +469,6 @@
             const cartLink = document.getElementById('cart-link');
             if (cartLink) {
                 cartLink.textContent = `Panier (${totalItems})`;
-            }
-            const mobileCartLink = document.getElementById('mobile-cart-link');
-            if (mobileCartLink) {
-                mobileCartLink.textContent = `Panier (${totalItems})`;
             }
         }
 
@@ -517,34 +483,6 @@
                 loginLink.href = 'Connexion.html';
             }
 
-            // Si l'utilisateur est connecté, afficher l'icône QR Code
-            if (localStorage.getItem('userIsLoggedIn') === 'true') {
-                const qrContainer = document.getElementById('nav-qrcode-container');
-                if (qrContainer) {
-                    qrContainer.style.display = 'block';
-                    // Appeler l'API pour obtenir l'URL du profil et générer le QR code
-                    callApi('getPublicProfileUrl')
-                        .then(data => { // NOSONAR
-                            if (data.success) {
-                                const publicProfileUrl = `ProfilePublic.html?user=${data.profileUrl}`;
-                                const qrCodeUrl = `https://quickchart.io/qr?text=${encodeURIComponent(publicProfileUrl)}&size=150`;
-                                document.getElementById('nav-qrcode-img').src = qrCodeUrl;
-                            }
-                        });
-                }
-            }
-        }
-
-        /**
-         * Affiche ou cache le popup du QR code.
-         */
-        function toggleQrPopup() {
-            const popup = document.getElementById('nav-qrcode-popup');
-            if (popup.style.display === 'block') {
-                popup.style.display = 'none';
-            } else {
-                popup.style.display = 'block';
-            }
         }
 
         /**
@@ -569,24 +507,10 @@
         /**
          * Logique exécutée au chargement du DOM.
          */
-        document.addEventListener('click', function(event) {
-            const qrContainer = document.getElementById('nav-qrcode-container');
-            if (qrContainer && !qrContainer.contains(event.target)) {
-                document.getElementById('nav-qrcode-popup').style.display = 'none';
-            }
-        });
-
-
         document.addEventListener('DOMContentLoaded', () => { 
             updateCartCounter(); 
             updateLoginButton(); 
 
-            // Mettre à jour le bouton de connexion dans le menu mobile également
-            const mobileLoginLink = document.querySelector('.nav-links-mobile a.primary');
-            if (mobileLoginLink && localStorage.getItem('userIsLoggedIn') === 'true') {
-                mobileLoginLink.textContent = 'Tableau de bord';
-                mobileLoginLink.href = 'Dashboard.html';
-            }
         });
 
         /**
