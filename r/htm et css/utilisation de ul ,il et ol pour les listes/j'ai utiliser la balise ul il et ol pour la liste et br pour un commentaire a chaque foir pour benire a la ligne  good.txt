@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+   <head>
+         <title> je suis le president BRUNEL ATEKOSSI et je veux utiliser les listes  </title>
+          <meta charset =''utf-8''/>
+   </head>
+   <body> 
+
+         <h1>comment apprendre les listes  en desordre </h1>
+         <ul>
+             <li> Le president </li>
+             <li> le fils de DIeu </li>
+             <li> le PDG de ABM Company </li>
+             <li> le grand des grands   </li>
+
+         </ul>
+         <h1>comment apprendre les listes  en ordre </h1>
+            <ol>
+            <li> Le president </li>
+             <li> le fils de DIeu </li>
+             <li> le PDG de ABM Company </li>
+             <li> le grand des grands   </li>
+ 
+         </ol> 
+       
+          <P> je suis entrain d'utiliser  </br>la balise ''ul'' pour le desordre des listes  ,</br>la balise ''ol'' pour l'ordre  ,</br>et enfin je use ''il'' pour enummerer les liste 
+          </P> 
+           <P> je suis entrain de utiliser </br> la balise ''br'' pour revenire a la ligne 
+          </P>
+          </body>
+</html>  

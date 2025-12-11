@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+   <head>
+         <title> je suis le president BRUNELATEKOSSI</title><meta charset =''utf-8''/>
+   </head>
+   <body> 
+
+         <h1>la vie du President Brunel et de sa relation avec Dieu </h1>
+          <P> C'est un jeune etudiant qui a laisser ces parents dans son pays pour y vivre sa propre vie au senegale mais l'a vie n'est pas toujour ce que nous pensons bref voila ce que j'ai envie de faire </P>
+   </body>
+</html>  

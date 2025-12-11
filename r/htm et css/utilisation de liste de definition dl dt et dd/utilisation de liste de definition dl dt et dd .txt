@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+   <head>
+         <title> je suis le president BRUNEL ATEKOSSI et je veux utiliser les listes de definition   </title>
+          <meta charset =''utf-8''/>
+   </head>
+   <body> 
+
+         <h1>comment apprendre les listes de definition  </h1>
+         <dl>
+             <dt> Le President </dt> 
+                                    <dd> c'est le titre donner a la personne la plus importante du pays et l'une de mes titres que  j'aime  </dd>
+
+         </dl>
+    </body>
+</html>  

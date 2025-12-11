@@ -6,10 +6,60 @@
     <title>Mahu - Votre Carte de Visite Numérique</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        /* Styles pour la barre de navigation transparente */
+        header {
+            position: fixed; /* Reste en haut de l'écran */
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: transparent; /* Fond transparent par défaut */
+            transition: background-color 0.3s ease;
+        }
+        header.scrolled {
+            background-color: rgba(255, 255, 255, 0.9); /* Fond blanc semi-transparent au défilement */
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* Par défaut (sur la vidéo), cacher les éléments sauf l'icône de profil */
+        header:not(.scrolled) .logo,
+        header:not(.scrolled) .desktop-links,
+        header:not(.scrolled) #cart-link {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        /* Style de l'icône de profil (remplace le bouton Connexion sur la vidéo) */
+        header:not(.scrolled) #login-link {
+            background: none;
+            border: none;
+            padding: 5px; /* Petite marge cliquable */
+        }
+
+        /* Cacher le texte du bouton sur la vidéo */
+        header:not(.scrolled) #login-link .login-text {
+            display: none;
+        }
+
+        /* Afficher et styliser l'icône SVG sur la vidéo */
+        header:not(.scrolled) #login-link .profile-icon {
+            display: block;
+            stroke: white; /* Couleur de l'icône */
+            width: 28px;
+            height: 28px;
+        }
+
+        /* Cacher l'icône SVG quand on défile */
+        header.scrolled #login-link .profile-icon {
+            display: none;
+        }
+
         /* Section Hero spécifique */
         .hero {
             position: relative;
-            height: 80vh; /* Prend 80% de la hauteur de l'écran */
+            height: 100vh; /* Prend 100% de la hauteur de l'écran */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -36,7 +86,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(255, 255, 255, 0.3); /* Voile clair pour la lisibilité */
+            background-color: rgba(0, 0, 0, 0.3); /* Voile sombre pour la lisibilité du texte blanc */
             z-index: -1;
         }
         .hero-text-content h1 {
@@ -170,7 +220,10 @@
             </ul>
             <div class="nav-actions">
                 <a href="Panier.html" id="cart-link">Panier (0)</a>
-                <a href="Connexion.html" class="primary" id="login-link">Connexion</a>
+                <a href="Connexion.html" class="primary" id="login-link">
+                    <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span class="login-text">Connexion</span>
+                </a> 
                 <!-- Conteneur pour le QR Code, caché par défaut -->
                 <div id="nav-qrcode-container" style="display: none;">
                     <img src="r/qr-code-icon.svg" id="nav-qrcode-icon" alt="QR Code" style="height: 24px; cursor: pointer;" onclick="toggleQrPopup()">
@@ -198,9 +251,7 @@
             </div>
             <div class="hero-overlay"></div>
             <div class="container hero-text-content">
-                <h1>La nouvelle ère de la connexion.</h1>
-                <p>Connectez-vous instantanément avec une carte intelligente NFC. Partagez vos informations d'un simple contact.</p>
-                <a href="Boutique.html" class="btn btn-gradient">Découvrir nos cartes</a>
+                <img src="r/m.png" alt="Mahu - La nouvelle ère de la connexion" style="max-width: 70%; height: auto; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));">
             </div>
         </section>
 
@@ -422,8 +473,20 @@
         function updateLoginButton() {
             const loginLink = document.getElementById('login-link');
             if (loginLink && localStorage.getItem('userIsLoggedIn') === 'true') {
-                loginLink.textContent = 'Tableau de bord';
+                loginLink.querySelector('.login-text').textContent = 'Tableau de bord';
                 loginLink.href = 'Dashboard.html';
+            } else {
+                // Si non connecté, s'assurer que le texte est "Connexion" pour le style de l'icône
+                loginLink.querySelector('.login-text').textContent = 'Connexion';
+                loginLink.href = 'Connexion.html';
+            }
+
+            // Quand le header est "scrolled", s'assurer que le texte est visible
+            const header = document.querySelector('header');
+            const loginText = loginLink.querySelector('.login-text').textContent;
+            if (header.classList.contains('scrolled') && loginText === 'Tableau de bord') {
+                // Pas besoin de changer le texte ici, le CSS s'en charge.
+                // Le JS ci-dessus a déjà mis le bon texte.
             }
 
             // Si l'utilisateur est connecté, afficher l'icône QR Code
@@ -478,6 +541,29 @@
                 mobileLoginLink.href = 'Dashboard.html';
             }
         });
+
+        /**
+         * Change le fond du header au défilement.
+         */
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 50) { // Change après 50px de défilement
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+
+            // Gérer le texte du bouton de connexion/dashboard au scroll
+            const loginLink = document.getElementById('login-link');
+            const loginText = loginLink.querySelector('.login-text');
+            if (localStorage.getItem('userIsLoggedIn') === 'true') {
+                loginText.textContent = 'Tableau de bord';
+            } else {
+                loginText.textContent = 'Connexion';
+            }
+
+        });
+
     </script>
 </body>
 </html>
