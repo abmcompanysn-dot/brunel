@@ -103,7 +103,7 @@ function corsify(data, isOptions = false) {
  */
 function onOpen() {
   SpreadsheetApp.getUi()
-      .createMenu('Brunel Admin')
+      .createMenu('Mahu Admin')
       .addItem('Vérifier et Réparer la Structure', 'verifyAndFixSheetStructure')
       .addItem('1. Initialiser les feuilles', 'setupSpreadsheet')
       .addToUi();
@@ -406,7 +406,7 @@ function getDashboardData() {
       .slice(0, 10); // Limiter aux 10 derniers
 
     // Construire l'URL de base de l'application web
-    const appUrl = "https://brunel.abmcy.com/ProfilePublic.html";
+    const appUrl = "https://mahu-app.com/ProfilePublic.html"; // URL générique
 
     return {
       user: user,
@@ -706,13 +706,13 @@ function generateGoogleWalletPass() {
 
     const passObject = {
       'id': objectId,
-      'classId': classId,
+      'classId': classId, 
       'genericType': 'GENERIC_TYPE_UNSPECIFIED',
       'hexBackgroundColor': profile.Couleur_Theme || '#007BFF',
       'logo': {
         'sourceUri': { 'uri': 'https://i.ibb.co/L6fKz3C/logo.png' } // URL de votre logo
       },
-      'cardTitle': { 'defaultValue': { 'language': 'fr-FR', 'value': profile.Nom_Complet || 'Carte Brunel' } },
+      'cardTitle': { 'defaultValue': { 'language': 'fr-FR', 'value': profile.Nom_Complet || 'Carte Mahu' } },
       'header': { 'defaultValue': { 'language': 'fr-FR', 'value': profile.Nom_Complet || user.Email } },
       'textModulesData': [
         { 'header': 'Email', 'body': user.Email, 'id': 'email' },
