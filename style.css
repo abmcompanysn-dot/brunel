@@ -11,6 +11,11 @@
     --blue: #007bff; /* Gardé pour certains éléments comme les icônes */
 }
 
+/* Règle globale pour un dimensionnement prévisible */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     margin: 0;
