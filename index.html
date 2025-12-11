@@ -24,7 +24,7 @@
         }
 
         /* Par défaut (sur la vidéo), cacher les éléments sauf l'icône de profil */
-        header:not(.scrolled) .logo,
+        header:not(.scrolled) .logo, /* S'assure que le logo est aussi caché sur la vidéo */
         header:not(.scrolled) .desktop-links {
             opacity: 0;
             visibility: hidden;
@@ -185,12 +185,14 @@
         @media (max-width: 992px) { /* Point de rupture ajusté pour une meilleure transition */
             nav ul.desktop-links {
                 display: none;
-            } 
+            }
+            /* Sur mobile, le logo est caché pour laisser la place aux actions */
+            nav .logo {
+                display: none;
+            }
             .nav-actions {
                 flex-grow: 1;
                 justify-content: flex-end;
-            }
-            .nav-actions {
                 gap: 15px; /* Réduit l'espace pour le panier */
             }
 
