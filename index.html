@@ -76,7 +76,6 @@
         }
 
         .more-menu-dropdown {
-            display: none; /* Caché par défaut */
             position: absolute;
             top: 100%;
             right: 0;
@@ -103,6 +102,9 @@
             padding: 10px 15px;
             border-radius: 5px;
             transition: background-color 0.2s ease;
+        }
+        .more-menu-dropdown a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
         }
 
         /* Section Hero spécifique */
@@ -186,14 +188,9 @@
             nav ul.desktop-links {
                 display: none;
             }
-            /* Sur mobile, le logo est caché pour laisser la place aux actions */
-            nav .logo {
-                display: none;
-            }
-            .nav-actions {
-                flex-grow: 1;
-                justify-content: flex-end;
-                gap: 15px; /* Réduit l'espace pour le panier */
+            /* Sur mobile, la nav devient une barre d'icônes */
+            nav {
+                justify-content: space-between;
             }
 
             .section-title {
@@ -262,7 +259,7 @@
 
     <header>
         <nav class="container">
-            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu"></a>
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 40px;"></a>
             <ul class="desktop-links">
                 <li><a href="index.html#features">Technologie</a></li>
                 <li><a href="index.html#about">À Propos</a></li>
@@ -273,10 +270,13 @@
                     <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> 
                 </a> 
                 <div class="more-menu-container">
-                    <div class="more-menu-icon" onclick="toggleMoreMenu(event)">
+                    <div class="more-menu-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
                     </div>
                     <div class="more-menu-dropdown">
+                        <a href="index.html#features">Technologie</a>
+                        <a href="index.html#about">À Propos</a>
+                        <a href="index.html#cards">Nos Offres</a>
                         <a href="Boutique.html">Boutique</a>
                         <a href="Panier.html" id="cart-link">Panier (0)</a>
                     </div>
@@ -523,6 +523,12 @@
         document.addEventListener('DOMContentLoaded', () => { 
             updateCartCounter(); 
             updateLoginButton(); 
+
+            // Attacher l'événement au menu "trois points" de manière propre
+            const moreMenuIcon = document.querySelector('.more-menu-icon');
+            if (moreMenuIcon) {
+                moreMenuIcon.addEventListener('click', toggleMoreMenu);
+            }
 
         });
 
