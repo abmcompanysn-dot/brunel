@@ -78,9 +78,15 @@ function doPost(e) {
     logAction(action, 'SUCCESS', `Action exécutée avec succès.`, userEmail);
     return corsify(result);
   } catch (err) {
-    const errorMessage = `Erreur dans l'action '${e.parameter.action}': ${err.message} (Ligne: ${err.lineNumber})`;
-    logAction(e.parameter.action, 'ERROR', errorMessage, e.parameter.token ? 'Token: ' + e.parameter.token : 'anonyme', 'Vérifiez que les données envoyées sont correctes et que les feuilles Google Sheets ne sont pas corrompues. Si l\'erreur persiste, contactez le support technique.');
-    return corsify({ error: "Une erreur interne est survenue. L'incident a été enregistré." });
+    const action = e.parameter.action || 'inconnue';
+    const userIdentifier = e.parameter.token ? 'Token: ' + e.parameter.token : 'anonyme';
+    const errorMessage = `Erreur dans l'action '${action}': ${err.message} (Ligne: ${err.lineNumber}, Fichier: ${err.fileName})`;
+    
+    // Enregistre l'erreur détaillée dans la feuille de calcul pour le débogage
+    logAction(action, 'ERROR', errorMessage, userIdentifier, 'Vérifiez que les données envoyées sont correctes et que le token est valide. Si l\'erreur persiste, consultez les logs.');
+    
+    // Renvoie une réponse d'erreur générique au client, mais avec les en-têtes CORS
+    return corsify({ success: false, error: "Une erreur interne est survenue. L'incident a été enregistré." });
   }
 }
 
