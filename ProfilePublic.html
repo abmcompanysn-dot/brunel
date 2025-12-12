@@ -523,7 +523,7 @@ END:VCARD`;
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.scale(size / 24, size / 24); // Les SVG sont souvent sur une grille de 24x24
-                ctx.stroke(path);
+                ctx.fill(path); // Remplacer stroke par fill pour des icônes pleines
                 ctx.restore();
             }
 
@@ -561,22 +561,22 @@ END:VCARD`;
                 ctx.fill();
 
                 // 2. Logo Mahu en blanc en bas à gauche
-                // On crée un canvas temporaire pour isoler le logo et le colorer en blanc
-                const logoCanvas = document.createElement('canvas');
-                logoCanvas.width = mahuLogoImg.width;
-                logoCanvas.height = mahuLogoImg.height;
-                const logoCtx = logoCanvas.getContext('2d');
-                logoCtx.drawImage(mahuLogoImg, 0, 0);
-                logoCtx.globalCompositeOperation = 'source-in';
-                logoCtx.fillStyle = 'white';
-                logoCtx.fillRect(0, 0, logoCanvas.width, logoCanvas.height);
-                ctx.drawImage(logoCanvas, 40, cardHeight - 80, 150, 50);
+                // On utilise une technique de masquage pour afficher le logo en blanc
+                ctx.save();
+                // On dessine le logo à sa position finale
+                ctx.drawImage(mahuLogoImg, 40, cardHeight - 90, 180, 60);
+                // On utilise 'source-in' : la nouvelle forme ne sera dessinée que là où elle superpose le logo.
+                ctx.globalCompositeOperation = 'source-in';
+                // On dessine un rectangle blanc sur toute la zone du logo. Seules les parties non-transparentes du logo (le texte) seront colorées.
+                ctx.fillStyle = 'white';
+                ctx.fillRect(40, cardHeight - 90, 180, 60);
+                ctx.restore(); // On restaure le contexte pour les dessins suivants
 
                 // 3. QR Code en bas à droite
                 ctx.drawImage(qrCodeImg, cardWidth - 240, cardHeight - 240, 200, 200);
 
                 // 4. Dessiner les informations en haut avec icônes
-                ctx.fillStyle = 'white';
+                ctx.fillStyle = 'white'; // Pour le texte ET les icônes
                 ctx.strokeStyle = 'white'; // Pour les icônes
                 ctx.lineWidth = 2;
                 ctx.textAlign = 'left';
@@ -593,20 +593,37 @@ END:VCARD`;
                 ctx.font = '32px -apple-system, sans-serif';
                 ctx.fillText(data.Profession || '', 90, currentY);
                 currentY += 70;
-
+                
+                // Compagnie (si elle existe)
+                if (data.Compagnie) {
+                    drawIcon("M3 21h18M5 21V7l7-4 7 4v14", 40, currentY - 28, 32);
+                    ctx.font = '32px -apple-system, sans-serif';
+                    ctx.fillText(data.Compagnie, 90, currentY);
+                    currentY += 70;
+                }
+                
                 // Numéro de téléphone (s'il existe)
                 if (data.Telephone) {
                     drawIcon("M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z", 40, currentY - 28, 32);
                     ctx.font = '32px -apple-system, sans-serif';
                     ctx.fillText(data.Telephone, 90, currentY);
+                    currentY += 70;
                 }
 
                 // Adresse Email (si elle existe)
                 if (data.Email) {
-                    currentY += 70;
                     drawIcon("M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6L12 13 2 6", 40, currentY - 28, 32);
                     ctx.font = '32px -apple-system, sans-serif';
                     ctx.fillText(data.Email, 90, currentY);
+                }
+
+                // Site Web (s'il existe)
+                const websiteLink = (JSON.parse(data.Liens_Sociaux_JSON || '[]')).find(link => link.type === 'website');
+                if (websiteLink) {
+                    currentY += 70;
+                    drawIcon("M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72 M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72", 40, currentY - 28, 32);
+                    ctx.font = '32px -apple-system, sans-serif';
+                    ctx.fillText(websiteLink.url.replace(/^(https?:\/\/)?(www\.)?/, ''), 90, currentY);
                 }
 
                 // 5. Déclencher le téléchargement
