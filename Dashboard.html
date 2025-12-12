@@ -518,15 +518,6 @@
                 <p class="section-subtitle" style="max-width: 100%; text-align: left; margin-bottom: 20px;">Connectez Mahu à d'autres services. Les clés API sont stockées de manière sécurisée et ne sont jamais partagées publiquement.</p>
                 
                 <div class="card">
-                    <h3>Hébergement d'images (ImgBB)</h3>
-                    <p>Pour que l'upload de votre photo de profil et de votre image de couverture fonctionne, vous devez fournir une clé API gratuite de <a href="https://api.imgbb.com/" target="_blank">ImgBB</a>.</p>
-                    <div class="form-group" style="margin-top: 15px;">
-                        <label for="imgbb-api-key">Clé API ImgBB</label>
-                        <input type="text" id="imgbb-api-key" class="form-control" placeholder="Entrez votre clé API ImgBB ici">
-                    </div>
-                </div>
-
-                <div class="card">
                     <h3>Google Wallet</h3>
                     <p>Remplissez ces informations depuis votre <a href="https://pay.google.com/business/console" target="_blank">console Google Pay & Wallet</a> pour activer le bouton "Ajouter à Google Wallet".</p>
                     <div class="form-group"><label for="wallet-issuer-id">ID de l'émetteur (Issuer ID)</label><input type="text" id="wallet-issuer-id" class="form-control"></div>
@@ -678,12 +669,7 @@
             }
             formData.append('action', action);
 
-            // Ajouter chaque clé de l'objet data au FormData
-            for (const key in data) {
-                // Si la valeur est un objet, la stringifier en JSON
-                const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
-                formData.append(key, value);
-            }
+            formData.append('payload', JSON.stringify(data)); // Envoyer toutes les données dans un seul payload
             formData.append('token', token); // Ajouter le token à chaque requête !
 
             return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
@@ -802,7 +788,7 @@
                 }
 
                 Promise.all(uploads)
-                    .then(() => saveDataToSheet(profileData))
+                    .then(() => saveDataToSheet(profileData, button)) // Passer le bouton à la fonction de sauvegarde
                     .catch(error => {
                         console.error('Erreur d\'upload:', error);
                         alert('Une erreur est survenue lors de l\'envoi des images.');
@@ -811,17 +797,12 @@
                     });
             };
 
-            uploadAndSave(profilePicFile, coverFile);
+            uploadAndSave(profilePicFile, coverFile); // Déclenche la sauvegarde après l'upload
         }
 
         function uploadToImgBB(file) {
             return new Promise((resolve, reject) => {
-                // Récupérer la clé API depuis le champ dans l'onglet Intégrations
-                const apiKey = document.getElementById('imgbb-api-key').value;
-                if (!apiKey) {
-                    return reject(new Error("La clé API ImgBB n'est pas configurée dans l'onglet Intégrations."));
-                }
-
+                const apiKey = '96ff1e4e9603661db4d410f53df99454'; // Clé API ImgBB directement dans le code
                 const formData = new FormData();
                 formData.append('image', file);
 
@@ -841,17 +822,16 @@
             });
         }
 
-        function saveDataToSheet(data) {
-            callApi('saveProfile', { payload: data })
+        function saveDataToSheet(data, button) {
+            callApi('saveProfile', data) // Envoyer directement l'objet de données
                 .then(response => {
-                    alert(response.message || 'Profil sauvegardé !');
-                    document.getElementById('save-button').textContent = 'Sauvegarder les changements';
-                    document.getElementById('save-button').disabled = false;
+                    alert(response.error || response.message || 'Profil sauvegardé !');
                     closeModal('profil-edit-modal');
                     fetchDashboardData(); // Recharger les données
                 })
                 .catch(err => {
-                    alert('Erreur de sauvegarde: ' + err.message);
+                    alert('Erreur de sauvegarde: ' + (err.message || "Erreur inconnue"));
+                }).finally(() => {
                     document.getElementById('save-button').textContent = 'Sauvegarder les changements';
                     document.getElementById('save-button').disabled = false;
                 });
@@ -1011,9 +991,6 @@
             // Mettre à jour les toggles des modules
             document.getElementById('toggle-cv').checked = data.profile.CV_Actif === 'OUI';
             document.getElementById('toggle-lead').checked = data.profile.Lead_Capture_Actif === 'OUI';
-
-            // Remplir les intégrations
-            document.getElementById('imgbb-api-key').value = data.profile.API_KEY_IMGBB || '';
 
 
             // Remplir les paramètres
