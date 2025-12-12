@@ -30,8 +30,9 @@ function doPost(e) {
       case 'trackView': result = trackView(payload.profileUrl, payload.source); break;
       case 'getProfileData': result = getProfileData(e.parameter.user); break;
       case 'exportLeadsAsCSV':
+        if (!user) throw new Error("Token d'authentification invalide ou manquant pour l'export.");
         // Cas spécial : renvoie du texte brut, pas du JSON.
-        const csvOutput = ContentService.createTextOutput(exportLeadsAsCSV()).setMimeType(ContentService.MimeType.TEXT);
+        const csvOutput = ContentService.createTextOutput(exportLeadsAsCSV(user)).setMimeType(ContentService.MimeType.TEXT);
         csvOutput.addHttpHeader('Access-Control-Allow-Origin', '*');
         return csvOutput;
       default:
@@ -667,7 +668,7 @@ function setModuleState(moduleName, isEnabled, user) {
  * Exporte les prospects de l'utilisateur connecté au format CSV.
  * @returns {string} Une chaîne de caractères contenant les données au format CSV.
  */
-function exportLeadsAsCSV() {
+function exportLeadsAsCSV(user) {
   try { // La vérification du user est faite dans doPost
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const prospectsSheet = ss.getSheetByName('Prospects');
