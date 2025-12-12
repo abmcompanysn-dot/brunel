@@ -182,13 +182,6 @@
             }
         }
 
-        function updateLoginButton() {
-            const loginLink = document.getElementById('login-link');
-            if (loginLink && localStorage.getItem('userIsLoggedIn') === 'true') {
-                loginLink.href = 'Dashboard.html';
-            }
-        }
-
         // ===================================================================
         //                  SCRIPTS SPÉCIFIQUES À LA PAGE
         // ===================================================================
@@ -286,8 +279,6 @@
                         });
                 }
             });
-
-            updateLoginButton();
 
             // Gestion du menu "trois points"
             const moreMenuIcon = document.querySelector('.more-menu-icon');

@@ -327,13 +327,6 @@
             document.getElementById('mobile-cart-link').textContent = `Panier (${totalItems})`;
         }
 
-        // ===================================================================
-        //                  SCRIPTS SPÉCIFIQUES À LA PAGE
-        // ===================================================================
-
-        // Logique pour les carrousels
-        document.querySelectorAll('.product-carousel').forEach(carousel => { carousel.dataset.index = 0; });
-        
         function navigateCarousel(button, direction) {
             const carousel = button.closest('.product-carousel');
             const inner = carousel.querySelector('.carousel-inner');
@@ -352,6 +345,12 @@
             inner.style.transform = `translateX(-${index * (100 / itemsCount)}%)`;
         }
 
+        // ===================================================================
+        //                  SCRIPTS SPÉCIFIQUES À LA PAGE
+        // ===================================================================
+
+        // Logique pour les carrousels
+        document.querySelectorAll('.product-carousel').forEach(carousel => { carousel.dataset.index = 0; });
         // Logique pour le bouton "Retour en Haut"
         const backToTopButton = document.getElementById('back-to-top');
         window.onscroll = function() {
@@ -370,19 +369,6 @@
          */
         document.addEventListener('DOMContentLoaded', () => {
             updateCartCounter();
-
-            const loginLink = document.getElementById('login-link');
-            if (loginLink && localStorage.getItem('userIsLoggedIn') === 'true') {
-                loginLink.textContent = 'Tableau de bord';
-                loginLink.href = 'Dashboard.html';
-            }
-
-            // Mettre à jour le bouton de connexion dans le menu mobile également
-            const mobileLoginLink = document.querySelector('.nav-links-mobile a.primary');
-            if (mobileLoginLink && localStorage.getItem('userIsLoggedIn') === 'true') {
-                mobileLoginLink.textContent = 'Tableau de bord';
-                mobileLoginLink.href = 'Dashboard.html';
-            }
         });
 
     </script>

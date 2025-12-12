@@ -488,19 +488,6 @@
         }
 
         /**
-         * Met à jour le bouton de connexion en "Tableau de bord" si l'utilisateur est connecté.
-         */
-        function updateLoginButton() {
-            const loginLink = document.getElementById('login-link');
-            if (loginLink && localStorage.getItem('userIsLoggedIn') === 'true') {
-                loginLink.href = 'Dashboard.html';
-            } else {
-                loginLink.href = 'Connexion.html';
-            }
-
-        }
-
-        /**
          * Affiche ou cache le menu "trois points".
          */
         function toggleMoreMenu(event) {
@@ -523,7 +510,6 @@
          */
         document.addEventListener('DOMContentLoaded', () => { 
             updateCartCounter(); 
-            updateLoginButton(); 
 
             // Attacher l'événement au menu "trois points" de manière propre
             const moreMenuIcon = document.querySelector('.more-menu-icon');
