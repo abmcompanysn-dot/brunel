@@ -601,6 +601,14 @@ END:VCARD`;
                     ctx.fillText(data.Telephone, 90, currentY);
                 }
 
+                // Adresse Email (si elle existe)
+                if (data.Email) {
+                    currentY += 70;
+                    drawIcon("M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6L12 13 2 6", 40, currentY - 28, 32);
+                    ctx.font = '32px -apple-system, sans-serif';
+                    ctx.fillText(data.Email, 90, currentY);
+                }
+
                 // 5. Déclencher le téléchargement
                 const a = document.createElement('a');
                 a.href = canvas.toDataURL('image/png');
