@@ -143,7 +143,7 @@ function onOpen() {
 function setupSpreadsheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheetsToCreate = [
-    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration'] },
+    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'Mot_De_Passe', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration'] },
     { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Telephone', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
@@ -189,7 +189,7 @@ function verifyAndFixSheetStructure() {
   let corrections = [];
 
   const requiredSheets = [
-    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration'] },
+    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'Mot_De_Passe', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration'] },
     { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Telephone', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
@@ -304,7 +304,7 @@ function registerUser(email, password) {
   const token = Utilities.getUuid();
   const expiration = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000); // Expire dans 7 jours
 
-  const newUserRow = [newId, email, '', 'Particulier', profileUrl, '[]', 'ONBOARDING_STARTED', token, expiration];
+  const newUserRow = [newId, email, password, '', 'Particulier', profileUrl, '[]', 'ONBOARDING_STARTED', token, expiration];
   userSheet.appendRow(newUserRow);
 
   // Créer un profil de base associé
@@ -324,32 +324,35 @@ function registerUser(email, password) {
  * @returns {Object} Un objet indiquant le succès ou l'échec.
  */
 function loginUser(email, password) {
-  // NOTE: Cette fonction est un placeholder. Une vraie authentification nécessiterait
-  // de vérifier le mot de passe (qui devrait être chiffré).
-  // Pour l'instant, on vérifie juste si l'utilisateur existe.
-  const user = findUserByEmail(email);
-  if (!user) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const userSheet = ss.getSheetByName('Utilisateurs');
+  const usersData = userSheet.getDataRange().getValues();
+  const headers = usersData[0];
+  const emailCol = headers.indexOf('Email');
+  const passwordCol = headers.indexOf('Mot_De_Passe');
+  const tokenCol = headers.indexOf('Auth_Token');
+  const expCol = headers.indexOf('Token_Expiration');
+  const onboardingStatusCol = headers.indexOf('Onboarding_Status');
+
+  // On cherche l'utilisateur à partir de la 2ème ligne (index 1)
+  const userRowIndex = usersData.slice(1).findIndex(row => row[emailCol] === email);
+
+  // Si l'utilisateur n'est pas trouvé ou si le mot de passe est incorrect
+  if (userRowIndex === -1 || usersData[userRowIndex + 1][passwordCol] !== password) {
     return { success: false, error: "Email ou mot de passe incorrect." };
   }
 
   // Générer et sauvegarder un nouveau token
   const token = Utilities.getUuid();
   const expiration = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000); // 7 jours
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const userSheet = ss.getSheetByName('Utilisateurs');
-  const usersData = userSheet.getDataRange().getValues();
-  const headers = usersData[0];
-  const emailCol = headers.indexOf('Email');
-  const tokenCol = headers.indexOf('Auth_Token');
-  const expCol = headers.indexOf('Token_Expiration');
+  
+  const sheetRow = userRowIndex + 2; // +1 pour compenser le slice, +1 car les index de feuille commencent à 1
+  userSheet.getRange(sheetRow, tokenCol + 1).setValue(token);
+  userSheet.getRange(sheetRow, expCol + 1).setValue(expiration);
 
-  const userRowIndex = usersData.findIndex(row => row[emailCol] === email);
-  if (userRowIndex !== -1) {
-    userSheet.getRange(userRowIndex + 1, tokenCol + 1).setValue(token);
-    userSheet.getRange(userRowIndex + 1, expCol + 1).setValue(expiration);
-  }
+  const onboardingStatus = usersData[userRowIndex + 1][onboardingStatusCol];
 
-  return { success: true, newUser: user.Onboarding_Status !== 'COMPLETED', token: token };
+  return { success: true, newUser: onboardingStatus !== 'COMPLETED', token: token };
 }
 /**
  * Récupère l'utilisateur basé sur le token fourni.
