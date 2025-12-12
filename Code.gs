@@ -726,7 +726,11 @@ function updateOnboardingData(request, user) {
       
       // Mise à jour des données dans la feuille Profils
       // Réutilise la logique de saveProfile mais de manière plus directe
-      saveProfile(request.data, user);
+      const saveResult = saveProfile(request.data, user);
+      // Si la sauvegarde du profil a échoué, on propage l'erreur.
+      if (!saveResult.success) {
+        return saveResult; // Renvoie l'objet d'erreur de saveProfile
+      }
     }
     return { success: true };
   } catch (e) {
