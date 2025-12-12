@@ -490,12 +490,14 @@ END:VCARD`;
 
             try {
                 // On doit construire l'URL absolue du logo pour que le service externe (quickchart) puisse y accéder.
-                const logoUrl = new URL('r/logo.png', window.location.href).href;
-                const qrCodeUrl = document.getElementById('profile-qrcode').src; // L'URL du QR code généré par le dashboard
+                const profilePublicUrl = window.location.href; // L'URL actuelle est celle du profil public
+                const logoUrl = new URL('r/logo.png', profilePublicUrl).href;
+                // On génère l'URL du QR code ici, au lieu de la chercher dans le DOM.
+                const qrCodeUrl = `https://quickchart.io/qr?text=${encodeURIComponent(profilePublicUrl)}&logo=${logoUrl}&size=250&centerImage=true`;
 
                 // Charger le logo et le QR code en parallèle
                 const [logoImg, qrCodeImg] = await Promise.all([
-                    loadImage(logoUrl),
+                    loadImage(logoUrl), // Le logo de votre site
                     loadImage(qrCodeUrl)
                 ]);
 
