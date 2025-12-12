@@ -328,37 +328,36 @@
          * @param {number} nextStepNumber - Le numéro de la prochaine étape.
          * @param {Event} [event] - L'événement du formulaire pour le gérer.
          */
-        async function goToStep(nextStepNumber, event) {
-            if (event) event.preventDefault();
-
+        function goToStep(nextStepNumber) {
             const currentStepElement = document.getElementById(`step-${currentStep}`);
-            const button = currentStepElement.querySelector('button, .platform-choice');
-            const originalButtonText = button.innerHTML;
+            const nextStepElement = document.getElementById(`step-${nextStepNumber}`);
+            const button = currentStepElement.querySelector('button[type="submit"], .platform-choice');
+            
+            if (button) {
+                const originalButtonText = button.innerHTML;
+                button.disabled = true;
+                if (button.tagName === 'BUTTON') button.textContent = 'Sauvegarde...';
 
-            // Désactiver le bouton et montrer un état de chargement
-            button.disabled = true;
-            if (button.tagName === 'BUTTON') button.textContent = 'Sauvegarde...';
-
-            try {
-                // Sauvegarder les données de l'étape actuelle
-                const success = await saveCurrentStepData();
-                if (!success) {
-                    throw new Error("La sauvegarde a échoué. Veuillez réessayer.");
-                }
-
-                // Cacher l'étape actuelle
+                saveCurrentStepData().then(success => {
+                    if (success) {
+                        currentStepElement.classList.remove('active');
+                        if (nextStepElement) {
+                            nextStepElement.classList.add('active');
+                            currentStep = nextStepNumber;
+                        }
+                    } else {
+                        alert("La sauvegarde a échoué. Veuillez réessayer.");
+                    }
+                }).finally(() => {
+                    button.disabled = false;
+                    if (button.tagName === 'BUTTON') button.innerHTML = originalButtonText;
+                });
+            } else {
                 currentStepElement.classList.remove('active');
-                
-                // Afficher la nouvelle étape
-                currentStep = nextStepNumber;
-                document.getElementById(`step-${currentStep}`).classList.add('active');
-
-            } catch (error) {
-                alert(error.message);
-            } finally {
-                // Réactiver le bouton
-                button.disabled = false;
-                if (button.tagName === 'BUTTON') button.innerHTML = originalButtonText;
+                if (nextStepElement) {
+                    nextStepElement.classList.add('active');
+                    currentStep = nextStepNumber;
+                }
             }
         }
 
@@ -366,7 +365,7 @@
          * Collecte et envoie les données de l'étape actuelle au backend.
          */
         async function saveCurrentStepData(isFinalStep = false) {
-            let payload = { step: currentStep, data: {} };
+            const payload = { step: currentStep, data: {} };
 
             if (currentStep === 1) {
                 payload.data.Nom_Complet = `${document.getElementById('first-name').value} ${document.getElementById('last-name').value}`;
@@ -382,22 +381,26 @@
                 payload.step = 'final';
             }
 
-            // Ne rien envoyer pour les étapes d'information pure comme l'étape 4
-            if (currentStep === 4) return true;
+            // Ne rien envoyer pour les étapes d'information pure comme l'étape 4 ou si aucune donnée n'est collectée
+            if (Object.keys(payload.data).length === 0 && !isFinalStep) return true;
 
-            const response = await callApi('updateOnboardingData', { payload });
-            if (!response.success) {
-                console.error('Erreur Onboarding:', response.error);
+            try {
+                const response = await callApi('updateOnboardingData', { payload });
+                if (!response.success) {
+                    console.error('Erreur Onboarding:', response.error);
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error("Erreur d'API:", error);
                 return false;
             }
-            return true;
         }
 
         function selectPlatform(type) {
             onboardingData.accountType = type;
             goToStep(3); // La sauvegarde se fera au début de goToStep
         }
-
         async function finishOnboarding() {
             await goToStep(6); // Étape virtuelle pour déclencher la sauvegarde finale
             window.location.href = 'Dashboard.html';
