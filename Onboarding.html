@@ -183,58 +183,84 @@
         let currentStep = 1;
         const onboardingData = {};
 
-        function goToStep(stepNumber) {
-            // Sauvegarder les données de l'étape actuelle avant de changer
-            if (currentStep === 1) {
-                onboardingData.firstName = document.getElementById('first-name').value;
-                onboardingData.lastName = document.getElementById('last-name').value;
-                onboardingData.phone = document.getElementById('phone').value;
-                onboardingData.fullName = `${onboardingData.firstName} ${onboardingData.lastName}`;
-                // Envoyer les données de l'étape 1 au backend
-                updateOnboardingData({ step: 1, data: { Nom_Complet: onboardingData.fullName } });
+        /**
+         * Gère la navigation entre les étapes, en sauvegardant les données à chaque fois.
+         * @param {number} nextStepNumber - Le numéro de la prochaine étape.
+         * @param {Event} [event] - L'événement du formulaire pour le gérer.
+         */
+        async function goToStep(nextStepNumber, event) {
+            if (event) event.preventDefault();
+
+            const currentStepElement = document.getElementById(`step-${currentStep}`);
+            const button = currentStepElement.querySelector('button, .platform-choice');
+            const originalButtonText = button.innerHTML;
+
+            // Désactiver le bouton et montrer un état de chargement
+            button.disabled = true;
+            if (button.tagName === 'BUTTON') button.textContent = 'Sauvegarde...';
+
+            try {
+                // Sauvegarder les données de l'étape actuelle
+                const success = await saveCurrentStepData();
+                if (!success) {
+                    throw new Error("La sauvegarde a échoué. Veuillez réessayer.");
+                }
+
+                // Cacher l'étape actuelle
+                currentStepElement.classList.remove('active');
+                
+                // Afficher la nouvelle étape
+                currentStep = nextStepNumber;
+                document.getElementById(`step-${currentStep}`).classList.add('active');
+
+            } catch (error) {
+                alert(error.message);
+            } finally {
+                // Réactiver le bouton
+                button.disabled = false;
+                if (button.tagName === 'BUTTON') button.innerHTML = originalButtonText;
             }
-            if (currentStep === 3) {
-                const profileDetails = {
-                    Profession: document.getElementById('profession').value,
-                    Compagnie: document.getElementById('company').value,
-                    Location: document.getElementById('location').value,
-                };
-                // Envoyer les données de l'étape 3
-                updateOnboardingData({ step: 3, data: profileDetails });
+        }
+
+        /**
+         * Collecte et envoie les données de l'étape actuelle au backend.
+         */
+        async function saveCurrentStepData() {
+            let payload = { step: currentStep, data: {} };
+
+            if (currentStep === 1) {
+                payload.data.Nom_Complet = `${document.getElementById('first-name').value} ${document.getElementById('last-name').value}`;
+                payload.data.Telephone = document.getElementById('phone').value;
+            } else if (currentStep === 2) {
+                payload.data.Role = onboardingData.accountType === 'team' ? 'Admin' : 'Particulier';
+            } else if (currentStep === 3) {
+                payload.data.Profession = document.getElementById('profession').value;
+                payload.data.Compagnie = document.getElementById('company').value;
+                payload.data.Location = document.getElementById('location').value;
+            } else if (currentStep === 5) {
+                // Étape finale, marquer l'onboarding comme terminé
+                payload.step = 'final';
             }
 
-            // Cacher l'étape actuelle
-            document.getElementById(`step-${currentStep}`).classList.remove('active');
-            
-            // Afficher la nouvelle étape
-            currentStep = stepNumber;
-            document.getElementById(`step-${currentStep}`).classList.add('active');
+            // Ne rien envoyer pour les étapes d'information pure comme l'étape 4
+            if (currentStep === 4) return true;
+
+            const response = await callApi('updateOnboardingData', { payload });
+            if (!response.success) {
+                console.error('Erreur Onboarding:', response.error);
+                return false;
+            }
+            return true;
         }
 
         function selectPlatform(type) {
             onboardingData.accountType = type;
-            // Sauvegarder le type de compte et mettre à jour le statut
-            updateOnboardingData({ step: 2, data: { Role: type === 'team' ? 'Admin' : 'Particulier' } });
-            goToStep(3);
+            goToStep(3); // La sauvegarde se fera au début de goToStep
         }
 
-        function finishOnboarding() {
-            // Mettre à jour le statut final et rediriger
-            updateOnboardingData({ step: 'final', data: {} })
-                .then(() => {
-                    window.location.href = 'Dashboard.html';
-                });
-        }
-
-        function updateOnboardingData(payload) {
-            return callApi('updateOnboardingData', { payload: payload })
-                .then(data => {
-                    if (!data.success) {
-                        console.error('Erreur Onboarding:', data.error);
-                        alert('Une erreur est survenue durant la configuration.');
-                    }
-                    return data;
-                });
+        async function finishOnboarding() {
+            await goToStep(6); // Étape virtuelle pour déclencher la sauvegarde finale
+            window.location.href = 'Dashboard.html';
         }
     </script>
 </body>

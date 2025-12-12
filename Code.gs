@@ -17,36 +17,35 @@ function doGet(e) {
  */
 function doPost(e) {
   try {
-    const userEmail = e.parameter.token ? getUserByToken(e.parameter.token)?.Email : 'anonyme';
+    const user = e.parameter.token ? getUserByToken(e.parameter.token) : null;
+    const userEmail = user ? user.Email : 'anonyme';
     const action = e.parameter.action;
     const payload = e.parameter.payload ? JSON.parse(e.parameter.payload) : {};
     let result;
 
     switch (action) {
-      case 'handleLeadCapture': result = handleLeadCapture(payload); break;
-      case 'saveProfile': result = saveProfile(payload); break;
       case 'registerUser': result = registerUser(payload.email, payload.password); break;
       case 'loginUser': result = loginUser(payload.email, payload.password); break;
-      case 'logout': result = logout(); break;
-      case 'updateOnboardingData': result = updateOnboardingData(payload); break;
-      case 'syncCart':
-        Logger.log('Panier synchronisé: ' + JSON.stringify(payload));
-        result = { success: true };
-        break;
       case 'createCheckoutSession': result = createCheckoutSession(payload); break;
-      case 'setModuleState': result = setModuleState(payload.moduleName, payload.isEnabled); break;
-      case 'generateGoogleWalletPass': result = generateGoogleWalletPass(); break;
       case 'trackView': result = trackView(payload.profileUrl, payload.source); break;
       case 'getProfileData': result = getProfileData(e.parameter.user); break;
-      case 'getDashboardData': result = getDashboardData(); break;
-      case 'getPublicProfileUrl': result = getPublicProfileUrl(); break; // Nouvelle action
-      case 'getDashboardStats': result = getDashboardStats(); break;
       case 'exportLeadsAsCSV':
         // Cas spécial : renvoie du texte brut, pas du JSON.
         const csvOutput = ContentService.createTextOutput(exportLeadsAsCSV()).setMimeType(ContentService.MimeType.TEXT);
         csvOutput.addHttpHeader('Access-Control-Allow-Origin', '*');
         return csvOutput;
       default:
+        // Actions nécessitant une authentification
+        if (!user) throw new Error("Token d'authentification invalide ou manquant.");
+        if (action === 'getDashboardData') result = getDashboardData(user);
+        else if (action === 'saveProfile') result = saveProfile(payload, user);
+        else if (action === 'updateOnboardingData') result = updateOnboardingData(payload, user);
+        else if (action === 'setModuleState') result = setModuleState(payload.moduleName, payload.isEnabled, user);
+        else if (action === 'getDashboardStats') result = getDashboardStats(user);
+        else if (action === 'getPublicProfileUrl') result = getPublicProfileUrl(user);
+        else if (action === 'generateGoogleWalletPass') result = generateGoogleWalletPass(user);
+        else if (action === 'logout') result = { success: true }; // Simple success for logout
+        else if (action === 'syncCart') { Logger.log(`Panier synchronisé pour ${user.Email}: ${JSON.stringify(payload)}`); result = { success: true }; }
         result = { error: 'Action POST non reconnue.' };
         break;
     }
@@ -219,14 +218,11 @@ function logAction(action, status, message, userEmail, suggestion = '') {
  * Récupère les statistiques de vues depuis la feuille "Statistiques",
  * les agrège par source et les renvoie au format JSON pour Chart.js.
  * * @returns {Object} Un objet contenant les labels et les données pour le graphique.
+ * @param {Object} user - L'objet utilisateur authentifié.
  */
-function getDashboardStats() {
+function getDashboardStats(user) {
   try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const sheet = ss.getSheetByName('Statistiques');
-    if (!sheet) {
-      throw new Error('La feuille "Statistiques" est introuvable. Veuillez exécuter l\'initialisation.');
-    }
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Statistiques');
     
     const data = sheet.getRange('C2:C').getValues().flat().filter(String); // Récupère toutes les sources de vue (colonne C maintenant)
     
@@ -331,8 +327,6 @@ function loginUser(email, password) {
  * Récupère l'utilisateur basé sur le token fourni.
  * @returns {Object} Les informations de l'utilisateur.
  */
-function authenticateUser() { throw new Error("authenticateUser est obsolète. Utilisez getUserByToken."); }
-
 /**
  * Trouve un utilisateur par son email.
  * @param {string} email - L'email à rechercher.
@@ -376,13 +370,9 @@ function getUserByToken(token) {
  * Fonction centrale pour charger toutes les données du tableau de bord en un seul appel.
  * @returns {Object} Un objet contenant toutes les données nécessaires pour le dashboard.
  */
-function getDashboardData() {
-  // Cette fonction est appelée par doPost, qui ne passe pas 'e'. 
-  // Le token doit être récupéré des propriétés de la requête en cours.
+function getDashboardData(user) {
+  if (!user) throw new Error("Utilisateur non authentifié pour getDashboardData.");
   try {
-    const user = getUserByToken(JSON.parse(e.postData.contents).token);
-    if (!user) throw new Error("Token invalide ou expiré.");
-
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     
     // Récupérer les données du profil
@@ -425,12 +415,9 @@ function getDashboardData() {
  * C'est une fonction légère pour les pages publiques.
  * @returns {Object} Un objet contenant l'URL du profil.
  */
-function getPublicProfileUrl() {
+function getPublicProfileUrl(user) {
+  if (!user) throw new Error("Utilisateur non authentifié pour getPublicProfileUrl.");
   try {
-    const user = getUserByToken(e.parameter.token);
-    if (!user) {
-      throw new Error("Token invalide ou expiré pour getPublicProfileUrl.");
-    }
     return { success: true, profileUrl: user.URL_Profil };
   } catch (e) {
     return { success: false, error: e.message };
@@ -505,25 +492,43 @@ function getProfileData(profileUrl) {
  * Met à jour le profil de l'utilisateur connecté avec les données du formulaire de l'éditeur.
  * @param {Object} data - Un objet contenant les données du formulaire.
  */
-function saveProfile(data) {
+function saveProfile(data, user) {
   try {
-    const user = getUserByToken(JSON.parse(e.postData.contents).token);
-    if (!user) throw new Error("Token invalide ou expiré pour saveProfile.");
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const profileSheet = ss.getSheetByName('Profils');
+    const userSheet = ss.getSheetByName('Utilisateurs');
 
-    const profileSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Profils');
+    // 1. Gérer la mise à jour de l'URL du profil (si elle a changé)
+    if (data.URL_Profil && data.URL_Profil !== user.URL_Profil) {
+      const newUrl = data.URL_Profil.toLowerCase().replace(/[^a-z0-9-]/g, ''); // Nettoyage
+      if (!newUrl) throw new Error("L'URL du profil ne peut pas être vide.");
+
+      // Vérifier l'unicité de la nouvelle URL
+      const usersData = userSheet.getRange('E2:E').getValues().flat();
+      if (usersData.includes(newUrl)) {
+        return { success: false, error: "Cette URL de profil est déjà utilisée. Veuillez en choisir une autre." };
+      }
+
+      // Mettre à jour l'URL dans la feuille 'Utilisateurs'
+      const userRow = findRowIndex(userSheet, 'ID_Unique', user.ID_Unique);
+      if (userRow !== -1) {
+        const urlCol = findHeaderIndex(userSheet, 'URL_Profil');
+        userSheet.getRange(userRow, urlCol).setValue(newUrl);
+      }
+      delete data.URL_Profil; // Supprimer pour ne pas l'écrire dans la feuille 'Profils'
+    }
+
+    // 2. Mettre à jour les autres données dans la feuille 'Profils'
     const profilesData = profileSheet.getDataRange().getValues();
     const headers = profilesData.shift();
     const userIdCol = headers.indexOf('ID_Utilisateur');
-
     const rowIndex = profilesData.findIndex(row => row[userIdCol] === user.ID_Unique);
 
     if (rowIndex !== -1) {
-      // Mettre à jour la ligne existante (l'index est 0-based, mais la plage est 1-based, +2 pour la ligne de données)
       const rowToUpdate = rowIndex + 2;
-      // Mettre à jour les valeurs en fonction des en-têtes
-      // Cela met à jour uniquement les colonnes pour lesquelles des données sont fournies.
       headers.forEach((header, index) => {
-        if (data.hasOwnProperty(header)) {
+        // Mettre à jour uniquement si la clé existe dans les données envoyées
+        if (Object.prototype.hasOwnProperty.call(data, header)) {
           profileSheet.getRange(rowToUpdate, index + 1).setValue(data[header]);
         }
       });
@@ -535,6 +540,27 @@ function saveProfile(data) {
     Logger.log(`Erreur dans saveProfile: ${e.message}`);
     return { error: e.message };
   }
+}
+
+/**
+ * Fonctions utilitaires pour trouver des lignes/colonnes (pour éviter la duplication de code)
+ */
+function findHeaderIndex(sheet, headerName) {
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const index = headers.indexOf(headerName);
+  if (index === -1) throw new Error(`Colonne '${headerName}' introuvable.`);
+  return index + 1; // Retourne un index 1-based pour les plages
+}
+
+function findRowIndex(sheet, colName, value) {
+  const colIndex = findHeaderIndex(sheet, colName) - 1; // Index 0-based
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) { // Commence à 1 pour sauter l'en-tête
+    if (data[i][colIndex] == value) {
+      return i + 1; // Retourne un index 1-based pour les plages
+    }
+  }
+  return -1;
 }
 
 /**
@@ -597,12 +623,13 @@ function linkNfcCard(nfcId) {
  * Met à jour l'état d'un module (CV, Lead Capture) pour l'utilisateur connecté.
  * @param {string} moduleName - Le nom du module ('CV_Actif' ou 'Lead_Capture_Actif').
  * @param {boolean} isEnabled - L'état du module.
+ * @param {Object} user - L'objet utilisateur authentifié.
  */
-function setModuleState(moduleName, isEnabled) {
+function setModuleState(moduleName, isEnabled, user) {
   try {
     const dataToSave = {};
     dataToSave[moduleName] = isEnabled ? 'OUI' : 'NON';
-    saveProfile(dataToSave); // Réutilise la fonction saveProfile pour mettre à jour
+    saveProfile(dataToSave, user); // Réutilise la fonction saveProfile pour mettre à jour
     Logger.log(`Module ${moduleName} mis à jour à ${isEnabled} pour l'utilisateur.`);
   } catch(e) {
     Logger.log(`Erreur dans setModuleState: ${e.message}`);
@@ -614,8 +641,7 @@ function setModuleState(moduleName, isEnabled) {
  * @returns {string} Une chaîne de caractères contenant les données au format CSV.
  */
 function exportLeadsAsCSV() {
-  try {
-    const user = authenticateUser();
+  try { // La vérification du user est faite dans doPost
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const prospectsSheet = ss.getSheetByName('Prospects');
     const data = prospectsSheet.getDataRange().getValues();
@@ -637,32 +663,33 @@ function exportLeadsAsCSV() {
  * Met à jour les données et le statut de l'utilisateur pendant l'onboarding.
  * @param {Object} request - Contient l'étape et les données à sauvegarder.
  */
-function updateOnboardingData(request) {
+function updateOnboardingData(request, user) {
+  if (!user) throw new Error("Utilisateur non authentifié pour updateOnboardingData.");
   try {
-    const user = authenticateUser();
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const userSheet = ss.getSheetByName('Utilisateurs');
     const usersData = userSheet.getDataRange().getValues();
     const userHeaders = usersData.shift();
     const userIdCol = userHeaders.indexOf('ID_Unique');
-    const userRowIndex = usersData.findIndex(row => row[userIdCol] === user.ID_Unique);
+    const userRowIndex = usersData.findIndex(row => row[userIdCol] === user.ID_Unique) + 2; // +2 pour obtenir la ligne de la feuille
 
-    if (userRowIndex === -1) throw new Error("Utilisateur non trouvé pour la mise à jour.");
-    const sheetRow = userRowIndex + 2;
+    if (userRowIndex < 2) throw new Error("Utilisateur non trouvé pour la mise à jour.");
 
     if (request.step === 'final') {
       const statusCol = userHeaders.indexOf('Onboarding_Status') + 1;
-      userSheet.getRange(sheetRow, statusCol).setValue('COMPLETED');
+      userSheet.getRange(userRowIndex, statusCol).setValue('COMPLETED');
+      Logger.log(`Onboarding terminé pour ${user.Email}.`);
     } else if (request.data) {
-      // Sauvegarder les données dans la feuille Profils via saveProfile
-      if (Object.keys(request.data).some(k => ['Nom_Complet', 'Profession', 'Compagnie', 'Location'].includes(k))) {
-        saveProfile(request.data);
-      }
-      // Sauvegarder les données dans la feuille Utilisateurs
+      // Mise à jour du rôle dans la feuille Utilisateurs
       if (request.data.Role) {
         const roleCol = userHeaders.indexOf('Role') + 1;
-        userSheet.getRange(sheetRow, roleCol).setValue(request.data.Role);
+        userSheet.getRange(userRowIndex, roleCol).setValue(request.data.Role);
+        Logger.log(`Rôle mis à jour à '${request.data.Role}' pour ${user.Email}.`);
       }
+      
+      // Mise à jour des données dans la feuille Profils
+      // Réutilise la logique de saveProfile mais de manière plus directe
+      saveProfile(request.data, user);
     }
     return { success: true };
   } catch (e) {
@@ -689,10 +716,9 @@ function updateOnboardingData(request) {
  * - SERVICE_ACCOUNT_EMAIL : (L'email de votre compte de service)
  */
 function generateGoogleWalletPass() {
-  try {
-    const user = authenticateUser();
-    const profile = getDashboardData().profile; // Récupère les données du profil
-    
+  try { // La vérification du user est faite dans doPost
+    const profile = getDashboardData(user).profile; // Récupère les données du profil
+
     const issuerId = profile.WALLET_ISSUER_ID;
     const classId = profile.WALLET_CLASS_ID;
     const serviceAccountEmail = profile.WALLET_SERVICE_EMAIL;

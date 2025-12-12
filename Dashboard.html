@@ -599,6 +599,7 @@
                     <div id="edit-pane-about" class="edit-pane active">
                         <h3>Contenu Principal</h3>
                         <div class="form-group"><label for="Nom_Complet">Nom complet</label><input type="text" id="Nom_Complet" name="Nom_Complet" class="form-control" placeholder="Ex: Jean Dupont"></div>
+                        <div class="form-group"><label for="URL_Profil">URL du profil personnalisée</label><input type="text" id="URL_Profil" name="URL_Profil" class="form-control" placeholder="Ex: jean-dupont (lettres, chiffres et tirets uniquement)"></div>
                         <div class="form-group"><label for="Profession">Profession</label><input type="text" id="Profession" name="Profession" class="form-control" placeholder="Ex: Développeur Web"></div>
                         <div class="form-group"><label for="Compagnie">Compagnie</label><input type="text" id="Compagnie" name="Compagnie" class="form-control" placeholder="Ex: Mahu Inc."></div>
                         <div class="form-group"><label for="Location">Location</label><input type="text" id="Location" name="Location" class="form-control" placeholder="Ex: Paris, France"></div>
@@ -771,13 +772,14 @@
             const profileData = {
                 // Panneau "À propos"
                 Nom_Complet: profileForm.Nom_Complet.value,
+                URL_Profil: profileForm.URL_Profil.value, // Ajout du nouveau champ
                 Profession: profileForm.Profession.value,
                 Compagnie: profileForm.Compagnie.value,
                 Location: profileForm.Location.value,
 
                 // Panneau "Apparence"
                 Mise_En_Page: profileForm.Mise_En_Page.value,
-                Police: profileForm.Police.value,
+                // Police: profileForm.Police.value, // Champ Police n'existe pas dans le HTML
                 Couleur_Theme: profileForm.Couleur_Theme.value, // Nouveau champ
                 Cacher_Marque: document.getElementById('toggle-branding').checked,
                 Langue: profileForm.Langue.value,
@@ -814,8 +816,12 @@
 
         function uploadToImgBB(file) {
             return new Promise((resolve, reject) => {
-                // 1. Si une image est sélectionnée, l'uploader sur ImgBB
-                const apiKey = '96ff1e4e9603661db4d410f53df99454';
+                // Récupérer la clé API depuis le champ dans l'onglet Intégrations
+                const apiKey = document.getElementById('imgbb-api-key').value;
+                if (!apiKey) {
+                    return reject(new Error("La clé API ImgBB n'est pas configurée dans l'onglet Intégrations."));
+                }
+
                 const formData = new FormData();
                 formData.append('image', file);
 
@@ -912,7 +918,9 @@
             }
 
             // --- Remplir le panneau d'aperçu du profil ---
-            const fullUrl = `ProfilePublic.html?user=${data.user.URL_Profil}`;
+            const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+            const fullUrl = `${baseUrl}ProfilePublic.html?user=${data.user.URL_Profil}`;
+
             // Aperçu
             document.getElementById('profile-picture-preview').src = data.profile.URL_Photo || 'https://via.placeholder.com/150';
             document.getElementById('profile-cover-preview').style.backgroundImage = `url('${data.profile.URL_Couverture || 'https://via.placeholder.com/800x300?text=Couverture'}')`;
@@ -947,6 +955,7 @@
             // Remplir l'éditeur de profil
             // Panneau "À propos"
             document.getElementById('Nom_Complet').value = data.profile.Nom_Complet || '';
+            document.getElementById('URL_Profil').value = data.user.URL_Profil || ''; // Remplir le champ URL
             document.getElementById('Profession').value = data.profile.Profession || '';
             document.getElementById('Compagnie').value = data.profile.Compagnie || '';
             document.getElementById('Location').value = data.profile.Location || '';
@@ -1002,6 +1011,10 @@
             // Mettre à jour les toggles des modules
             document.getElementById('toggle-cv').checked = data.profile.CV_Actif === 'OUI';
             document.getElementById('toggle-lead').checked = data.profile.Lead_Capture_Actif === 'OUI';
+
+            // Remplir les intégrations
+            document.getElementById('imgbb-api-key').value = data.profile.API_KEY_IMGBB || '';
+
 
             // Remplir les paramètres
             document.getElementById('account-email').textContent = data.user.Email;
@@ -1094,12 +1107,7 @@
             const themeColor = e.target.value;
             document.querySelector('.phone-header img').style.borderColor = themeColor;
             // Mettre à jour l'aperçu des boutons sociaux en direct
-            updatePhoneSocialLinks();
         });
-        document.querySelector('select[name="Police"]')?.addEventListener('input', e => {
-            document.querySelector('.phone-screen').style.fontFamily = e.target.value;
-        });
-
 
         document.getElementById('profile-picture').addEventListener('change', e => {
             if (e.target.files && e.target.files[0]) {
@@ -1166,4 +1174,4 @@
         }
     </script>
 </body>
-</html>
+</html> 
