@@ -109,21 +109,22 @@ function doOptions(e) {
  * @param {boolean} [isOptions=false] - S'il s'agit d'une requête OPTIONS.
  * @returns {ContentService.TextOutput} La réponse formatée.
  */
-function corsify(data, isOptions = false) {
-  const textOutput = ContentService.createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
+function corsify(data, e) {
+  var json = JSON.stringify(data);
+  var callback = e && e.parameter && e.parameter.callback;
   
-  // Ajoute l'en-tête Access-Control-Allow-Origin pour autoriser les requêtes cross-origin
-  textOutput.addHeader('Access-Control-Allow-Origin', '*');
-  
-  if (isOptions) {
-    // Pour les requêtes OPTIONS (preflight), ajoute les méthodes et en-têtes autorisés
-    textOutput.addHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-    textOutput.addHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (callback) {
+    // Réponse JSONP : enveloppe dans une fonction callback
+    return ContentService.createTextOutput(callback + "(" + json + ")")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  } else {
+    // Réponse JSON normale
+    return ContentService.createTextOutput(json)
+      .setMimeType(ContentService.MimeType.JSON);
   }
-  
-  return textOutput;
 }
+  
+
 
 /**
  * ==================================================================
@@ -756,7 +757,7 @@ function updateOnboardingData(request, user) {
  * - SERVICE_ACCOUNT_PRIVATE_KEY : (La clé privée de votre fichier JSON, commençant par "-----BEGIN PRIVATE KEY-----...")
  * - SERVICE_ACCOUNT_EMAIL : (L'email de votre compte de service)
  */
-function generateGoogleWalletPass() {
+function generateGoogleWalletPass(user) {
   try { // La vérification du user est faite dans doPost
     const profile = getDashboardData(user).profile; // Récupère les données du profil
 
@@ -808,9 +809,7 @@ function generateGoogleWalletPass() {
     const toSign = `${Utilities.base64EncodeWebSafe(JSON.stringify(header))}.${Utilities.base64EncodeWebSafe(JSON.stringify(claims))}`;
     const signature = Utilities.computeRsaSha256Signature(toSign, privateKey);
     const signedJwt = `${toSign}.${Utilities.base64EncodeWebSafe(signature)}`;
-
     return { success: true, jwt: signedJwt };
-
   } catch (e) {
     Logger.log(e);
     return { success: false, error: e.message };
