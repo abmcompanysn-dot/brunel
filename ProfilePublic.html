@@ -467,6 +467,28 @@ END:VCARD`;
          * @param {object} data - Les données du profil.
          */
         async function generateCardImage(data) {
+            /**
+             * Fonction pour dessiner un rectangle avec des coins arrondis.
+             */
+            function roundRect(ctx, x, y, width, height, radius) {
+                if (typeof radius === 'number') {
+                    radius = {tl: radius, tr: radius, br: radius, bl: radius};
+                } else {
+                    radius = {...{tl: 0, tr: 0, br: 0, bl: 0}, ...radius};
+                }
+                ctx.beginPath();
+                ctx.moveTo(x + radius.tl, y);
+                ctx.lineTo(x + width - radius.tr, y);
+                ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+                ctx.lineTo(x + width, y + height - radius.br);
+                ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+                ctx.lineTo(x + radius.bl, y + height);
+                ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+                ctx.lineTo(x, y + radius.tl);
+                ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+                ctx.closePath();
+            }
+
             showToast('Génération de l\'image...');
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -487,29 +509,39 @@ END:VCARD`;
             };
 
             try {
-                // On doit construire l'URL absolue du logo pour que le service externe (quickchart) puisse y accéder.
                 const profilePublicUrl = window.location.href; // L'URL actuelle est celle du profil public
                 const logoUrl = new URL('r/logo.png', profilePublicUrl).href;
-                // On génère l'URL du QR code ici, au lieu de la chercher dans le DOM.
-                const qrCodeUrl = `https://quickchart.io/qr?text=${encodeURIComponent(profilePublicUrl)}&logo=${logoUrl}&size=250&centerImage=true`;
+                const qrCodeUrl = `https://quickchart.io/qr?text=${encodeURIComponent(profilePublicUrl)}&size=500`; // QR code simple, sans logo
 
-                // Charger le logo et le QR code en parallèle
-                const qrCodeImg = await loadImage(qrCodeUrl);
+                // Charger le logo Mahu et le QR code en parallèle
+                const [mahuLogoImg, qrCodeImg] = await Promise.all([
+                    loadImage('r/logo.png'),
+                    loadImage(qrCodeUrl)
+                ]);
 
-                // 1. Dessiner l'arrière-plan
+                // 1. Dessiner l'arrière-plan avec des coins arrondis
                 ctx.fillStyle = data.Couleur_Theme || '#007BFF';
-                ctx.fillRect(0, 0, cardWidth, cardHeight);
+                roundRect(ctx, 0, 0, cardWidth, cardHeight, 30);
+                ctx.fill();
 
-                // 3. Dessiner le texte principal
+                // 2. Dessiner le logo Mahu en blanc en haut à gauche
+                ctx.save();
+                ctx.drawImage(mahuLogoImg, 40, 40, 150, 50);
+                ctx.globalCompositeOperation = 'source-in';
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, cardWidth, cardHeight);
+                ctx.restore();
+
+                // 3. Dessiner le QR Code à droite
+                ctx.drawImage(qrCodeImg, cardWidth - 240, cardHeight / 2 - 100, 200, 200);
+
+                // 4. Dessiner le texte principal (Nom et profession)
                 ctx.fillStyle = 'white';
                 ctx.font = 'bold 48px -apple-system, sans-serif';
                 ctx.textAlign = 'left';
                 ctx.fillText(data.Nom_Complet || '', 40, cardHeight - 120);
                 ctx.font = '32px -apple-system, sans-serif';
                 ctx.fillText(data.Profession || '', 40, cardHeight - 70);
-
-                // 4. Dessiner le QR Code
-                ctx.drawImage(qrCodeImg, cardWidth - 220, cardHeight / 2 - 110, 220, 220);
 
                 // 5. Déclencher le téléchargement
                 const a = document.createElement('a');
@@ -518,7 +550,6 @@ END:VCARD`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-
             } catch (error) {
                 console.error("Erreur lors de la génération de l'image de la carte :", error);
                 showToast("Erreur : impossible de générer l'image.");
