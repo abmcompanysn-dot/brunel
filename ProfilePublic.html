@@ -489,6 +489,22 @@ END:VCARD`;
                 ctx.closePath();
             }
 
+            /**
+             * Dessine une icône SVG sur le canvas.
+             * @param {string} pathData - Le 'd' de la balise <path> du SVG.
+             * @param {number} x - Position X.
+             * @param {number} y - Position Y.
+             * @param {number} size - Taille de l'icône.
+             */
+            function drawIcon(pathData, x, y, size) {
+                const path = new Path2D(pathData);
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.scale(size / 24, size / 24); // Les SVG sont souvent sur une grille de 24x24
+                ctx.stroke(path);
+                ctx.restore();
+            }
+
             showToast('Génération de l\'image...');
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -510,7 +526,6 @@ END:VCARD`;
 
             try {
                 const profilePublicUrl = window.location.href; // L'URL actuelle est celle du profil public
-                const logoUrl = new URL('r/logo.png', profilePublicUrl).href;
                 const qrCodeUrl = `https://quickchart.io/qr?text=${encodeURIComponent(profilePublicUrl)}&size=500`; // QR code simple, sans logo
 
                 // Charger le logo Mahu et le QR code en parallèle
@@ -519,29 +534,40 @@ END:VCARD`;
                     loadImage(qrCodeUrl)
                 ]);
 
-                // 1. Dessiner l'arrière-plan avec des coins arrondis
+                // 1. Arrière-plan avec coins arrondis
                 ctx.fillStyle = data.Couleur_Theme || '#007BFF';
                 roundRect(ctx, 0, 0, cardWidth, cardHeight, 30);
                 ctx.fill();
 
-                // 2. Dessiner le logo Mahu en blanc en haut à gauche
+                // 2. Logo Mahu en blanc en bas à gauche
                 ctx.save();
-                ctx.drawImage(mahuLogoImg, 40, 40, 150, 50);
+                ctx.drawImage(mahuLogoImg, 40, cardHeight - 80, 150, 50);
                 ctx.globalCompositeOperation = 'source-in';
                 ctx.fillStyle = 'white';
                 ctx.fillRect(0, 0, cardWidth, cardHeight);
                 ctx.restore();
 
-                // 3. Dessiner le QR Code à droite
-                ctx.drawImage(qrCodeImg, cardWidth - 240, cardHeight / 2 - 100, 200, 200);
+                // 3. QR Code en bas à droite
+                ctx.drawImage(qrCodeImg, cardWidth - 240, cardHeight - 240, 200, 200);
 
-                // 4. Dessiner le texte principal (Nom et profession)
+                // 4. Dessiner les informations en haut avec icônes
                 ctx.fillStyle = 'white';
-                ctx.font = 'bold 48px -apple-system, sans-serif';
+                ctx.strokeStyle = 'white'; // Pour les icônes
+                ctx.lineWidth = 2;
                 ctx.textAlign = 'left';
-                ctx.fillText(data.Nom_Complet || '', 40, cardHeight - 120);
+                let currentY = 80;
+
+                // Nom Complet
+                drawIcon("M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 7 a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", 40, currentY - 28, 32);
+                ctx.font = 'bold 36px -apple-system, sans-serif';
+                ctx.fillText(data.Nom_Complet || '', 90, currentY);
+                currentY += 70;
+
+                // Profession
+                drawIcon("M2 7h20v14H2z M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2", 40, currentY - 28, 32);
                 ctx.font = '32px -apple-system, sans-serif';
-                ctx.fillText(data.Profession || '', 40, cardHeight - 70);
+                ctx.fillText(data.Profession || '', 90, currentY);
+                currentY += 70;
 
                 // 5. Déclencher le téléchargement
                 const a = document.createElement('a');
