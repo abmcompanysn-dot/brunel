@@ -6,6 +6,72 @@
     <title>Panier - Mahu</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        /* Styles pour la barre de navigation (copiés de index.html) */
+        header {
+            position: fixed; /* Reste en haut de l'écran */
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: rgba(10, 10, 10, 0.85); /* Fond noir par défaut sur cette page */
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.3s ease;
+        }
+
+        /* Style de l'icône de profil */
+        #login-link .profile-icon {
+            stroke: var(--text-primary);
+            width: 28px;
+            height: 28px;
+            transition: stroke 0.3s ease;
+        }
+
+        /* Style de l'icône de profil pour qu'elle n'ait pas de fond */
+        #login-link {
+            background: transparent;
+            border: none;
+            stroke: var(--text-primary);
+        }
+
+        /* Styles pour le nouveau menu "trois points" */
+        .more-menu-container {
+            position: relative;
+        }
+        .more-menu-icon {
+            cursor: pointer;
+            padding: 5px;
+        }
+        .more-menu-icon svg {
+            stroke: var(--text-primary);
+            width: 28px;
+            height: 28px;
+        }
+
+        .more-menu-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(5px);
+            border-radius: 8px;
+            padding: 10px;
+            min-width: 160px;
+            z-index: 1001;
+            border: 1px solid #333;
+            transform: translateY(10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: transform 0.2s ease, opacity 0.2s ease, visibility 0.2s;
+        }
+        .more-menu-dropdown.visible {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+        .more-menu-dropdown a { display: block; color: white; padding: 10px 15px; border-radius: 5px; transition: background-color 0.2s ease; text-decoration: none; }
+        .more-menu-dropdown a:hover { background-color: rgba(255, 255, 255, 0.1); }
+
         /* Styles spécifiques au panier */
         .cart-item {
             display: flex;
@@ -33,9 +99,9 @@
         }
 
         @media (max-width: 992px) {
-            nav ul.desktop-links { display: none; }
-            .nav-actions a.primary { display: none; }
-            .menu-burger { display: block; }
+            nav ul.desktop-links {
+                display: none; /* Cache les liens sur mobile */
+            }
             .section-title {
                 font-size: 2.2em;
             }
@@ -45,29 +111,29 @@
 <body>
     <header>
         <nav class="container">
-            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu"></a> 
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 40px;"></a>
             <ul class="desktop-links">
-                <li><a href="index.html#platform-features">Nos Services</a></li>
-                <li><a href="Boutique.html">Boutique</a></li>
-                <li><a href="index.html#about">À Propos</a></li> 
+                <li><a href="index.html#features">Technologie</a></li>
+                <li><a href="index.html#about">À Propos</a></li>
+                <li><a href="index.html#cards">Nos Offres</a></li>
             </ul>
             <div class="nav-actions">
-                <a href="Panier.html" id="cart-link" style="font-weight: bold;">Panier (0)</a>
-                <a href="Profil.html" id="profile-link" style="display: none; font-weight: 500;">Profil Public</a>
-                <a href="Connexion.html" class="primary" id="login-link">Connexion</a>
-                <div class="menu-burger" onclick="toggleMobileMenu()">☰</div>
+                <a href="Connexion.html" class="primary" id="login-link">
+                    <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> 
+                </a> 
+                <div class="more-menu-container">
+                    <div class="more-menu-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg></div>
+                    <div class="more-menu-dropdown">
+                        <a href="index.html#features">Technologie</a>
+                        <a href="index.html#about">À Propos</a>
+                        <a href="index.html#cards">Nos Offres</a>
+                        <a href="Boutique.html">Boutique</a>
+                        <a href="Panier.html" id="cart-link" style="font-weight: bold;">Panier (0)</a>
+                    </div>
+                </div>
             </div>
         </nav>
     </header>
-
-    <div class="nav-links-mobile">
-        <a href="index.html#platform-features" onclick="toggleMobileMenu()">Nos Services</a>
-        <a href="Boutique.html" onclick="toggleMobileMenu()">Boutique</a>
-        <a href="index.html#about" onclick="toggleMobileMenu()">À Propos</a>
-        <a href="Connexion.html" onclick="toggleMobileMenu()" class="primary">Connexion</a>
-        <a href="Panier.html" onclick="toggleMobileMenu()" id="mobile-cart-link">Panier (0)</a>
-        <a href="Profil.html" onclick="toggleMobileMenu()" id="mobile-profile-link" style="display: none;">Profil Public</a>
-    </div>
 
     <main>
         <section class="container">
@@ -105,31 +171,22 @@
         }
 
         /**
-         * Gère l'affichage du menu mobile.
-         */
-        function toggleMobileMenu() {
-            const mobileMenu = document.querySelector('.nav-links-mobile');
-            const burgerIcon = document.querySelector('.menu-burger');
-            const body = document.body;
-
-            mobileMenu.classList.toggle('active');
-            body.classList.toggle('no-scroll');
-
-            if (mobileMenu.classList.contains('active')) {
-                burgerIcon.innerHTML = '✕'; // Icône de fermeture
-            } else {
-                burgerIcon.innerHTML = '☰';
-            }
-        }
-
-        /**
          * Met à jour le compteur d'articles dans le header.
          */
         function updateCartCounter() {
             const cart = JSON.parse(localStorage.getItem('cart')) || [];
             const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            document.getElementById('cart-link').textContent = `Panier (${totalItems})`;
-            document.getElementById('mobile-cart-link').textContent = `Panier (${totalItems})`;
+            const cartLink = document.getElementById('cart-link');
+            if (cartLink) {
+                cartLink.textContent = `Panier (${totalItems})`;
+            }
+        }
+
+        function updateLoginButton() {
+            const loginLink = document.getElementById('login-link');
+            if (loginLink && localStorage.getItem('userIsLoggedIn') === 'true') {
+                loginLink.href = 'Dashboard.html';
+            }
         }
 
         // ===================================================================
@@ -230,12 +287,26 @@
                 }
             });
 
-            // Gère l'affichage des liens utilisateur (Connexion/Dashboard/Profil)
-            const userIsLoggedIn = localStorage.getItem('userIsLoggedIn') === 'true';
-            document.getElementById('login-link').textContent = userIsLoggedIn ? 'Tableau de bord' : 'Connexion';
-            document.getElementById('login-link').href = userIsLoggedIn ? 'Dashboard.html' : 'Connexion.html';
-            document.getElementById('profile-link').style.display = userIsLoggedIn ? 'inline' : 'none';
-            document.getElementById('mobile-profile-link').style.display = userIsLoggedIn ? 'block' : 'none';
+            updateLoginButton();
+
+            // Gestion du menu "trois points"
+            const moreMenuIcon = document.querySelector('.more-menu-icon');
+            if (moreMenuIcon) {
+                moreMenuIcon.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    const dropdown = document.querySelector('.more-menu-dropdown');
+                    dropdown.classList.toggle('visible');
+                });
+            }
+
+            // Fermer le menu si on clique ailleurs
+            document.addEventListener('click', function(event) {
+                const dropdown = document.querySelector('.more-menu-dropdown');
+                const menuContainer = document.querySelector('.more-menu-container');
+                if (dropdown && dropdown.classList.contains('visible') && !menuContainer.contains(event.target)) {
+                    dropdown.classList.remove('visible');
+                }
+            });
         });
     </script>
 </body>
