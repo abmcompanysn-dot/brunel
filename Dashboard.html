@@ -909,8 +909,8 @@
             document.getElementById('profile-details-preview').textContent = subtitleParts.join(' | ') || 'Informations non disponibles';
 
             // Actions de partage
-            // Utilisation de quickchart.io pour un QR code avec logo
-            const logoUrl = 'https://i.ibb.co/L6fKz3C/logo.png'; // Logo hébergé publiquement
+            // Utilisation de quickchart.io pour un QR code avec logo. On construit l'URL absolue du logo.
+            const logoUrl = new URL('r/logo.png', window.location.href).href;
             document.getElementById('profile-qrcode').src = `https://quickchart.io/qr?text=${encodeURIComponent(fullUrl)}&logo=${logoUrl}&size=250&centerImage=true`;
             
             // Générer le lien de téléchargement en haute résolution

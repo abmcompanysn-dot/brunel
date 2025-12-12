@@ -243,7 +243,7 @@
         </div>
 
         <div class="action-buttons">
-            <a href="#" id="save-contact-btn" class="action-btn" title="Enregistrer le Contact">
+            <a href="#" id="save-contact-btn" class="action-btn" title="Enregistrer le Contact"> <!-- La classe download-btn a été retirée pour enlever la bordure -->
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 <span>Enregistrer</span>
             </a>
@@ -468,60 +468,72 @@ END:VCARD`;
          * Génère une image de la carte de visite et la télécharge.
          * @param {object} data - Les données du profil.
          */
-        function generateCardImage(data) {
+        async function generateCardImage(data) {
             showToast('Génération de l\'image...');
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-
-            // Dimensions de la carte (format standard)
             const cardWidth = 856;
             const cardHeight = 540;
             canvas.width = cardWidth;
             canvas.height = cardHeight;
 
-            // Arrière-plan
-            ctx.fillStyle = data.Couleur_Theme || '#007BFF';
-            ctx.fillRect(0, 0, cardWidth, cardHeight);
+            // Fonction pour charger une image de manière asynchrone
+            const loadImage = (src) => {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.crossOrigin = "anonymous";
+                    img.onload = () => resolve(img);
+                    img.onerror = reject;
+                    img.src = src;
+                });
+            };
 
-            // Logo Mahu (en blanc)
-            const logo = new Image();
-            logo.crossOrigin = "anonymous"; // Nécessaire pour les images externes
-            logo.src = 'r/logo.png'; // Assurez-vous que le logo est accessible
-            logo.onload = () => {
-                // Dessiner le logo en blanc
+            try {
+                // On doit construire l'URL absolue du logo pour que le service externe (quickchart) puisse y accéder.
+                const logoUrl = new URL('r/logo.png', window.location.href).href;
+                const qrCodeUrl = document.getElementById('profile-qrcode').src; // L'URL du QR code généré par le dashboard
+
+                // Charger le logo et le QR code en parallèle
+                const [logoImg, qrCodeImg] = await Promise.all([
+                    loadImage(logoUrl),
+                    loadImage(qrCodeUrl)
+                ]);
+
+                // 1. Dessiner l'arrière-plan
+                ctx.fillStyle = data.Couleur_Theme || '#007BFF';
+                ctx.fillRect(0, 0, cardWidth, cardHeight);
+
+                // 2. Dessiner le logo Mahu en blanc
                 ctx.save();
-                ctx.drawImage(logo, 40, 40, 150, 50); // Ajustez la taille et la position
+                ctx.drawImage(logoImg, 40, 40, 150, 50);
                 ctx.globalCompositeOperation = 'source-in';
                 ctx.fillStyle = 'white';
                 ctx.fillRect(0, 0, cardWidth, cardHeight);
                 ctx.restore();
 
-                // Texte principal
+                // 3. Dessiner le texte principal
                 ctx.fillStyle = 'white';
                 ctx.font = 'bold 48px -apple-system, sans-serif';
                 ctx.textAlign = 'left';
                 ctx.fillText(data.Nom_Complet || '', 40, cardHeight - 120);
-
                 ctx.font = '32px -apple-system, sans-serif';
                 ctx.fillText(data.Profession || '', 40, cardHeight - 70);
 
-                // QR Code
-                const qrCodeImg = new Image();
-                qrCodeImg.crossOrigin = "anonymous";
-                // Utiliser l'URL du QR code déjà générée pour le profil
-                qrCodeImg.src = document.getElementById('profile-qrcode').src;
-                qrCodeImg.onload = () => {
-                    ctx.drawImage(qrCodeImg, cardWidth - 200, cardHeight - 200, 160, 160);
+                // 4. Dessiner le QR Code
+                ctx.drawImage(qrCodeImg, cardWidth - 200, cardHeight - 200, 160, 160);
 
-                    // Déclencher le téléchargement
-                    const a = document.createElement('a');
-                    a.href = canvas.toDataURL('image/png');
-                    a.download = `carte_visite_${(data.Nom_Complet || 'mahu').replace(/ /g, '_')}.png`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                };
-            };
+                // 5. Déclencher le téléchargement
+                const a = document.createElement('a');
+                a.href = canvas.toDataURL('image/png');
+                a.download = `carte_visite_${(data.Nom_Complet || 'mahu').replace(/ /g, '_')}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+            } catch (error) {
+                console.error("Erreur lors de la génération de l'image de la carte :", error);
+                showToast("Erreur : impossible de générer l'image.");
+            }
         }
 
 
