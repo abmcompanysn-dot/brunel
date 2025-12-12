@@ -37,16 +37,41 @@ function doPost(e) {
       default:
         // Actions nécessitant une authentification
         if (!user) throw new Error("Token d'authentification invalide ou manquant.");
-        if (action === 'getDashboardData') { result = getDashboardData(user); }
-        else if (action === 'saveProfile') { result = saveProfile(payload, user); }
-        else if (action === 'updateOnboardingData') { result = updateOnboardingData(payload, user); }
-        else if (action === 'setModuleState') { result = setModuleState(payload.moduleName, payload.isEnabled, user); }
-        else if (action === 'getDashboardStats') { result = getDashboardStats(user); }
-        else if (action === 'getPublicProfileUrl') { result = getPublicProfileUrl(user); }
-        else if (action === 'generateGoogleWalletPass') { result = generateGoogleWalletPass(user); }
-        else if (action === 'logout') result = { success: true }; // Simple success for logout
-        else if (action === 'syncCart') { Logger.log(`Panier synchronisé pour ${user.Email}: ${JSON.stringify(payload)}`); result = { success: true }; }
-        result = { error: 'Action POST non reconnue.' };
+        
+        // Use a switch for authenticated actions for better readability and maintainability
+        switch (action) {
+          case 'getDashboardData':
+            result = getDashboardData(user);
+            break;
+          case 'saveProfile':
+            result = saveProfile(payload, user);
+            break;
+          case 'updateOnboardingData':
+            result = updateOnboardingData(payload, user);
+            break;
+          case 'setModuleState':
+            result = setModuleState(payload.moduleName, payload.isEnabled, user);
+            break;
+          case 'getDashboardStats':
+            result = getDashboardStats(user);
+            break;
+          case 'getPublicProfileUrl':
+            result = getPublicProfileUrl(user);
+            break;
+          case 'generateGoogleWalletPass':
+            result = generateGoogleWalletPass(user);
+            break;
+          case 'logout':
+            result = { success: true }; // Simple success for logout
+            break;
+          case 'syncCart':
+            Logger.log(`Panier synchronisé pour ${user.Email}: ${JSON.stringify(payload)}`);
+            result = { success: true };
+            break;
+          default:
+            result = { error: 'Action POST non reconnue.' };
+            break;
+        }
         break;
     }
     logAction(action, 'SUCCESS', `Action exécutée avec succès.`, userEmail);
@@ -78,17 +103,19 @@ function doOptions(e) {
  * @returns {ContentService.TextOutput} La réponse formatée.
  */
 function corsify(data, isOptions = false) {
-  // La méthode la plus fiable pour éviter les erreurs "TypeError" est de ne pas utiliser
-  // addHttpHeader ou setHeaders, mais de renvoyer directement un objet JSON.
-  // Le moteur Apps Script gère les en-têtes correctement avec cette approche.
-  let response = {
-    headers: { 'Access-Control-Allow-Origin': '*' }
-  };
+  const textOutput = ContentService.createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+  
+  // Ajoute l'en-tête Access-Control-Allow-Origin pour autoriser les requêtes cross-origin
+  textOutput.addHeader('Access-Control-Allow-Origin', '*');
+  
   if (isOptions) {
-    response.headers['Access-Control-Allow-Methods'] = 'POST, GET, OPTIONS';
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type';
+    // Pour les requêtes OPTIONS (preflight), ajoute les méthodes et en-têtes autorisés
+    textOutput.addHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
+    textOutput.addHeader('Access-Control-Allow-Headers', 'Content-Type');
   }
-  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+  
+  return textOutput;
 }
 
 /**
@@ -116,7 +143,7 @@ function setupSpreadsheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheetsToCreate = [
     { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration'] },
-    { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
+    { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Telephone', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
@@ -162,7 +189,7 @@ function verifyAndFixSheetStructure() {
 
   const requiredSheets = [
     { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration'] },
-    { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
+    { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Telephone', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'API_KEY_IMGBB', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
@@ -281,7 +308,7 @@ function registerUser(email, password) {
 
   // Créer un profil de base associé
   const profileSheet = ss.getSheetByName('Profils');
-  profileSheet.appendRow([newId, email, email.split('@')[0], '', '', '', '', '', '[]', 'NON', 'NON', '']); // Ligne de profil initial
+  profileSheet.appendRow([newId, email, email.split('@')[0], '', '', '', '', '', '', '[]', 'NON', 'NON', '']); // Ligne de profil initial, avec une colonne vide pour le téléphone
 
   SpreadsheetApp.flush();
   logAction('registerUser', 'SUCCESS', `Nouvel utilisateur créé: ${email}`, email);

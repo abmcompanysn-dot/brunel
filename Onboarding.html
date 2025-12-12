@@ -225,7 +225,7 @@
         /**
          * Collecte et envoie les données de l'étape actuelle au backend.
          */
-        async function saveCurrentStepData() {
+        async function saveCurrentStepData(isFinalStep = false) {
             let payload = { step: currentStep, data: {} };
 
             if (currentStep === 1) {
@@ -237,8 +237,8 @@
                 payload.data.Profession = document.getElementById('profession').value;
                 payload.data.Compagnie = document.getElementById('company').value;
                 payload.data.Location = document.getElementById('location').value;
-            } else if (currentStep === 5) {
-                // Étape finale, marquer l'onboarding comme terminé
+            }
+            if (isFinalStep) {
                 payload.step = 'final';
             }
 
@@ -262,6 +262,18 @@
             await goToStep(6); // Étape virtuelle pour déclencher la sauvegarde finale
             window.location.href = 'Dashboard.html';
         }
+
+        /**
+         * Met à jour la barre de progression visuelle.
+         */
+        function updateProgressBar() {
+            const totalSteps = 5; // Nombre total d'étapes visibles
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('onboarding-progress-bar').style.width = `${progress}%`;
+        }
+
+        // Initialiser la barre de progression au chargement
+        document.addEventListener('DOMContentLoaded', updateProgressBar);
     </script>
 </body>
 </html>
