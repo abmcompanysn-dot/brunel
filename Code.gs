@@ -37,13 +37,13 @@ function doPost(e) {
       default:
         // Actions nécessitant une authentification
         if (!user) throw new Error("Token d'authentification invalide ou manquant.");
-        if (action === 'getDashboardData') result = getDashboardData(user);
-        else if (action === 'saveProfile') result = saveProfile(payload, user);
-        else if (action === 'updateOnboardingData') result = updateOnboardingData(payload, user);
-        else if (action === 'setModuleState') result = setModuleState(payload.moduleName, payload.isEnabled, user);
-        else if (action === 'getDashboardStats') result = getDashboardStats(user);
-        else if (action === 'getPublicProfileUrl') result = getPublicProfileUrl(user);
-        else if (action === 'generateGoogleWalletPass') result = generateGoogleWalletPass(user);
+        if (action === 'getDashboardData') { result = getDashboardData(user); }
+        else if (action === 'saveProfile') { result = saveProfile(payload, user); }
+        else if (action === 'updateOnboardingData') { result = updateOnboardingData(payload, user); }
+        else if (action === 'setModuleState') { result = setModuleState(payload.moduleName, payload.isEnabled, user); }
+        else if (action === 'getDashboardStats') { result = getDashboardStats(user); }
+        else if (action === 'getPublicProfileUrl') { result = getPublicProfileUrl(user); }
+        else if (action === 'generateGoogleWalletPass') { result = generateGoogleWalletPass(user); }
         else if (action === 'logout') result = { success: true }; // Simple success for logout
         else if (action === 'syncCart') { Logger.log(`Panier synchronisé pour ${user.Email}: ${JSON.stringify(payload)}`); result = { success: true }; }
         result = { error: 'Action POST non reconnue.' };
