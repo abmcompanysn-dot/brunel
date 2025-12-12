@@ -523,7 +523,7 @@ END:VCARD`;
                 ctx.save();
                 ctx.translate(x, y);
                 ctx.scale(size / 24, size / 24); // Les SVG sont souvent sur une grille de 24x24
-                ctx.fill(path); // Remplacer stroke par fill pour des icônes pleines
+                ctx.stroke(path); // Remplacer stroke par fill pour des icônes pleines
                 ctx.restore();
             }
 
