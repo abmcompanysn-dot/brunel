@@ -561,12 +561,16 @@ END:VCARD`;
                 ctx.fill();
 
                 // 2. Logo Mahu en blanc en bas à gauche
-                ctx.save();
-                ctx.drawImage(mahuLogoImg, 40, cardHeight - 80, 150, 50);
-                ctx.globalCompositeOperation = 'source-in';
-                ctx.fillStyle = 'white';
-                ctx.fillRect(0, 0, cardWidth, cardHeight);
-                ctx.restore();
+                // On crée un canvas temporaire pour isoler le logo et le colorer en blanc
+                const logoCanvas = document.createElement('canvas');
+                logoCanvas.width = mahuLogoImg.width;
+                logoCanvas.height = mahuLogoImg.height;
+                const logoCtx = logoCanvas.getContext('2d');
+                logoCtx.drawImage(mahuLogoImg, 0, 0);
+                logoCtx.globalCompositeOperation = 'source-in';
+                logoCtx.fillStyle = 'white';
+                logoCtx.fillRect(0, 0, logoCanvas.width, logoCanvas.height);
+                ctx.drawImage(logoCanvas, 40, cardHeight - 80, 150, 50);
 
                 // 3. QR Code en bas à droite
                 ctx.drawImage(qrCodeImg, cardWidth - 240, cardHeight - 240, 200, 200);
@@ -589,6 +593,13 @@ END:VCARD`;
                 ctx.font = '32px -apple-system, sans-serif';
                 ctx.fillText(data.Profession || '', 90, currentY);
                 currentY += 70;
+
+                // Numéro de téléphone (s'il existe)
+                if (data.Telephone) {
+                    drawIcon("M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z", 40, currentY - 28, 32);
+                    ctx.font = '32px -apple-system, sans-serif';
+                    ctx.fillText(data.Telephone, 90, currentY);
+                }
 
                 // 5. Déclencher le téléchargement
                 const a = document.createElement('a');
