@@ -85,15 +85,36 @@
             --text-secondary: #555555;
             --border-color: #eeeeee;
         }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
             background-color: #000000; /* Fond noir pour correspondre au thème */
             color: #f0f0f0;
         }
+
+        /* Nouvelle mise en page en deux colonnes */
+        .onboarding-layout {
+            display: grid;
+            grid-template-columns: 1fr; /* Une seule colonne par défaut pour mobile */
+            min-height: 100vh;
+            align-items: center;
+        }
+        .onboarding-image-side {
+            display: none; /* Caché sur mobile */
+            background: url('r/on.svg') no-repeat center center;
+            background-size: contain;
+            height: 100vh;
+        }
+        @media (min-width: 992px) {
+            .onboarding-layout { grid-template-columns: 1fr 1fr; }
+            .onboarding-image-side { display: block; }
+        }
+
+        /* Ajustements pour le conteneur principal et le formulaire */
         main {
             display: flex;
-            justify-content: center;
+            justify-content: center; /* Centrera le formulaire sur mobile */
             align-items: center;
             min-height: 100vh;
             padding: 20px;
@@ -101,14 +122,14 @@
         }
 
         .onboarding-container {
-            background-color: var(--card-background);
+            background-color: transparent; /* Le fond est maintenant géré par le body */
             padding: 40px;
             border-radius: 8px;
-            border: 1px solid var(--border-color);
             width: 100%;
             max-width: 500px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            color: #0a0a0a; /* Texte noir sur fond blanc */
+            color: #f0f0f0; /* Texte blanc sur fond noir */
+            border: none;
+            box-shadow: none;
         }
         .step {
             display: none;
@@ -125,10 +146,10 @@
         p.subtitle { text-align: center; color: var(--text-secondary); margin-bottom: 30px; }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 500; }
-        .form-control {
-            width: 100%; padding: 12px; background-color: #121212;
-            background-color: #f4f4f4; border: 1px solid var(--border-color);
-            border-radius: 5px; color: var(--text-primary); font-size: 1em; box-sizing: border-box;
+        .form-control { /* Style adapté au thème sombre */
+            width: 100%; padding: 12px; background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 5px; color: #f0f0f0; font-size: 1em; box-sizing: border-box;
         }
         .btn {
             display: block; width: 100%; text-align: center; padding: 12px;
@@ -136,12 +157,12 @@
             border-radius: 5px; font-weight: bold; transition: all 0.2s;
             border: none; cursor: pointer; font-size: 1em; margin-top: 20px;
         }
-        .btn-gradient { background: var(--primary-color); }
+        .btn-gradient { background: var(--blue); }
         .platform-choice {
             border: 1px solid var(--border-color); padding: 20px; border-radius: 8px;
             cursor: pointer; transition: background-color 0.3s; margin-bottom: 15px;
         }
-        .platform-choice:hover { background-color: #f0f0f0; }
+        .platform-choice:hover { background-color: rgba(255, 255, 255, 0.05); }
         .platform-choice h3 { margin-top: 0; }
         .info-step { text-align: center; }
         .info-step img { max-width: 80%; height: auto; margin: 20px 0; border-radius: 8px; background-color: #e0e0e0; }
@@ -176,81 +197,85 @@
     </header>
 
     <main>
-        <div class="onboarding-container">
+        <div class="onboarding-layout">
+            <div class="onboarding-form-side">
+                <div class="onboarding-container">
 
-            <!-- Étape 1: Créer votre compte -->
-            <div id="step-1" class="step active">
-                <h1>Créez votre compte</h1>
-                <p class="subtitle">Dites-nous en plus sur vous.</p>
-                <form onsubmit="goToStep(2); return false;">
-                    <div class="form-group">
-                        <label for="first-name">Prénom *</label>
-                        <input type="text" id="first-name" class="form-control" required>
+                    <!-- Étape 1: Créer votre compte -->
+                    <div id="step-1" class="step active">
+                        <h1>Créez votre compte</h1>
+                        <p class="subtitle">Dites-nous en plus sur vous.</p>
+                        <form onsubmit="goToStep(2); return false;">
+                            <div class="form-group">
+                                <label for="first-name">Prénom *</label>
+                                <input type="text" id="first-name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="last-name">Nom *</label>
+                                <input type="text" id="last-name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Téléphone</label>
+                                <input type="tel" id="phone" class="form-control" placeholder="Entrez votre numéro de téléphone">
+                            </div>
+                            <p style="font-size: 0.8em; color: var(--text-secondary);">En continuant, vous acceptez nos Conditions d'utilisation et notre Politique de confidentialité.</p>
+                            <button type="submit" class="btn btn-gradient">Continuer</button>
+                        </form>
                     </div>
-                    <div class="form-group">
-                        <label for="last-name">Nom *</label>
-                        <input type="text" id="last-name" class="form-control" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="phone">Téléphone</label>
-                        <input type="tel" id="phone" class="form-control" placeholder="Entrez votre numéro de téléphone">
-                    </div>
-                    <p style="font-size: 0.8em; color: var(--text-secondary);">En continuant, vous acceptez nos Conditions d'utilisation et notre Politique de confidentialité.</p>
-                    <button type="submit" class="btn btn-gradient">Continuer</button>
-                </form>
-            </div>
 
-            <!-- Étape 2: Sélectionner la plateforme -->
-            <div id="step-2" class="step">
-                <h1>Comment souhaitez-vous utiliser Mahu?</h1>
-                <p class="subtitle">Cela garantit que votre compte est correctement configuré.</p>
-                <div class="platform-choice" onclick="selectPlatform('individual')">
-                    <h3>Pour moi-même</h3>
-                    <p>Idéal si vous avez besoin de Mahu pour vous-même en tant qu'individu.</p>
+                    <!-- Étape 2: Sélectionner la plateforme -->
+                    <div id="step-2" class="step">
+                        <h1>Comment souhaitez-vous utiliser Mahu?</h1>
+                        <p class="subtitle">Cela garantit que votre compte est correctement configuré.</p>
+                        <div class="platform-choice" onclick="selectPlatform('individual')">
+                            <h3>Pour moi-même</h3>
+                            <p>Idéal si vous avez besoin de Mahu pour vous-même en tant qu'individu.</p>
+                        </div>
+                        <div class="platform-choice" onclick="selectPlatform('team')">
+                            <h3>Pour mon équipe</h3>
+                            <p>Idéal si vous souhaitez créer des cartes d'affaire numériques pour votre équipe.</p>
+                        </div>
+                    </div>
+
+                    <!-- Étape 3: Compléter le profil -->
+                    <div id="step-3" class="step">
+                        <h1>Créez votre profil</h1>
+                        <p class="subtitle">Entrez les informations que vous voulez partager.</p>
+                        <form onsubmit="goToStep(4); return false;">
+                            <div class="form-group">
+                                <label for="profession">Profession</label>
+                                <input type="text" id="profession" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="company">Compagnie</label>
+                                <input type="text" id="company" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="location">Location</label>
+                                <input type="text" id="location" class="form-control">
+                            </div>
+                            <button type="submit" class="btn btn-gradient">Continuer</button>
+                        </form>
+                    </div>
+
+                    <!-- Étape 4: Info Partage Carte -->
+                    <div id="step-4" class="step info-step">
+                        <h1>Comment partager avec une carte Mahu</h1>
+                        <p class="subtitle">Tenez votre carte Mahu devant un téléphone pour partager vos informations.</p>
+                        <img src="https://placehold.co/300x200/e0e0e0/333?text=Animation+NFC" alt="Animation partage NFC">
+                        <button class="btn" onclick="goToStep(5)">Suivant</button>
+                    </div>
+
+                    <!-- Étape 5: Conclusion -->
+                    <div id="step-5" class="step info-step">
+                        <h1>Votre profil est prêt !</h1>
+                        <p class="subtitle">Vous pouvez maintenant accéder à votre tableau de bord pour personnaliser votre profil, suivre vos statistiques et bien plus encore.</p>
+                        <img src="r/logo.png" alt="Logo Mahu" style="max-width: 120px; height: auto; margin: 20px 0;">
+                        <button class="btn btn-gradient" onclick="finishOnboarding()">Aller au tableau de bord</button>
+                    </div>
                 </div>
-                <div class="platform-choice" onclick="selectPlatform('team')">
-                    <h3>Pour mon équipe</h3>
-                    <p>Idéal si vous souhaitez créer des cartes d'affaire numériques pour votre équipe.</p>
-                </div>
             </div>
-
-            <!-- Étape 3: Compléter le profil -->
-            <div id="step-3" class="step">
-                <h1>Créez votre profil</h1>
-                <p class="subtitle">Entrez les informations que vous voulez partager.</p>
-                <form onsubmit="goToStep(4); return false;">
-                    <div class="form-group">
-                        <label for="profession">Profession</label>
-                        <input type="text" id="profession" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label for="company">Compagnie</label>
-                        <input type="text" id="company" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label for="location">Location</label>
-                        <input type="text" id="location" class="form-control">
-                    </div>
-                    <button type="submit" class="btn btn-gradient">Continuer</button>
-                </form>
-            </div>
-
-            <!-- Étape 4: Info Partage Carte -->
-            <div id="step-4" class="step info-step">
-                <h1>Comment partager avec une carte Mahu</h1>
-                <p class="subtitle">Tenez votre carte Mahu devant un téléphone pour partager vos informations.</p>
-                <img src="https://placehold.co/300x200/e0e0e0/333?text=Animation+NFC" alt="Animation partage NFC">
-                <button class="btn" onclick="goToStep(5)">Suivant</button>
-            </div>
-
-            <!-- Étape 5: Conclusion -->
-            <div id="step-5" class="step info-step">
-                <h1>Votre profil est prêt !</h1>
-                <p class="subtitle">Vous pouvez maintenant accéder à votre tableau de bord pour personnaliser votre profil, suivre vos statistiques et bien plus encore.</p>
-                <img src="r/logo.png" alt="Logo Mahu" style="max-width: 120px; height: auto; margin: 20px 0;">
-                <button class="btn btn-gradient" onclick="finishOnboarding()">Aller au tableau de bord</button>
-            </div>
-
+            <div class="onboarding-image-side"></div>
         </div>
     </main>
 
