@@ -322,10 +322,11 @@
                     if (response.success) {
                         localStorage.setItem('authToken', response.token); // Sauvegarder le token !
                         localStorage.setItem('userIsLoggedIn', 'true');
-                        if (response.newUser) {
-                            window.location.href = 'Onboarding.html'; // Redirection pour les nouveaux utilisateurs
+                        // Si l'utilisateur est nouveau OU si l'onboarding n'est pas complet, on redirige vers l'onboarding.
+                        if (response.newUser || response.onboardingComplete === false) {
+                            window.location.href = 'Onboarding.html';
                         } else {
-                            window.location.href = 'Dashboard.html'; // Redirection pour les utilisateurs existants
+                            window.location.href = 'Dashboard.html'; // Sinon, vers le tableau de bord.
                         }
                     } else {
                         showError(formId, response.error || 'Une erreur est survenue.');
