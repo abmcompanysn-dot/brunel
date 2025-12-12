@@ -547,12 +547,11 @@ END:VCARD`;
             };
 
             try {
-                const profilePublicUrl = window.location.href; // L'URL actuelle est celle du profil public
-                const qrCodeUrl = `https://quickchart.io/qr?text=${encodeURIComponent(profilePublicUrl)}&size=500`; // QR code simple, sans logo
+                const qrCodeUrl = `https://quickchart.io/qr?text=${encodeURIComponent(window.location.href)}&size=500`; // QR code simple, sans logo
 
                 // Charger le logo Mahu et le QR code en parallèle
                 const [mahuLogoImg, qrCodeImg] = await Promise.all([
-                    loadImage('r/logo.png'),
+                    loadImage('r/logo.png'), // Utiliser un chemin relatif simple pour le logo local
                     loadImage(qrCodeUrl)
                 ]);
 
