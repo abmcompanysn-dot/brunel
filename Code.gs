@@ -53,9 +53,6 @@ function doPost(e) {
           case 'setModuleState':
             result = setModuleState(payload.moduleName, payload.isEnabled, user);
             break;
-          case 'getDashboardStats':
-            result = getDashboardStats(user);
-            break;
           case 'getPublicProfileUrl':
             result = getPublicProfileUrl(user);
             break;
@@ -250,41 +247,6 @@ function logAction(action, status, message, userEmail, suggestion = '') {
 }
 
 /**
- * Récupère les statistiques de vues depuis la feuille "Statistiques",
- * les agrège par source et les renvoie au format JSON pour Chart.js.
- * * @returns {Object} Un objet contenant les labels et les données pour le graphique.
- * @param {Object} user - L'objet utilisateur authentifié.
- */
-function getDashboardStats(user) {
-  try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Statistiques');
-    
-    const data = sheet.getRange('C2:C').getValues().flat().filter(String); // Récupère toutes les sources de vue (colonne C maintenant)
-    
-    const counts = {
-      'NFC': 0,
-      'QR Code': 0,
-      'Lien': 0
-    };
-
-    data.forEach(source => {
-      if (counts.hasOwnProperty(source)) {
-        counts[source]++;
-      }
-    });
-
-    return {
-      labels: Object.keys(counts),
-      data: Object.values(counts)
-    };
-
-  } catch (e) {
-    Logger.log(e);
-    return { error: e.message };
-  }
-}
-
-/**
  * Gère l'inscription d'un nouvel utilisateur.
  * @param {string} email - L'email de l'utilisateur.
  * @param {string} password - Le mot de passe (sera stocké en clair, non recommandé pour la production).
@@ -424,14 +386,42 @@ function getDashboardData(user) {
       return obj;
     }, {});
 
+    // --- Récupérer les statistiques de vues (pour le graphique) ---
+    const statsSheet = ss.getSheetByName('Statistiques');
+    const allViews = statsSheet.getRange('A2:C' + statsSheet.getLastRow()).getValues();
+    const sevenDaysAgo = new Date(new Date().setDate(new Date().getDate() - 7));
+    
+    const userViews = allViews.filter(row => 
+      row[0] === user.URL_Profil && // Filtre par URL de profil
+      row[1] && new Date(row[1]) >= sevenDaysAgo // Filtre sur les 7 derniers jours
+    );
+
+    const viewCounts = { 'NFC': 0, 'QR Code': 0, 'Lien': 0 };
+    userViews.forEach(view => {
+      const source = view[2]; // La source est dans la 3ème colonne (index 2)
+      if (viewCounts.hasOwnProperty(source)) {
+        viewCounts[source]++;
+      }
+    });
+
+    const stats = {
+      labels: Object.keys(viewCounts),
+      data: Object.values(viewCounts)
+    };
+
+    // --- Récupérer le nombre total de vues ---
+    const totalUserViews = allViews.filter(row => row[0] === user.URL_Profil).length;
+
     // Récupérer les prospects
     const prospectsSheet = ss.getSheetByName('Prospects');
-    // Récupère uniquement les 4 premières colonnes (A à D) et filtre les lignes non vides
-    const prospectsData = prospectsSheet.getRange('A2:E').getValues() 
+    const allProspects = prospectsSheet.getRange('A2:E').getValues();
+    const userProspects = allProspects
       .filter(row => row[0] === user.ID_Unique) // Filtrer par ID_Profil_Source (colonne A)
       // Formater pour le frontend (les indices sont pour les colonnes 0=ID_Profil_Source, 1=Date_Capture, 2=Nom_Prospect, 3=Contact_Prospect, 4=Message_Note)
       .map(row => ({ id: row[0], date: row[1], nom: row[2], contact: row[3], note: row[4] })) 
       .slice(0, 10); // Limiter aux 10 derniers
+
+    const totalProspectsCount = allProspects.filter(row => row[0] === user.ID_Unique).length;
 
     // Construire l'URL de base de l'application web
     const appUrl = "https://mahu-app.com/ProfilePublic.html"; // URL générique
@@ -439,11 +429,15 @@ function getDashboardData(user) {
     return {
       user: user,
       profile: profile,
-      prospects: prospectsData,
-      appUrl: appUrl
+      prospects: userProspects,
+      appUrl: appUrl,
+      stats: stats, // Nouvelles données pour le graphique
+      totalViews: totalUserViews, // Nouvelle donnée
+      totalProspects: totalProspectsCount, // Nouvelle donnée
+      onboardingStatus: user.Onboarding_Status // Ajout du statut d'onboarding
     };
   } catch (e) {
-    Logger.log(`Erreur dans getDashboardData: ${e.message}`);
+    Logger.log(`Erreur dans getDashboardData pour ${user.Email}: ${e.message} (Ligne: ${e.lineNumber})`);
     return { error: e.message };
   }
 }

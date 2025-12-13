@@ -158,6 +158,14 @@
             100% { background-color: #3a3a3a; }
         }
 
+        .skeleton {
+            display: inline-block;
+            height: 1em;
+            width: 70%;
+            background-color: #3a3a3a;
+            border-radius: 4px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
         /* Styles pour les onglets de contenu */
         .content-pane {
             display: none; /* Cacher tous les panneaux par défaut */
@@ -165,7 +173,7 @@
         .content-pane.active {
             display: block; /* Afficher seulement le panneau actif */
         }
-
+        
         /* Styles du formulaire de l'éditeur */
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; font-weight: 500; margin-bottom: 8px; color: var(--text-secondary); }
@@ -580,12 +588,7 @@
                             </tr>
                         </thead>
                         <tbody id="prospects-table-body">
-                            <!-- Squelette de chargement -->
-                            <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
-                            <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
-                            <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
-                            <!-- Message de chargement initial -->
-                            <tr id="loading-prospects-message"><td colspan="4" style="text-align: center;">Chargement des prospects...</td></tr>
+                            <tr><td colspan="4" style="text-align: center;">Chargement des contacts...</td></tr>
                         </tbody>
                     </table>
                     </div>
@@ -595,30 +598,32 @@
             <!-- Panneau Statistiques -->
             <div id="statistique-content" class="content-pane">
                 <h1>Statistiques</h1>
-                <div class="card">
-                    <h3>Aperçu Général</h3>
+                <div class="card">                    <h3>Aperçu Général</h3>
                     <div class="stats-grid">
                         <div class="stat-item">
-                            <div class="number">...</div>
+                            <div class="number"><span class="skeleton" style="width: 60px; height: 40px;"></span></div>
                             <div class="label">Vues Totales</div>
                         </div>
                         <div class="stat-item">
-                            <div class="number">...</div>
+                            <div class="number"><span class="skeleton" style="width: 60px; height: 40px;"></span></div>
                             <div class="label">Vues via NFC</div>
                         </div>
                         <div class="stat-item">
-                            <div class="number">...</div>
+                            <div class="number"><span class="skeleton" style="width: 60px; height: 40px;"></span></div>
                             <div class="label">Vues via QR Code</div>
                         </div>
                         <div class="stat-item">
-                            <div class="number">...</div>
+                            <div class="number"><span class="skeleton" style="width: 60px; height: 40px;"></span></div>
                             <div class="label">Vues via Lien</div>
                         </div>
                         <div class="stat-item">
-                            <div class="number" style="font-size: 1.5em; padding-top: 15px;">...</div>
+                            <div class="number" style="font-size: 1.5em; padding-top: 15px;"><span class="skeleton" style="width: 100px; height: 24px;"></span></div>
                             <div class="label">Dernière Visite</div>
                         </div>
                     </div>
+                </div>
+                <div class="card">
+                    <h3>Vues par source (Graphique)</h3>
                     <canvas id="viewsChart" style="margin-top: 20px;"></canvas>
                 </div>
             </div>
@@ -626,15 +631,14 @@
             <!-- Panneau Intégrations -->
             <div id="integration-content" class="content-pane">
                 <h1>Intégrations</h1>
-                <p class="section-subtitle" style="max-width: 100%; text-align: left; margin-bottom: 20px;">Connectez Mahu à d'autres services. Les clés API sont stockées de manière sécurisée et ne sont jamais partagées publiquement.</p>
-                
+                <p style="max-width: 100%; text-align: left; margin-bottom: 20px; color: var(--text-secondary);">Connectez Mahu à d'autres services. Les clés API sont stockées de manière sécurisée et ne sont jamais partagées publiquement.</p>
                 <div class="card">
                     <h3>Google Wallet</h3>
                     <p>Remplissez ces informations depuis votre <a href="https://pay.google.com/business/console" target="_blank">console Google Pay & Wallet</a> pour activer le bouton "Ajouter à Google Wallet".</p>
-                    <div class="form-group"><label for="wallet-issuer-id">ID de l'émetteur (Issuer ID)</label><input type="text" id="wallet-issuer-id" class="form-control"></div>
-                    <div class="form-group"><label for="wallet-class-id">ID de la classe (Class ID)</label><input type="text" id="wallet-class-id" class="form-control"></div>
-                    <div class="form-group"><label for="wallet-service-email">Email du compte de service</label><input type="text" id="wallet-service-email" class="form-control"></div>
-                    <div class="form-group"><label for="wallet-private-key">Clé privée du compte de service</label><textarea id="wallet-private-key" class="form-control" rows="4"></textarea></div>
+                    <div class="form-group"><label for="wallet-issuer-id">ID de l'émetteur (Issuer ID)</label><input type="text" id="wallet-issuer-id" class="form-control" placeholder="Chargement..."></div>
+                    <div class="form-group"><label for="wallet-class-id">ID de la classe (Class ID)</label><input type="text" id="wallet-class-id" class="form-control" placeholder="Chargement..."></div>
+                    <div class="form-group"><label for="wallet-service-email">Email du compte de service</label><input type="text" id="wallet-service-email" class="form-control" placeholder="Chargement..."></div>
+                    <div class="form-group"><label for="wallet-private-key">Clé privée du compte de service</label><textarea id="wallet-private-key" class="form-control" rows="4" placeholder="Chargement..."></textarea></div>
                 </div>
             </div>
 
@@ -643,43 +647,40 @@
                 <h1>Paramètres</h1>
                 <div class="card">
                     <h3>Mon Compte</h3>
-                    <p>Email du compte : <strong id="account-email">Chargement...</strong></p>
-                    <button class="btn btn-secondary" style="margin-top: 15px;">Changer le mot de passe (à venir)</button>
+                    <p>Email du compte : <strong id="account-email">...</strong></p>
+                    <button class="btn btn-secondary" style="margin-top: 15px;" disabled>Changer le mot de passe (à venir)</button>
                 </div>
                 <div class="card">
                     <h3>Gestion des Modules</h3>
                     <div class="toggle-switch">
-                        <span>Activer le module CV/Portfolio</span>
+                        <span>Module CV/Portfolio</span>
                         <input type="checkbox" id="toggle-cv" onchange="toggleModule('CV_Actif', this.checked)">
                     </div>
                     <div class="toggle-switch">
-                        <span>Activer la capture de prospects</span>
+                        <span>Capture de prospects</span>
                         <input type="checkbox" id="toggle-lead" onchange="toggleModule('Lead_Capture_Actif', this.checked)">
                     </div>
                 </div>
-
                 <div class="card">
-                    <h3>Votre Carte Numérique (Wallet)</h3>
-                    <p>Ajoutez votre carte de visite Mahu à votre portefeuille numérique pour un accès rapide et facile.</p>
-                    <div style="display: flex; gap: 15px; margin-top: 20px;">
-                        <button id="apple-wallet-btn" class="btn" onclick="addToAppleWallet()" style="flex: 1;">Ajouter à Apple Wallet</button>
-                        <button id="google-wallet-btn" class="btn" onclick="addToGoogleWallet()" style="flex: 1;">Ajouter à Google Wallet</button>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3>Mes Cartes NFC</h3>
-                    <ul id="nfc-card-list">
-                        <li>Chargement des cartes...</li>
-                    </ul>
-                    <button class="btn btn-primary" onclick="linkNewNFC()" style="margin-top: 15px;">Lier une nouvelle carte</button>
-                </div>
-
-                <div class="card">
-                    <h3>Demande de Carte</h3>
-                    <p><strong>Statut de la dernière commande :</strong> <span id="order-status">Aucune commande récente.</span></p>
-                    <button class="btn btn-primary" onclick="window.location.href='Boutique.html'" style="margin-top: 15px;">Commander une nouvelle carte</button>
-                </div>
+                   <h3>Votre Carte Numérique (Wallet)</h3>
+                   <p>Ajoutez votre carte de visite Mahu à votre portefeuille numérique pour un accès rapide et facile.</p>
+                   <div style="display: flex; gap: 15px; margin-top: 20px;">
+                       <button id="apple-wallet-btn" class="btn" onclick="addToAppleWallet()" style="flex: 1;">Ajouter à Apple Wallet</button>
+                       <button id="google-wallet-btn" class="btn" onclick="addToGoogleWallet()" style="flex: 1;">Ajouter à Google Wallet</button>
+                   </div>
+               </div>
+               <div class="card">
+                   <h3>Mes Cartes NFC</h3>
+                   <ul id="nfc-card-list">
+                       <li>Chargement des cartes...</li>
+                   </ul>
+                   <button class="btn btn-primary" onclick="linkNewNFC()" style="margin-top: 15px;">Lier une nouvelle carte</button>
+               </div>
+               <div class="card">
+                   <h3>Demande de Carte</h3>
+                   <p><strong>Statut de la dernière commande :</strong> <span id="order-status">Aucune commande récente.</span></p>
+                   <button class="btn btn-primary" onclick="window.location.href='Boutique.html'" style="margin-top: 15px;">Commander une nouvelle carte</button>
+               </div>
             </div>
         </main>
     </div>
@@ -736,7 +737,7 @@
                         <div class="form-group" style="margin-top: 25px;"><label for="Langue">Langue</label><select id="Langue" name="Langue" class="form-control"><option value="fr">Français</option><option value="en">English</option></select></div>
                     </div>
                     <!-- Panneau d'édition "Liens" -->
-                    <div id="edit-pane-links" class="edit-pane active"> <!-- Rendre les liens actifs par défaut après suppression des modules -->
+                    <div id="edit-pane-links" class="edit-pane">
                         <h3>Réseaux Sociaux & Liens</h3>
                         <div id="social-links-container"></div>
                         <button type="button" class="btn btn-secondary" onclick="addSocialLink()" style="width: auto; margin-top: 10px;">Ajouter un lien</button>
@@ -784,7 +785,12 @@
             }
             formData.append('action', action);
 
-            formData.append('payload', JSON.stringify(data)); // Envoyer toutes les données dans un seul payload
+            // Ajouter chaque clé de l'objet data au FormData
+            for (const key in data) {
+                // Si la valeur est un objet, la stringifier en JSON
+                const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
+                formData.append(key, value);
+            }
             formData.append('token', token); // Ajouter le token à chaque requête !
 
             return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
@@ -823,6 +829,12 @@
             document.getElementById(paneId).classList.add('active');
             document.querySelectorAll('.sidebar nav a').forEach(link => link.classList.remove('active'));
             clickedElement.classList.add('active');
+
+            // Si on ouvre le panneau des paramètres, on s'assure que les données sont à jour
+            if (paneId === 'parametre-content') {
+                // Cette fonction est un bon candidat pour être appelée ici
+                // Elle est déjà appelée au chargement, mais un rappel ici garantit la fraîcheur des données
+            }
         }
 
         function addSocialLink(type = 'website', url = '') {
@@ -1084,6 +1096,12 @@
             alert("Impossible de charger les données du tableau de bord.");
         }
 
+        function showSkeletons() {
+            document.querySelectorAll('.skeleton-text, .skeleton-row').forEach(el => el.style.display = '');
+        }
+        function hideSkeletons() {
+            document.querySelectorAll('.skeleton-text, .skeleton-row').forEach(el => el.style.display = 'none');
+        }
         function populateDashboard(data) {
             if (data.error) {
                 onDashboardError({ message: data.error });
@@ -1125,6 +1143,13 @@
             if (JSON.parse(data.profile.Liens_Sociaux_JSON || '[]').length > 0) completeness += 20;
             document.getElementById('profile-completeness-percent').textContent = `${completeness}%`;
             document.getElementById('profile-completeness-bar').style.width = `${completeness}%`;
+
+            // Remplir les intégrations
+            document.getElementById('wallet-issuer-id').value = data.profile.Wallet_Issuer_ID || '';
+            document.getElementById('wallet-class-id').value = data.profile.Wallet_Class_ID || '';
+            document.getElementById('wallet-service-email').value = data.profile.Wallet_Service_Email || '';
+            document.getElementById('wallet-private-key').value = data.profile.Wallet_Private_Key || '';
+
 
             // Remplir l'éditeur de profil
             // Panneau "À propos"
@@ -1173,8 +1198,7 @@
 
             // Remplir la table des prospects
             const prospectsBody = document.getElementById('prospects-table-body');
-            prospectsBody.innerHTML = '';
-            document.querySelectorAll('.skeleton-row').forEach(row => row.remove()); // Enlever le squelette
+            prospectsBody.innerHTML = ''; // Vider le contenu précédent
 
             if (data.prospects.length > 0) {
                 data.prospects.forEach(p => {
@@ -1191,6 +1215,8 @@
 
             // Remplir les paramètres
             document.getElementById('account-email').textContent = data.user.Email;
+
+            hideSkeletons(); // Cacher tous les squelettes une fois les données chargées
         }
 
         function getSocialLinksData() {
@@ -1233,15 +1259,41 @@
                     datasets: [{
                         label: 'Vues par source',
                         data: stats.data,
-                        backgroundColor: 'rgba(0, 123, 255, 0.6)',
-                        borderColor: 'rgba(0, 123, 255, 1)',
+                        backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                        borderColor: 'rgba(0, 123, 255, 0.8)',
+                        hoverBackgroundColor: 'rgba(0, 123, 255, 0.7)',
+                        hoverBorderColor: 'rgba(0, 123, 255, 1)',
                         borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#000',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed.y || 0;
+                                    const plural = value > 1 ? 's' : '';
+                                    return `${value} vue${plural} via ${context.label}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: { 
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { color: 'rgba(255, 255, 255, 0.7)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        x: {
+                            ticks: { color: 'rgba(255, 255, 255, 0.7)' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
                 }
             });
         }
