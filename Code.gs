@@ -468,6 +468,15 @@ function getPublicProfileUrl(user) {
  * @returns {Object} Un objet contenant toutes les données du profil à afficher.
  */
 function getProfileData(profileUrl) {
+  // --- OPTIMISATION RADICALE AVEC CACHE ---
+  const cache = CacheService.getScriptCache();
+  const cacheKey = `profile_${profileUrl}`;
+  const cachedData = cache.get(cacheKey);
+
+  if (cachedData) {
+    Logger.log(`Profil '${profileUrl}' servi depuis le cache.`);
+    return JSON.parse(cachedData);
+  }
   try {
     Logger.log(`Récupération des données pour le profil : ${profileUrl}`);
     const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -518,6 +527,9 @@ function getProfileData(profileUrl) {
     // Ajouter des informations de l'utilisateur si nécessaire (ex: email)
     profileDataObject.Email = userRow[userEmailCol];
 
+    // Mettre les données en cache pour 6 heures pour des chargements futurs ultra-rapides
+    cache.put(cacheKey, JSON.stringify(profileDataObject), 21600); // 21600 secondes = 6 heures
+
     return profileDataObject;
 
   } catch (e) {
@@ -533,6 +545,11 @@ function getProfileData(profileUrl) {
 function saveProfile(data, user) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    // --- OPTIMISATION : Invalidation du cache ---
+    // On supprime l'ancienne version du profil du cache pour que les modifs soient visibles.
+    const cache = CacheService.getScriptCache();
+    cache.remove(`profile_${user.URL_Profil}`);
     const profileSheet = ss.getSheetByName('Profils');
     const userSheet = ss.getSheetByName('Utilisateurs');
 
@@ -552,6 +569,8 @@ function saveProfile(data, user) {
       if (userRow !== -1) {
         const urlCol = findHeaderIndex(userSheet, 'URL_Profil');
         userSheet.getRange(userRow, urlCol).setValue(newUrl);
+        // Si l'URL change, on invalide aussi le nouveau cache potentiel
+        cache.remove(`profile_${newUrl}`);
       }
       delete data.URL_Profil; // Supprimer pour ne pas l'écrire dans la feuille 'Profils'
     }

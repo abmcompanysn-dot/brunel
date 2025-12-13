@@ -118,16 +118,26 @@
 
         /* Responsive */
         @media (max-width: 992px) {
-            nav ul.desktop-links { display: none; }
-            .nav-actions a.primary { display: none; }
-            .menu-burger { display: block; }
             .section-title {
                 font-size: 2.2em;
             }
 
-            nav ul, .nav-contact-info { display: none; }
-
-            .menu-burger { display: block; }
+            nav ul.desktop-links {
+                display: flex;
+                overflow-x: auto; /* Permet le défilement horizontal */
+                white-space: nowrap; /* Empêche les éléments de passer à la ligne */
+                -webkit-overflow-scrolling: touch; /* Défilement fluide sur iOS */
+                scrollbar-width: none; /* Cache la scrollbar sur Firefox */
+                margin: 0;
+                padding: 0 10px;
+            }
+            nav ul.desktop-links::-webkit-scrollbar {
+                display: none; /* Cache la scrollbar sur Chrome/Safari */
+            }
+            nav ul.desktop-links li {
+                flex-shrink: 0; /* Empêche les éléments de se rétrécir */
+            }
+            .menu-burger { display: none; } /* On cache le hamburger */
         }
     </style>
 </head>
@@ -137,24 +147,16 @@
             <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 50px;"></a>
             <ul class="desktop-links">
                 <li><a href="index.html#platform-features">Nos Services</a></li>
-                <li><a href="Boutique.html" style="font-weight: bold;">Boutique</a></li>
+                <li><a href="Boutique.html" class="active">Boutique</a></li>
                 <li><a href="index.html#about">À Propos</a></li>
+                <li><a href="Panier.html" id="cart-link">Panier (0)</a></li>
+                <li><a href="Connexion.html" class="primary" id="login-link">Connexion</a></li>
             </ul>
             <div class="nav-actions">
-                <a href="Panier.html" id="cart-link">Panier (0)</a>
-                <a href="Connexion.html" class="primary" id="login-link">Connexion</a>
                 <div class="menu-burger" onclick="toggleMobileMenu()">☰</div>
             </div>
         </nav>
     </header>
-
-    <div class="nav-links-mobile">
-        <a href="index.html#platform-features" onclick="toggleMobileMenu()">Nos Services</a>
-        <a href="Boutique.html" onclick="toggleMobileMenu()">Boutique</a>
-        <a href="index.html#about" onclick="toggleMobileMenu()">À Propos</a>
-        <a href="Connexion.html" onclick="toggleMobileMenu()" class="primary">Connexion</a>
-        <a href="Panier.html" onclick="toggleMobileMenu()" id="mobile-cart-link">Panier (0)</a>
-    </div>
 
     <main>
         <section class="container">
@@ -300,31 +302,12 @@
         }
 
         /**
-         * Gère l'affichage du menu mobile.
-         */
-        function toggleMobileMenu() {
-            const mobileMenu = document.querySelector('.nav-links-mobile');
-            const burgerIcon = document.querySelector('.menu-burger');
-            const body = document.body;
-
-            mobileMenu.classList.toggle('active');
-            body.classList.toggle('no-scroll');
-
-            if (mobileMenu.classList.contains('active')) {
-                burgerIcon.innerHTML = '✕'; // Icône de fermeture
-            } else {
-                burgerIcon.innerHTML = '☰';
-            }
-        }
-
-        /**
          * Met à jour le compteur d'articles dans le header.
          */
         function updateCartCounter() {
             const cart = JSON.parse(localStorage.getItem('cart')) || [];
             const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
             document.getElementById('cart-link').textContent = `Panier (${totalItems})`;
-            document.getElementById('mobile-cart-link').textContent = `Panier (${totalItems})`;
         }
 
         function navigateCarousel(button, direction) {
