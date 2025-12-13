@@ -27,6 +27,8 @@ function doPost(e) {
       case 'registerUser': result = registerUser(payload.email, payload.password); break;
       case 'loginUser': result = loginUser(payload.email, payload.password); break;
       case 'createCheckoutSession': result = createCheckoutSession(payload); break;
+      case 'forgotPassword': result = forgotPassword(payload.email); break;
+      case 'resetPassword': result = resetPassword(payload.token, payload.newPassword); break;
       case 'trackView': result = trackView(payload.profileUrl, payload.source); break;
       case 'getProfileData': result = getProfileData(e.parameter.user); break;
       case 'exportLeadsAsCSV':
@@ -147,7 +149,7 @@ function onOpen() {
 function setupSpreadsheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheetsToCreate = [
-    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'Mot_De_Passe', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration'] },
+    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'Mot_De_Passe', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration', 'Reset_Token', 'Reset_Token_Expiration'] },
     { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Telephone', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
@@ -193,7 +195,7 @@ function verifyAndFixSheetStructure() {
   let corrections = [];
 
   const requiredSheets = [
-    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'Mot_De_Passe', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration'] },
+    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'Mot_De_Passe', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration', 'Reset_Token', 'Reset_Token_Expiration'] },
     { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Telephone', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
@@ -273,7 +275,7 @@ function registerUser(email, password) {
   const token = Utilities.getUuid();
   const expiration = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000); // Expire dans 7 jours
 
-  const newUserRow = [newId, email, password, '', 'Particulier', profileUrl, '[]', 'ONBOARDING_STARTED', token, expiration];
+  const newUserRow = [newId, email, password, '', 'Particulier', profileUrl, '[]', 'ONBOARDING_STARTED', token, expiration, '', ''];
   userSheet.appendRow(newUserRow);
 
   // Créer un profil de base associé
@@ -322,6 +324,80 @@ function loginUser(email, password) {
   const onboardingStatus = usersData[userRowIndex + 1][onboardingStatusCol];
 
   return { success: true, newUser: onboardingStatus !== 'COMPLETED', token: token };
+}
+/**
+ * Gère la demande de réinitialisation de mot de passe.
+ * @param {string} email - L'email de l'utilisateur.
+ * @returns {Object} Un objet indiquant le succès.
+ */
+function forgotPassword(email) {
+  if (!email) throw new Error("L'email est requis.");
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const userSheet = ss.getSheetByName('Utilisateurs');
+  const usersData = userSheet.getDataRange().getValues();
+  const headers = usersData[0];
+  const emailCol = headers.indexOf('Email');
+  const resetTokenCol = headers.indexOf('Reset_Token');
+  const resetExpCol = headers.indexOf('Reset_Token_Expiration');
+
+  const userRowIndex = usersData.findIndex(row => row[emailCol] === email);
+
+  // Ne pas renvoyer d'erreur si l'utilisateur n'existe pas pour des raisons de sécurité.
+  if (userRowIndex === -1) {
+    logAction('forgotPassword', 'INFO', `Tentative de reset pour un email inexistant: ${email}`, email);
+    return { success: true };
+  }
+
+  const resetToken = Utilities.getUuid();
+  const expiration = new Date(new Date().getTime() + 60 * 60 * 1000); // Expire dans 1 heure
+
+  const sheetRow = userRowIndex + 1;
+  userSheet.getRange(sheetRow, resetTokenCol + 1).setValue(resetToken);
+  userSheet.getRange(sheetRow, resetExpCol + 1).setValue(expiration);
+
+  const resetUrl = `https://mahu-app.com/ResetPassword.html?token=${resetToken}`; // Remplacez par votre URL réelle
+  const subject = "Réinitialisation de votre mot de passe Mahu";
+  const body = `Bonjour,\n\nVous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien ci-dessous pour continuer:\n\n${resetUrl}\n\nCe lien expirera dans une heure. Si vous n'avez pas fait cette demande, veuillez ignorer cet email.\n\nL'équipe Mahu`;
+
+  MailApp.sendEmail(email, subject, body);
+  logAction('forgotPassword', 'SUCCESS', `Email de réinitialisation envoyé à ${email}`, email);
+
+  return { success: true };
+}
+
+/**
+ * Réinitialise le mot de passe de l'utilisateur avec un token.
+ * @param {string} token - Le token de réinitialisation.
+ * @param {string} newPassword - Le nouveau mot de passe.
+ * @returns {Object} Un objet indiquant le succès ou l'échec.
+ */
+function resetPassword(token, newPassword) {
+  if (!token || !newPassword) throw new Error("Le token et le nouveau mot de passe sont requis.");
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const userSheet = ss.getSheetByName('Utilisateurs');
+  const usersData = userSheet.getDataRange().getValues();
+  const headers = usersData[0];
+  const passwordCol = headers.indexOf('Mot_De_Passe');
+  const resetTokenCol = headers.indexOf('Reset_Token');
+  const resetExpCol = headers.indexOf('Reset_Token_Expiration');
+
+  const userRowIndex = usersData.findIndex(row => row[resetTokenCol] === token);
+
+  if (userRowIndex === -1) return { success: false, error: "Token invalide." };
+
+  const expiration = new Date(usersData[userRowIndex][resetExpCol]);
+  if (expiration < new Date()) return { success: false, error: "Le token a expiré." };
+
+  const sheetRow = userRowIndex + 1;
+  // Mettre à jour le mot de passe
+  userSheet.getRange(sheetRow, passwordCol + 1).setValue(newPassword);
+  // Effacer le token pour qu'il ne soit pas réutilisé
+  userSheet.getRange(sheetRow, resetTokenCol + 1).setValue('');
+  userSheet.getRange(sheetRow, resetExpCol + 1).setValue('');
+
+  return { success: true };
 }
 /**
  * Récupère l'utilisateur basé sur le token fourni.

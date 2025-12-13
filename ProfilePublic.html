@@ -439,6 +439,11 @@
                 document.getElementById('call-btn').style.display = 'none';
             }
 
+            // Afficher le module de capture de prospects si activé
+            if (data.Lead_Capture_Actif === 'OUI') {
+                document.getElementById('lead-capture-module').style.display = 'block';
+            }
+
             // Remplir les liens sociaux
             const socialLinksContainer = document.querySelector('.social-links');
             socialLinksContainer.innerHTML = ''; // Vider les exemples

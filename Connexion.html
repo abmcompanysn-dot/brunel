@@ -124,6 +124,16 @@
             margin-bottom: 8px;
             font-weight: 500;
         }
+        .password-group {
+            position: relative;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
         .form-control {
             width: 100%;
             padding: 12px;
@@ -193,11 +203,15 @@
                             <label for="login-email">Email</label>
                             <input type="email" id="login-email" class="form-control" required>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group password-group">
                             <label for="login-password">Mot de passe</label>
                             <input type="password" id="login-password" class="form-control" required>
+                            <svg onclick="togglePasswordVisibility('login-password', this)" class="password-toggle" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                         </div>
                         <button type="submit" class="btn btn-gradient">Se connecter</button>
+                        <p class="toggle-form" style="margin-top: 15px; margin-bottom: 0;">
+                            <a onclick="showForgotPasswordForm()">Mot de passe oublié ?</a>
+                        </p>
                         <p class="toggle-form">Pas de compte ? <a onclick="toggleForms()">Inscrivez-vous</a></p>
                     </form>
 
@@ -208,12 +222,27 @@
                             <label for="register-email">Email</label>
                             <input type="email" id="register-email" class="form-control" required>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group password-group">
                             <label for="register-password">Mot de passe</label>
                             <input type="password" id="register-password" class="form-control" required>
+                            <svg onclick="togglePasswordVisibility('register-password', this)" class="password-toggle" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                         </div>
                         <button type="submit" class="btn btn-gradient">Créer un compte</button>
                         <p class="toggle-form">Déjà un compte ? <a onclick="toggleForms()">Connectez-vous</a></p>
+                    </form>
+
+                    <!-- Formulaire de Mot de Passe Oublié -->
+                    <form id="forgot-password-form" onsubmit="handleForgotPassword(event)" style="display: none;">
+                        <h1>Réinitialiser le mot de passe</h1>
+                        <p style="text-align: center; color: var(--text-secondary); margin-top: -20px; margin-bottom: 30px;">Entrez votre email pour recevoir un lien de réinitialisation.</p>
+                        <div class="form-group">
+                            <label for="forgot-email">Email</label>
+                            <input type="email" id="forgot-email" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-gradient">Envoyer le lien</button>
+                        <p class="toggle-form">
+                            <a onclick="showLoginForm()">Retour à la connexion</a>
+                        </p>
                     </form>
                 </div>
             </div>
@@ -270,17 +299,42 @@
         function toggleForms() {
             const loginForm = document.getElementById('login-form');
             const registerForm = document.getElementById('register-form');
+            const forgotForm = document.getElementById('forgot-password-form');
             const errorDiv = document.getElementById('error-message');
             if (errorDiv) {
                 errorDiv.remove(); // Nettoyer les messages d'erreur
             }
 
+            forgotForm.style.display = 'none'; // Toujours cacher le form forgot
             if (loginForm.style.display === 'none') {
                 loginForm.style.display = 'block';
                 registerForm.style.display = 'none';
             } else {
                 loginForm.style.display = 'none';
                 registerForm.style.display = 'block';
+            }
+        }
+
+        function showForgotPasswordForm() {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('forgot-password-form').style.display = 'block';
+        }
+
+        function showLoginForm() {
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('forgot-password-form').style.display = 'none';
+        }
+
+        function togglePasswordVisibility(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07l-5.52 5.52"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+            } else {
+                input.type = 'password';
+                icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
             }
         }
 
@@ -338,6 +392,30 @@
                     showError(formId, 'Erreur de communication avec le serveur.');
                     button.disabled = false;
                     button.textContent = isRegister ? 'Créer un compte' : 'Se connecter';
+                });
+        }
+
+        function handleForgotPassword(event) {
+            event.preventDefault();
+            const email = document.getElementById('forgot-email').value;
+            const formId = 'forgot-password-form';
+            const button = event.target.querySelector('button');
+            button.disabled = true;
+            button.textContent = 'Envoi en cours...';
+
+            callApi('forgotPassword', { payload: { email } })
+                .then(response => {
+                    if (response.success) {
+                        showError(formId, "Si un compte existe pour cet email, un lien de réinitialisation a été envoyé.");
+                        button.style.backgroundColor = '#28a745'; // Vert succès
+                        button.textContent = 'Email envoyé !';
+                    } else {
+                        showError(formId, response.error || "Une erreur est survenue.");
+                        button.disabled = false;
+                        button.textContent = 'Envoyer le lien';
+                    }
+                }).catch(err => {
+                    showError(formId, "Erreur de communication.");
                 });
         }
 
