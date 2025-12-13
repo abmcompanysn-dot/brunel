@@ -6,6 +6,73 @@
     <title>Boutique - Mahu</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        /* Styles pour la barre de navigation (copiés de index.html pour la cohérence) */
+        header {
+            position: fixed; /* Reste en haut de l'écran */
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: rgba(10, 10, 10, 0.85); /* Fond noir par défaut sur cette page */
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.3s ease;
+        }
+
+        /* Style de l'icône de profil */
+        #login-link .profile-icon {
+            stroke: var(--text-primary);
+            width: 28px;
+            height: 28px;
+            transition: stroke 0.3s ease;
+        }
+
+        /* Style de l'icône de profil pour qu'elle n'ait pas de fond */
+        #login-link {
+            background: transparent;
+            border: none;
+            stroke: var(--text-primary);
+        }
+
+        /* Styles pour le nouveau menu "trois points" */
+        .more-menu-container {
+            position: relative;
+        }
+        .more-menu-icon {
+            cursor: pointer;
+            padding: 5px;
+        }
+        .more-menu-icon svg {
+            stroke: var(--text-primary);
+            width: 28px;
+            height: 28px;
+        }
+
+        .more-menu-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(5px);
+            border-radius: 8px;
+            padding: 10px;
+            min-width: 160px;
+            z-index: 1001;
+            border: 1px solid #333;
+            transform: translateY(10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: transform 0.2s ease, opacity 0.2s ease, visibility 0.2s;
+        }
+        .more-menu-dropdown.visible { transform: translateY(0); opacity: 1; visibility: visible; }
+        .more-menu-dropdown a { display: block; color: white; padding: 10px 15px; border-radius: 5px; transition: background-color 0.2s ease; text-decoration: none; }
+        .more-menu-dropdown a:hover { background-color: rgba(255, 255, 255, 0.1); }
+
+        /* Cacher les liens du bureau pour simplifier la navigation sur cette page */
+        .desktop-links {
+            display: none;
+        }
+
         /* Cartes Produit spécifiques */
         .product-card .price {
             font-size: 2em;
@@ -17,6 +84,12 @@
             font-weight: normal;
             color: var(--text-secondary);
         } 
+        .product-card .product-image-wrapper {
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
         /* Carrousel d'images amélioré dans la carte produit */
         .product-carousel {
@@ -42,6 +115,14 @@
             align-items: center;
             justify-content: center;
         }
+        .carousel-item-dark { background: #1a1a1a; }
+        .carousel-item-light { background: #f0f0f0; }
+        .carousel-item-grey { background: #cccccc; }
+        .carousel-item-white { background: #ffffff; }
+        .carousel-item-metal-black { background: #111111; }
+        .carousel-item-metal-brushed { background: #333333; }
+        .carousel-item-metal-silver { background: #e0e0e0; }
+        
 
         .carousel-nav {
             position: absolute;
@@ -97,6 +178,10 @@
             opacity: 0.8;
             filter: brightness(0); /* Logo Mahu en noir par défaut */
         }
+        /* Pour les fonds sombres */
+        .logo-inverted {
+            filter: invert(1);
+        }
 
         /* Bouton Retour en Haut */
         #back-to-top {
@@ -121,39 +206,32 @@
             .section-title {
                 font-size: 2.2em;
             }
-
-            nav ul.desktop-links {
-                display: flex;
-                overflow-x: auto; /* Permet le défilement horizontal */
-                white-space: nowrap; /* Empêche les éléments de passer à la ligne */
-                -webkit-overflow-scrolling: touch; /* Défilement fluide sur iOS */
-                scrollbar-width: none; /* Cache la scrollbar sur Firefox */
-                margin: 0;
-                padding: 0 10px;
-            }
-            nav ul.desktop-links::-webkit-scrollbar {
-                display: none; /* Cache la scrollbar sur Chrome/Safari */
-            }
-            nav ul.desktop-links li {
-                flex-shrink: 0; /* Empêche les éléments de se rétrécir */
-            }
-            .menu-burger { display: none; } /* On cache le hamburger */
         }
     </style>
 </head>
 <body>
     <header>
         <nav class="container">
-            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 50px;"></a>
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 40px;"></a>
             <ul class="desktop-links">
-                <li><a href="index.html#platform-features">Nos Services</a></li>
-                <li><a href="Boutique.html" class="active">Boutique</a></li>
+                <li><a href="index.html#features">Technologie</a></li>
                 <li><a href="index.html#about">À Propos</a></li>
-                <li><a href="Panier.html" id="cart-link">Panier (0)</a></li>
-                <li><a href="Connexion.html" class="primary" id="login-link">Connexion</a></li>
+                <li><a href="index.html#cards">Nos Offres</a></li>
             </ul>
             <div class="nav-actions">
-                <div class="menu-burger" onclick="toggleMobileMenu()">☰</div>
+                <a href="Connexion.html" class="primary" id="login-link">
+                    <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> 
+                </a> 
+                <div class="more-menu-container">
+                    <div class="more-menu-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg></div>
+                    <div class="more-menu-dropdown">
+                        <a href="index.html#features">Technologie</a>
+                        <a href="index.html#about">À Propos</a>
+                        <a href="index.html#cards">Nos Offres</a>
+                        <a href="Boutique.html" class="active">Boutique</a>
+                        <a href="Panier.html" id="cart-link">Panier (0)</a>
+                    </div>
+                </div>
             </div>
         </nav>
     </header>
@@ -165,19 +243,19 @@
 
             <div class="grid-3">
                 <div class="card product-card">
-                    <div class="product-carousel">
+                    <div class="product-carousel" data-index="0">
                         <button class="carousel-btn prev" onclick="navigateCarousel(this, -1)">&#10094;</button>
                         <div class="carousel-inner">
-                            <div class="carousel-item pvc-style" style="background: #1a1a1a;">
-                                <img src="r/v/1.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay" style="filter: invert(1);">
+                            <div class="carousel-item carousel-item-dark">
+                                <img src="r/v/1.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay logo-inverted">
                             </div>
-                            <div class="carousel-item pvc-style" style="background: #f0f0f0;">
+                            <div class="carousel-item carousel-item-light">
                                 <img src="r/v/2.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
                             </div>
-                            <div class="carousel-item pvc-style" style="background: #cccccc;">
+                            <div class="carousel-item carousel-item-grey">
                                 <img src="r/v/3.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
                             </div>
-                            <div class="carousel-item pvc-style" style="background: #ffffff;">
+                            <div class="carousel-item carousel-item-white">
                                 <img src="r/v/4.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
                             </div>
                         </div>
@@ -189,19 +267,19 @@
                     <a href="#" class="btn" onclick="addToCart('pvc', 'Carte Classique PVC', 29.99); return false;">Ajouter au Panier</a>
                 </div>
                 <div class="card product-card">
-                    <div class="product-carousel">
+                    <div class="product-carousel" data-index="0">
                         <button class="carousel-btn prev" onclick="navigateCarousel(this, -1)">&#10094;</button>
                         <div class="carousel-inner">
-                            <div class="carousel-item metal-style" style="background: #111111;"> <!-- Noir Mat -->
-                                <img src="r/v/2.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay" style="filter: invert(1);">
+                            <div class="carousel-item carousel-item-metal-black"> <!-- Noir Mat -->
+                                <img src="r/v/2.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay logo-inverted">
                             </div>
-                            <div class="carousel-item metal-style" style="background: #333333;"> <!-- Noir brossé -->
-                                <img src="r/v/1.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay" style="filter: invert(1);">
+                            <div class="carousel-item carousel-item-metal-brushed"> <!-- Noir brossé -->
+                                <img src="r/v/1.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay logo-inverted">
                             </div>
-                            <div class="carousel-item metal-style" style="background: #e0e0e0;"> <!-- Argent -->
+                            <div class="carousel-item carousel-item-metal-silver"> <!-- Argent -->
                                 <img src="r/v/3.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
                             </div>
-                            <div class="carousel-item metal-style" style="background: #f5f5f5;"> <!-- Blanc -->
+                            <div class="carousel-item carousel-item-white"> <!-- Blanc -->
                                 <img src="r/v/4.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
                             </div>
                         </div>
@@ -213,22 +291,23 @@
                     <a href="#" class="btn" onclick="addToCart('metal', 'Carte Métal', 79.99); return false;">Ajouter au Panier</a>
                 </div>
                 <div class="card product-card">
-                    <div class="product-carousel">
+                    <div class="product-carousel" data-index="0">
                         <button class="carousel-btn prev" onclick="navigateCarousel(this, -1)">&#10094;</button>
                         <div class="carousel-inner">
-                            <div class="carousel-item wood-style" style="background-color: #d7ccc8;"> <!-- Bambou -->
+                            <div class="carousel-item wood-style"> <!-- Bambou -->
                                 <img src="r/v/1.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
                             </div>
-                            <div class="carousel-item wood-style" style="background-color: #a1887f;"> <!-- Bois foncé -->
-                                <img src="r/v/2.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay" style="filter: invert(1);">
+                            <div class="carousel-item wood-style" style="background-color: #a1887f;"> <!-- Bois foncé --> <!-- Gardé en ligne car unique -->
+                                <img src="r/v/2.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay logo-inverted">
                             </div>
-                            <div class="carousel-item wood-style" style="background-color: #efebe9;"> <!-- Bois clair -->
+                            <div class="carousel-item wood-style" style="background-color: #efebe9;"> <!-- Bois clair --> <!-- Gardé en ligne car unique -->
                                 <img src="r/v/3.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
                             </div>
-                            <div class="carousel-item wood-style" style="background-color: #8d6e63;"> <!-- Bois cerisier -->
-                                <img src="r/v/4.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay" style="filter: invert(1);">
+                            <div class="carousel-item wood-style" style="background-color: #8d6e63;"> <!-- Bois cerisier --> <!-- Gardé en ligne car unique -->
+                                <img src="r/v/4.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay logo-inverted">
                             </div>
                         </div>
+
                         <button class="carousel-btn next" onclick="navigateCarousel(this, 1)">&#10095;</button>
                     </div>
                     <h3>Carte Bois de Bambou</h3>
@@ -237,8 +316,8 @@
                     <a href="#" class="btn" onclick="addToCart('wood', 'Carte Bois', 59.99); return false;">Ajouter au Panier</a>
                 </div>
                  <div class="card product-card">
-                    <div class="product-carousel sticker-style" style="display: flex; align-items: center; justify-content: center; background-color: #f5f5f5;">
-                        <img src="r/v/4.svg" style="height: 120px; width: auto;">
+                    <div class="product-image-wrapper sticker-style">
+                        <img src="r/v/4.svg" alt="Sticker NFC" style="height: 120px; width: auto;">
                     </div>
                     <h3>Sticker NFC</h3>
                     <p>Transformez n'importe quel objet en carte de visite. Collez ce sticker discret au dos de votre téléphone et partagez vos infos instantanément.</p>
@@ -247,8 +326,8 @@
                 </div>
                  <div class="card product-card">
                     <!-- Pour le pack, on peut montrer une seule image ou un montage -->
-                    <div class="product-carousel" style="height: 180px; background: #e0e0e0; display: flex; align-items: center; justify-content: center;">
-                        <img src="r/v/1.svg" style="height: 120px; width: auto;">
+                    <div class="product-image-wrapper" style="background: #e0e0e0;">
+                        <img src="r/v/1.svg" alt="Pack Équipe" style="height: 120px; width: auto;">
                     </div>
                     <h3>Pack Équipe (10 Cartes)</h3>
                     <p>Équipez toute votre équipe avec nos cartes classiques. Gestion centralisée des profils depuis un seul tableau de bord administrateur.</p>
@@ -307,14 +386,17 @@
         function updateCartCounter() {
             const cart = JSON.parse(localStorage.getItem('cart')) || [];
             const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            document.getElementById('cart-link').textContent = `Panier (${totalItems})`;
+            const cartLink = document.getElementById('cart-link');
+            if (cartLink) {
+                cartLink.textContent = `Panier (${totalItems})`;
+            }
         }
 
         function navigateCarousel(button, direction) {
             const carousel = button.closest('.product-carousel');
             const inner = carousel.querySelector('.carousel-inner');
             const itemsCount = inner.children.length;
-            let index = parseInt(carousel.dataset.index);
+            let index = parseInt(carousel.dataset.index || 0);
 
             index += direction;
 
@@ -332,8 +414,6 @@
         //                  SCRIPTS SPÉCIFIQUES À LA PAGE
         // ===================================================================
 
-        // Logique pour les carrousels
-        document.querySelectorAll('.product-carousel').forEach(carousel => { carousel.dataset.index = 0; });
         // Logique pour le bouton "Retour en Haut"
         const backToTopButton = document.getElementById('back-to-top');
         window.onscroll = function() {
@@ -352,6 +432,25 @@
          */
         document.addEventListener('DOMContentLoaded', () => {
             updateCartCounter();
+
+            // Gestion du menu "trois points"
+            const moreMenuIcon = document.querySelector('.more-menu-icon');
+            if (moreMenuIcon) {
+                moreMenuIcon.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    const dropdown = document.querySelector('.more-menu-dropdown');
+                    dropdown.classList.toggle('visible');
+                });
+            }
+
+            // Fermer le menu si on clique ailleurs
+            document.addEventListener('click', function(event) {
+                const dropdown = document.querySelector('.more-menu-dropdown');
+                const menuContainer = document.querySelector('.more-menu-container');
+                if (dropdown && dropdown.classList.contains('visible') && !menuContainer.contains(event.target)) {
+                    dropdown.classList.remove('visible');
+                }
+            });
         });
 
     </script>
