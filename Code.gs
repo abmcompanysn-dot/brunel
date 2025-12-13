@@ -350,15 +350,22 @@ function forgotPassword(email) {
   }
 
   const resetToken = Utilities.getUuid();
-  const expiration = new Date(new Date().getTime() + 60 * 60 * 1000); // Expire dans 1 heure
+  const expiration = new Date(new Date().getTime() + 5 * 60 * 1000); // Expire dans 5 minutes
 
   const sheetRow = userRowIndex + 1;
-  userSheet.getRange(sheetRow, resetTokenCol + 1).setValue(resetToken);
-  userSheet.getRange(sheetRow, resetExpCol + 1).setValue(expiration);
+  // Utiliser setValues pour une meilleure performance et pour éviter les erreurs de dimension.
+  // On s'assure que les colonnes sont adjacentes pour que cela fonctionne.
+  if (resetExpCol === resetTokenCol + 1) {
+    userSheet.getRange(sheetRow, resetTokenCol + 1, 1, 2).setValues([[resetToken, expiration]]);
+  } else {
+    // Fallback si les colonnes ne sont pas côte à côte (moins performant)
+    userSheet.getRange(sheetRow, resetTokenCol + 1).setValue(resetToken);
+    userSheet.getRange(sheetRow, resetExpCol + 1).setValue(expiration);
+  }
 
   const resetUrl = `https://mahu-app.com/ResetPassword.html?token=${resetToken}`; // Remplacez par votre URL réelle
   const subject = "Réinitialisation de votre mot de passe Mahu";
-  const body = `Bonjour,\n\nVous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien ci-dessous pour continuer:\n\n${resetUrl}\n\nCe lien expirera dans une heure. Si vous n'avez pas fait cette demande, veuillez ignorer cet email.\n\nL'équipe Mahu`;
+  const body = `Bonjour,\n\nVous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien ci-dessous pour continuer:\n\n${resetUrl}\n\nCe lien expirera dans 5 minutes. Si vous n'avez pas fait cette demande, veuillez ignorer cet email.\n\nL'équipe Mahu`;
 
   MailApp.sendEmail(email, subject, body);
   logAction('forgotPassword', 'SUCCESS', `Email de réinitialisation envoyé à ${email}`, email);
