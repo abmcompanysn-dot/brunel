@@ -311,41 +311,65 @@
             background-color: var(--dark-card);
             height: 600px;
             border-radius: 25px;
-            overflow-y: auto;
-            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; /* Empêche le défilement global */
         }
-        .phone-header { text-align: center; padding: 20px; }
+        .phone-scrollable-content {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .phone-header { text-align: center; padding: 0 20px 20px; }
         .phone-header img {
             width: 80px;
             height: 80px;
             border-radius: 50%;
             border: 3px solid var(--blue);
             object-fit: cover;
+            margin-top: -40px; /* Fait remonter l'image sur la couverture */
+            position: relative; /* Pour s'assurer qu'elle est au-dessus */
         }
         .phone-header h3 { margin: 10px 0 5px 0; font-size: 1.2em; }
         .phone-header p { margin: 0; font-size: 0.9em; color: var(--text-secondary); }
         
         /* Scrollbar pour le téléphone */
-        .phone-screen::-webkit-scrollbar { width: 4px; }
-        .phone-screen::-webkit-scrollbar-track { background: transparent; }
-        .phone-screen::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
-        .phone-screen::-webkit-scrollbar-thumb:hover { background: #777; }
+        .phone-scrollable-content::-webkit-scrollbar { width: 4px; }
+        .phone-scrollable-content::-webkit-scrollbar-track { background: transparent; }
+        .phone-scrollable-content::-webkit-scrollbar-thumb { background: #555; border-radius: 2px; }
+        .phone-scrollable-content::-webkit-scrollbar-thumb:hover { background: #777; }
 
         .phone-cover { height: 120px; background-size: cover; background-position: center; }
 
+        .phone-qr-section {
+            padding: 20px;
+            text-align: center;
+            background-color: rgba(0,0,0,0.15);
+            flex-shrink: 0; /* Empêche cette section de se réduire */
+        }
+        .phone-qr-section img {
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .phone-qr-section p {
+            margin: 0;
+            font-weight: 500;
+            color: var(--text-light);
+        }
+
         .phone-social-links {
-            padding: 0 20px 20px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 15px;
         }
         .phone-social-link {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 15px;
-            padding: 10px;
-            background-color: rgba(0,0,0,0.2);
-            border-radius: 8px;
+            justify-content: center;
             text-decoration: none;
             color: var(--text-secondary);
         }
@@ -353,6 +377,11 @@
             width: 20px;
             height: 20px;
             filter: invert(1); /* Assure que les icônes sont blanches par défaut */
+            margin-bottom: 5px;
+        }
+        .phone-social-link span {
+            font-size: 0.75em;
+            text-align: center;
         }
 
         @media (max-width: 768px) {
@@ -636,14 +665,18 @@
                 </form>
                 <div class="phone-preview">
                     <div class="phone-screen">
-                        <div id="phone-cover-preview" class="phone-cover" style="background-image: url('https://via.placeholder.com/800x300?text=Couverture');"></div>
-                        <div class="phone-header">
-                            <img id="phone-picture-preview" src="https://via.placeholder.com/150" alt="Aperçu profil">
-                            <h3 id="phone-name-preview">Nom Prénom</h3>
-                            <p id="phone-details-preview">Profession</p>
+                        <div class="phone-qr-section">
+                            <img id="phone-qrcode-preview" src="https://via.placeholder.com/150?text=QR" alt="Aperçu QR Code">
+                            <p>Mon QR Code</p>
                         </div>
-                        <div id="phone-social-links-preview" class="phone-social-links">
-                            <!-- Les liens sociaux en aperçu seront injectés ici -->
+                        <div class="phone-scrollable-content">
+                            <div id="phone-cover-preview" class="phone-cover" style="background-image: url('https://via.placeholder.com/800x300?text=Couverture');"></div>
+                            <div class="phone-header">
+                                <img id="phone-picture-preview" src="https://via.placeholder.com/150" alt="Aperçu profil">
+                                <h3 id="phone-name-preview">Nom Prénom</h3>
+                                <p id="phone-details-preview">Profession</p>
+                            </div>
+                            <div id="phone-social-links-preview" class="phone-social-links"></div>
                         </div>
                     </div>
                 </div>
@@ -912,6 +945,7 @@
             // Utilisation de quickchart.io pour un QR code avec logo. On construit l'URL absolue du logo.
             const logoUrl = new URL('r/logo.png', window.location.href).href;
             document.getElementById('profile-qrcode').src = `https://quickchart.io/qr?text=${encodeURIComponent(fullUrl)}&logo=${logoUrl}&size=250&centerImage=true`;
+            document.getElementById('phone-qrcode-preview').src = `https://quickchart.io/qr?text=${encodeURIComponent(fullUrl)}&size=150`; // QR pour le téléphone
             
             // Générer le lien de téléchargement en haute résolution
             const highResQrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(fullUrl)}&logo=${logoUrl}&size=1024&format=png&centerImage=true`;
@@ -1135,9 +1169,9 @@
                     const iconHtml = iconSrc ? `<img src="${iconSrc}" class="social-icon">` : '';
 
                     previewContainer.innerHTML += `
-                        <a href="#" class="phone-social-link" style="background-color: ${themeColor};">
-                            ${iconHtml} <!-- L'icône sera blanche grâce au filtre invert(1) -->
-                            <span style="color: ${buttonTextColor};">${linkName}</span>
+                        <a href="#" class="phone-social-link">
+                            <div style="background-color: ${themeColor}; border-radius: 15px; padding: 12px; display: inline-block;">${iconHtml}</div>
+                            <span>${linkName}</span>
                         </a>
                     `;
                 }
