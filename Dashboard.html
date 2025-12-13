@@ -858,8 +858,29 @@
         }
 
         function toggleModule(moduleName, isEnabled) {
-            console.log(`Module ${moduleName} : ${isEnabled}`);
-            reader.readAsDataURL(event.target.files[0]);
+            const dataToSave = {};
+            // Convertit le booléen en 'OUI' ou 'NON' pour la feuille de calcul
+            dataToSave[moduleName] = isEnabled ? 'OUI' : 'NON';
+
+            // Affiche un message rapide pour informer l'utilisateur
+            alert("Sauvegarde du paramètre...");
+
+            callApi('saveProfile', dataToSave)
+                .then(response => {
+                    if (response.success) {
+                        alert('Paramètre sauvegardé avec succès !');
+                    } else {
+                        alert('Erreur : ' + (response.error || 'Impossible de sauvegarder le paramètre.'));
+                        // En cas d'erreur, on remet l'interrupteur à son état précédent
+                        const checkbox = document.getElementById(moduleName === 'CV_Actif' ? 'toggle-cv' : 'toggle-lead');
+                        checkbox.checked = !isEnabled;
+                    }
+                })
+                .catch(err => {
+                    alert('Erreur de communication avec le serveur.');
+                    const checkbox = document.getElementById(moduleName === 'CV_Actif' ? 'toggle-cv' : 'toggle-lead');
+                    checkbox.checked = !isEnabled;
+                });
         }
 
         function handleSave(event) {
