@@ -59,6 +59,16 @@
             position: relative; /* Pour s'assurer qu'elle est au-dessus de la couverture */
         }
 
+        #profile-qrcode-placeholder {
+            display: none; /* Caché par défaut */
+            width: 140px;
+            height: 140px;
+            margin: 90px auto 15px auto;
+            padding: 10px;
+            background-color: white;
+            border-radius: 8px;
+        }
+
         .profile-header h1 {
             margin: 10px 0 5px;
             font-size: 1.8em;
@@ -224,6 +234,7 @@
         <div class="profile-cover skeleton"></div>
         <div class="profile-header">
             <div class="skeleton skeleton-img" style="width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 15px;"></div>
+            <div id="profile-qrcode-placeholder"></div>
             <img src="https://via.placeholder.com/150" alt="Photo de profil" style="display: none;">
             <h1>
                 <span class="skeleton skeleton-text" style="width: 60%; height: 28px; margin: 10px auto 5px;"></span>
@@ -293,6 +304,11 @@
         </div>
     </div>
     
+    <!-- Conteneur pour le message d'erreur, centré et propre -->
+    <div id="error-container" style="display: none; text-align: center; color: white; background-color: var(--dark-card); padding: 40px; border-radius: 15px; max-width: 420px; width: 100%;">
+        <!-- Le message d'erreur sera injecté ici -->
+    </div>
+
     <div id="toast" class="toast"></div>
 
     <script src="config.js"></script>
@@ -338,6 +354,11 @@
         function onProfileError(error) {
             console.error("Erreur de chargement du profil:", error.message);
             document.querySelector('.profile-card').innerHTML = `<h1>Profil non trouvé</h1><p>${error.message}</p>`;
+            // Cacher la carte de profil et afficher le conteneur d'erreur
+            document.querySelector('.profile-card').style.display = 'none';
+            const errorContainer = document.getElementById('error-container');
+            errorContainer.innerHTML = `<h1>Profil non trouvé</h1><p>Désolé, le profil que vous cherchez n'existe pas ou l'URL est incorrecte.</p>`;
+            errorContainer.style.display = 'block';
         }
 
         function populateProfile(data) {
@@ -351,13 +372,24 @@
             // Mettre à jour la couleur d'accent
             document.documentElement.style.setProperty('--accent-color', data.Couleur_Theme || '#007BFF');
 
-            const coverDiv = card.querySelector('.profile-cover');
-            coverDiv.style.backgroundImage = `url('${data.URL_Couverture || ''}')`;
+            // --- LOGIQUE D'AFFICHAGE CONDITIONNEL ---
+            if (data.URL_Photo) {
+                // Comportement normal si la photo de profil existe
+                card.querySelector('.profile-cover').style.backgroundImage = `url('${data.URL_Couverture || ''}')`;
+                const profileImg = card.querySelector('.profile-header img');
+                profileImg.src = data.URL_Photo;
+                profileImg.style.display = 'block';
+            } else {
+                // Comportement si PAS de photo de profil
+                card.querySelector('.profile-cover').style.display = 'none'; // Cacher la couverture
+                card.querySelector('.profile-header img').style.display = 'none'; // Cacher l'image de profil
 
-            // Remplir les informations de base
-            const profileImg = card.querySelector('.profile-header img');
-            profileImg.src = data.URL_Photo || 'https://via.placeholder.com/150';
-            profileImg.style.display = 'block';
+                const qrPlaceholder = document.getElementById('profile-qrcode-placeholder');
+                qrPlaceholder.style.display = 'block'; // Afficher le conteneur du QR
+                // Générer le QR code et l'insérer
+                const qrCodeUrl = `https://quickchart.io/qr?text=${encodeURIComponent(window.location.href)}&size=140`;
+                qrPlaceholder.innerHTML = `<img src="${qrCodeUrl}" alt="QR Code du profil" style="width:100%; height:100%;">`;
+            }
 
             const nameElement = card.querySelector('.profile-header h1 .real-text');
             nameElement.textContent = data.Nom_Complet || 'Nom non défini';
