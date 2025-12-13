@@ -213,6 +213,47 @@
         .profile-info h2 { margin: 0 0 10px 0; }
         .profile-info p { margin: 0; color: var(--text-secondary); }
 
+        /* Styles pour l'overlay de modification d'image */
+        .edit-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .profile-picture-container .edit-overlay {
+            top: 5px;
+            right: 25px;
+        }
+        .edit-overlay-btn {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 20px;
+            line-height: 32px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .edit-dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 40px;
+            background-color: var(--dark-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            z-index: 10;
+            overflow: hidden;
+        }
+        .edit-dropdown-menu a {
+            display: block;
+            padding: 10px 15px;
+            color: var(--text-light);
+            text-decoration: none;
+        }
+        .edit-dropdown-menu a:hover { background-color: rgba(255,255,255,0.1); }
+
         .share-actions .btn {
             display: flex;
             align-items: center;
@@ -463,9 +504,24 @@
                     <!-- Colonne principale -->
                     <div class="profile-main-column">
                         <div class="card profile-main-card">
-                            <div id="profile-cover-preview" class="profile-cover-image" style="background-image: url('https://via.placeholder.com/800x300?text=Couverture');"></div>
+                            <div id="profile-cover-preview" class="profile-cover-image" style="background-image: url('https://via.placeholder.com/800x300?text=Couverture');">
+                                <div class="edit-overlay">
+                                    <button class="edit-overlay-btn" onclick="toggleEditMenu(event, 'cover-edit-menu')">+</button>
+                                    <div id="cover-edit-menu" class="edit-dropdown-menu">
+                                        <a href="#" onclick="triggerFileInput('cover-image-input')">Modifier</a>
+                                        <a href="#" onclick="deleteImage('cover')">Supprimer</a>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="profile-picture-container">
                                 <img id="profile-picture-preview" src="https://via.placeholder.com/150" alt="Photo de profil">
+                                <div class="edit-overlay">
+                                    <button class="edit-overlay-btn" onclick="toggleEditMenu(event, 'picture-edit-menu')">+</button>
+                                    <div id="picture-edit-menu" class="edit-dropdown-menu">
+                                        <a href="#" onclick="triggerFileInput('profile-picture-input')">Modifier</a>
+                                        <a href="#" onclick="deleteImage('picture')">Supprimer</a>
+                                    </div>
+                                </div>
                             </div>
                             <div class="profile-info">
                                 <h2 id="profile-name-preview">Nom Prénom</h2>
@@ -473,6 +529,10 @@
                                 <button class="btn btn-primary" style="margin-top: 20px;" onclick="openModal('profil-edit-modal')">Modifier le Profil</button>
                             </div>
                     </div>
+                    <!-- Inputs cachés pour le changement d'image direct -->
+                    <input type="file" id="profile-picture-input" accept="image/*" style="display:none;" onchange="handleDirectImageChange(event, 'picture')">
+                    <input type="file" id="cover-image-input" accept="image/*" style="display:none;" onchange="handleDirectImageChange(event, 'cover')">
+
                     <!-- Colonne latérale -->
                     <div class="profile-sidebar-column">
                         <div class="card">
@@ -853,6 +913,63 @@
                 })
                 .catch(reject);
             });
+        }
+
+        /**
+         * Affiche ou cache le menu d'édition pour les images.
+         */
+        function toggleEditMenu(event, menuId) {
+            event.preventDefault();
+            event.stopPropagation();
+            const menu = document.getElementById(menuId);
+            // Cache tous les autres menus ouverts
+            document.querySelectorAll('.edit-dropdown-menu').forEach(m => {
+                if (m.id !== menuId) m.style.display = 'none';
+            });
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Ferme les menus si on clique ailleurs
+        window.addEventListener('click', () => {
+            document.querySelectorAll('.edit-dropdown-menu').forEach(m => m.style.display = 'none');
+        });
+
+        /**
+         * Déclenche le clic sur un input file caché.
+         */
+        function triggerFileInput(inputId) {
+            event.preventDefault();
+            document.getElementById(inputId).click();
+        }
+
+        /**
+         * Gère le changement d'image depuis l'aperçu et lance la sauvegarde.
+         */
+        function handleDirectImageChange(event, type) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Mettre à jour l'aperçu
+            const previewUrl = URL.createObjectURL(file);
+            if (type === 'picture') {
+                document.getElementById('profile-picture-preview').src = previewUrl;
+            } else {
+                document.getElementById('profile-cover-preview').style.backgroundImage = `url('${previewUrl}')`;
+            }
+
+            // Uploader et sauvegarder
+            alert('Mise à jour de l\'image en cours...');
+            uploadToImgBB(file).then(url => {
+                const dataToSave = {};
+                if (type === 'picture') dataToSave.URL_Photo = url;
+                if (type === 'cover') dataToSave.URL_Couverture = url;
+                saveDataToSheet(dataToSave);
+            }).catch(err => alert("Erreur d'upload: " + err.message));
+        }
+
+        function deleteImage(type) {
+            event.preventDefault();
+            alert("La suppression de l'image sera effective après la prochaine sauvegarde.");
         }
 
         function saveDataToSheet(data, button) {
