@@ -145,6 +145,19 @@
         .btn-primary { background-color: var(--blue); color: white; }
         .btn-secondary { background-color: var(--text-secondary); color: var(--dark-card); }
 
+        /* Squelette de chargement pour la table des contacts */
+        .skeleton-row td div {
+            height: 20px;
+            background-color: #3a3a3a;
+            border-radius: 4px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse {
+            0% { background-color: #3a3a3a; }
+            50% { background-color: #4a4a4a; }
+            100% { background-color: #3a3a3a; }
+        }
+
         /* Styles pour les onglets de contenu */
         .content-pane {
             display: none; /* Cacher tous les panneaux par défaut */
@@ -567,7 +580,12 @@
                             </tr>
                         </thead>
                         <tbody id="prospects-table-body">
-                            <tr><td colspan="4" style="text-align: center;">Chargement des prospects...</td></tr>
+                            <!-- Squelette de chargement -->
+                            <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
+                            <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
+                            <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
+                            <!-- Message de chargement initial -->
+                            <tr id="loading-prospects-message"><td colspan="4" style="text-align: center;">Chargement des prospects...</td></tr>
                         </tbody>
                     </table>
                     </div>
@@ -578,7 +596,7 @@
             <div id="statistique-content" class="content-pane">
                 <h1>Statistiques</h1>
                 <div class="card">
-                    <h3>Statistiques</h3>
+                    <h3>Aperçu Général</h3>
                     <div class="stats-grid">
                         <div class="stat-item">
                             <div class="number">...</div>
@@ -595,6 +613,10 @@
                         <div class="stat-item">
                             <div class="number">...</div>
                             <div class="label">Vues via Lien</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="number" style="font-size: 1.5em; padding-top: 15px;">...</div>
+                            <div class="label">Dernière Visite</div>
                         </div>
                     </div>
                     <canvas id="viewsChart" style="margin-top: 20px;"></canvas>
@@ -1131,6 +1153,8 @@
             // Remplir la table des prospects
             const prospectsBody = document.getElementById('prospects-table-body');
             prospectsBody.innerHTML = '';
+            document.querySelectorAll('.skeleton-row').forEach(row => row.remove()); // Enlever le squelette
+
             if (data.prospects.length > 0) {
                 data.prospects.forEach(p => {
                     prospectsBody.innerHTML += `<tr><td>${p.nom || ''}</td><td>${p.contact || ''}</td><td>${new Date(p.date).toLocaleDateString()}</td><td>${p.note || ''}</td></tr>`;
@@ -1176,6 +1200,7 @@
             document.querySelector('.stat-item:nth-child(2) .number').textContent = stats.data[0] || 0; // NFC
             document.querySelector('.stat-item:nth-child(3) .number').textContent = stats.data[1] || 0; // QR Code
             document.querySelector('.stat-item:nth-child(4) .number').textContent = stats.data[2] || 0; // Lien
+            document.querySelector('.stat-item:nth-child(5) .number').textContent = stats.lastViewDate ? new Date(stats.lastViewDate).toLocaleDateString() : 'N/A'; // Dernière visite
             const total = stats.data.reduce((a, b) => a + b, 0);
             document.querySelector('.stat-item:nth-child(1) .number').textContent = total;
 
