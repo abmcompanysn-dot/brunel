@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tableau de Bord</title>
+    <link rel="icon" href="r/logo.png" type="image/png">
     <style>
         :root {
             --blue: #007bff;
@@ -601,24 +602,24 @@
                 <div class="card">                    <h3>Aperçu Général</h3>
                     <div class="stats-grid">
                         <div class="stat-item">
-                            <div class="number"><span class="skeleton" style="width: 60px; height: 40px;"></span></div>
+                            <div id="stats-total-views" class="number"><span class="skeleton" style="width: 60px; height: 40px;"></span></div>
                             <div class="label">Vues Totales</div>
                         </div>
                         <div class="stat-item">
-                            <div class="number"><span class="skeleton" style="width: 60px; height: 40px;"></span></div>
+                            <div id="stats-total-prospects" class="number"><span class="skeleton" style="width: 60px; height: 40px;"></span></div>
+                            <div class="label">Prospects Capturés</div>
+                        </div>
+                        <div class="stat-item">
+                            <div id="stats-nfc-views" class="number"><span class="skeleton" style="width: 60px; height: 40px;"></span></div>
                             <div class="label">Vues via NFC</div>
                         </div>
                         <div class="stat-item">
-                            <div class="number"><span class="skeleton" style="width: 60px; height: 40px;"></span></div>
+                            <div id="stats-qr-views" class="number"><span class="skeleton" style="width: 60px; height: 40px;"></span></div>
                             <div class="label">Vues via QR Code</div>
                         </div>
                         <div class="stat-item">
-                            <div class="number"><span class="skeleton" style="width: 60px; height: 40px;"></span></div>
+                            <div id="stats-link-views" class="number"><span class="skeleton" style="width: 60px; height: 40px;"></span></div>
                             <div class="label">Vues via Lien</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="number" style="font-size: 1.5em; padding-top: 15px;"><span class="skeleton" style="width: 100px; height: 24px;"></span></div>
-                            <div class="label">Dernière Visite</div>
                         </div>
                     </div>
                 </div>
@@ -682,6 +683,7 @@
                    <button class="btn btn-primary" onclick="window.location.href='Boutique.html'" style="margin-top: 15px;">Commander une nouvelle carte</button>
                </div>
             </div>
+            
         </main>
     </div>
 
@@ -1074,19 +1076,12 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             fetchDashboardData();
-            fetchStatsData();
             feather.replace();
         });
 
         function fetchDashboardData() {
             callApi('getDashboardData')
                 .then(populateDashboard)
-                .catch(onDashboardError);
-        }
-
-        function fetchStatsData() {
-            callApi('getDashboardStats')
-                .then(drawChart)
                 .catch(onChartError);
         }
 
@@ -1217,6 +1212,15 @@
             document.getElementById('account-email').textContent = data.user.Email;
 
             hideSkeletons(); // Cacher tous les squelettes une fois les données chargées
+
+            // --- Remplir les statistiques et dessiner le graphique ---
+            if (data.stats) {
+                drawChart(data.stats);
+            } else {
+                onChartError({ message: "Données de statistiques non trouvées." });
+            }
+            document.getElementById('stats-total-views').textContent = data.totalViews ?? 0;
+            document.getElementById('stats-total-prospects').textContent = data.totalProspects ?? 0;
         }
 
         function getSocialLinksData() {
@@ -1243,13 +1247,13 @@
                 return;
             }
 
-            // Mettre à jour les chiffres dans les cartes de statistiques
-            document.querySelector('.stat-item:nth-child(2) .number').textContent = stats.data[0] || 0; // NFC
-            document.querySelector('.stat-item:nth-child(3) .number').textContent = stats.data[1] || 0; // QR Code
-            document.querySelector('.stat-item:nth-child(4) .number').textContent = stats.data[2] || 0; // Lien
-            document.querySelector('.stat-item:nth-child(5) .number').textContent = stats.lastViewDate ? new Date(stats.lastViewDate).toLocaleDateString() : 'N/A'; // Dernière visite
-            const total = stats.data.reduce((a, b) => a + b, 0);
-            document.querySelector('.stat-item:nth-child(1) .number').textContent = total;
+            // Mettre à jour les chiffres dans les cartes de statistiques (basé sur le graphique des 7 derniers jours)
+            const nfcIndex = stats.labels.indexOf('NFC');
+            const qrIndex = stats.labels.indexOf('QR Code');
+            const linkIndex = stats.labels.indexOf('Lien');
+            document.getElementById('stats-nfc-views').textContent = nfcIndex !== -1 ? stats.data[nfcIndex] : 0;
+            document.getElementById('stats-qr-views').textContent = qrIndex !== -1 ? stats.data[qrIndex] : 0;
+            document.getElementById('stats-link-views').textContent = linkIndex !== -1 ? stats.data[linkIndex] : 0;
 
             const ctx = document.getElementById('viewsChart').getContext('2d');
             new Chart(ctx, {

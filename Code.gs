@@ -388,7 +388,9 @@ function getDashboardData(user) {
 
     // --- Récupérer les statistiques de vues (pour le graphique) ---
     const statsSheet = ss.getSheetByName('Statistiques');
-    const allViews = statsSheet.getRange('A2:C' + statsSheet.getLastRow()).getValues();
+    const allViews = statsSheet.getLastRow() > 1 
+      ? statsSheet.getRange('A2:C' + statsSheet.getLastRow()).getValues()
+      : [];
     const sevenDaysAgo = new Date(new Date().setDate(new Date().getDate() - 7));
     
     const userViews = allViews.filter(row => 
@@ -414,7 +416,9 @@ function getDashboardData(user) {
 
     // Récupérer les prospects
     const prospectsSheet = ss.getSheetByName('Prospects');
-    const allProspects = prospectsSheet.getRange('A2:E').getValues();
+    const allProspects = prospectsSheet.getLastRow() > 1
+      ? prospectsSheet.getRange('A2:E' + prospectsSheet.getLastRow()).getValues()
+      : [];
     const userProspects = allProspects
       .filter(row => row[0] === user.ID_Unique) // Filtrer par ID_Profil_Source (colonne A)
       // Formater pour le frontend (les indices sont pour les colonnes 0=ID_Profil_Source, 1=Date_Capture, 2=Nom_Prospect, 3=Contact_Prospect, 4=Message_Note)
