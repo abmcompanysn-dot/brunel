@@ -133,6 +133,27 @@
             transition: margin-left 0.3s ease;
         }
 
+        /* Styles pour le bouton menu hamburger sur mobile */
+        .menu-toggle {
+            display: none; /* Caché par défaut sur grand écran */
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 101; /* Pour être au-dessus de la sidebar */
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+
         .menu-toggle.moved {
             left: calc(var(--sidebar-width) + 20px);
         }
@@ -310,6 +331,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            width: 100%; /* Pour prendre toute la largeur sur mobile */
             margin-bottom: 10px;
             justify-content: center;
         }
@@ -482,17 +504,18 @@
                 transform: translateX(calc(-1 * var(--sidebar-width-expanded)));
                 transition: transform 0.3s ease;
             }
+        .menu-toggle {
+            display: flex; /* Afficher le bouton sur mobile */
+        }
             .sidebar.visible {
                 transform: translateX(0);
             }
             .main-content {
                 margin-left: 0 !important;
-            }
-            .sidebar { transform: translateX(calc(-1 * var(--sidebar-width-expanded))); }
-            .sidebar.visible { transform: translateX(0); }
-            .main-content.collapsed, .main-content { margin-left: 0 !important; }
-            .main-content { padding: 20px; }
-            .menu-toggle { left: 20px !important; transform: translateX(0); }
+            padding: 20px;
+        }
+        .main-content.collapsed { margin-left: 0 !important; }
+
             .profile-preview-grid {
                 grid-template-columns: 1fr;
             }
@@ -501,6 +524,11 @@
             }
             .modal-content {
                 width: 95%;
+            margin: 10% auto; /* Moins de marge en haut sur mobile */
+        }
+        .share-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Deux boutons par ligne pour le partage */
             }
         }
     </style>
