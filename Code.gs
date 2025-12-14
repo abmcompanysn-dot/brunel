@@ -5,7 +5,7 @@
  */
 const CONFIG = {
   SENDER_NAME: "L'équipe Mahu", // Le nom qui apparaîtra comme expéditeur des e-mails.
-  SENDER_EMAIL_ALIAS: "" // OPTIONNEL: L'alias email à utiliser (ex: "contact@votre-site.com"). Doit être configuré dans Gmail > Paramètres > Comptes.
+  SENDER_EMAIL_ALIAS: "abmcompanysn@gmail.com" // OPTIONNEL: L'alias email à utiliser (ex: "contact@votre-site.com"). Doit être configuré dans Gmail > Paramètres > Comptes.
 };
 
 /**
@@ -375,7 +375,7 @@ function forgotPassword(email) {
     userSheet.getRange(sheetRow, resetExpCol + 1).setValue(expiration);
   }
 
-  const resetUrl = `https://mahu-app.com/ResetPassword.html?token=${resetToken}`; // Remplacez par votre URL réelle
+  const resetUrl = `https://mahu0.abmcy.com/ResetPassword.html?token=${resetToken}`; // Remplacez par votre URL réelle
   const subject = "Réinitialisation de votre mot de passe Mahu";
   // Version texte simple pour les clients mail qui ne supportent pas le HTML
   const textBody = `Bonjour,\n\nVous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le lien ci-dessous (valide 5 minutes) pour continuer:\n${resetUrl}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.\n\nL'équipe Mahu`;
