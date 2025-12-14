@@ -4,7 +4,8 @@
  * ==================================================================
  */
 const CONFIG = {
-  SENDER_NAME: "L'équipe Mahu" // Le nom qui apparaîtra comme expéditeur des e-mails.
+  SENDER_NAME: "L'équipe Mahu", // Le nom qui apparaîtra comme expéditeur des e-mails.
+  SENDER_EMAIL_ALIAS: "" // OPTIONNEL: L'alias email à utiliser (ex: "contact@votre-site.com"). Doit être configuré dans Gmail > Paramètres > Comptes.
 };
 
 /**
@@ -396,7 +397,19 @@ function forgotPassword(email) {
       <p>Cordialement,<br>L'équipe Mahu</p>
     </div>`;
 
-  MailApp.sendEmail(email, subject, textBody, { htmlBody: htmlBody, name: CONFIG.SENDER_NAME });
+  // Options avancées pour l'envoi d'email
+  const mailOptions = {
+    htmlBody: htmlBody,
+    name: CONFIG.SENDER_NAME
+  };
+
+  // Si un alias est configuré, on l'utilise pour l'envoi.
+  // Cela nécessite le service GmailApp, plus puissant que MailApp.
+  if (CONFIG.SENDER_EMAIL_ALIAS) {
+    mailOptions.from = CONFIG.SENDER_EMAIL_ALIAS;
+  }
+
+  GmailApp.sendEmail(email, subject, textBody, mailOptions);
   logAction('forgotPassword', 'SUCCESS', `Email de réinitialisation envoyé à ${email}`, email);
 
   return { success: true, message: "Vérifiez votre boîte mail. Un lien vous a été envoyé, il expire dans 5 minutes." };
