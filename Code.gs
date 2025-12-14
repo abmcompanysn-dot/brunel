@@ -392,17 +392,22 @@ function resetPassword(token, newPassword) {
 
   const userRowIndex = usersData.findIndex(row => row[resetTokenCol] === token);
 
-  if (userRowIndex === -1) return { success: false, error: "Token invalide." };
+  // Si le token n'est trouvé dans aucune ligne, il est invalide.
+  if (userRowIndex === -1) {
+    logAction('resetPassword', 'ERROR', `Tentative de reset avec un token invalide: ${token}`, 'anonyme');
+    return { success: false, error: "Token invalide ou déjà utilisé." };
+  }
 
   const expiration = new Date(usersData[userRowIndex][resetExpCol]);
-  if (expiration < new Date()) return { success: false, error: "Le token a expiré." };
+  if (expiration < new Date()) {
+    logAction('resetPassword', 'ERROR', `Tentative de reset avec un token expiré: ${token}`, 'anonyme');
+    return { success: false, error: "Le token a expiré." };
+  }
 
   const sheetRow = userRowIndex + 1;
-  // Mettre à jour le mot de passe
-  userSheet.getRange(sheetRow, passwordCol + 1).setValue(newPassword);
-  // Effacer le token pour qu'il ne soit pas réutilisé
-  userSheet.getRange(sheetRow, resetTokenCol + 1).setValue('');
-  userSheet.getRange(sheetRow, resetExpCol + 1).setValue('');
+  // Mettre à jour le mot de passe et effacer le token en une seule opération
+  userSheet.getRange(sheetRow, passwordCol + 1).setValue(newPassword); // Mise à jour du mot de passe
+  userSheet.getRange(sheetRow, resetTokenCol + 1, 1, 2).setValues([['', '']]); // Efface le token et son expiration
 
   return { success: true };
 }
