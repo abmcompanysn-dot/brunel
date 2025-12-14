@@ -30,6 +30,7 @@ function doPost(e) {
       case 'forgotPassword': result = forgotPassword(payload.email); break;
       case 'resetPassword': result = resetPassword(payload.token, payload.newPassword); break;
       case 'trackView': result = trackView(payload.profileUrl, payload.source); break;
+      case 'handleLeadCapture': result = handleLeadCapture(payload); break;
       case 'getProfileData': result = getProfileData(e.parameter.user); break;
       case 'exportLeadsAsCSV':
         if (!user) throw new Error("Token d'authentification invalide ou manquant pour l'export.");
@@ -341,18 +342,19 @@ function forgotPassword(email) {
   const resetTokenCol = headers.indexOf('Reset_Token');
   const resetExpCol = headers.indexOf('Reset_Token_Expiration');
 
-  const userRowIndex = usersData.findIndex(row => row[emailCol] === email);
+  // Cherche l'utilisateur à partir de la 2ème ligne (index 1) pour ignorer les en-têtes
+  const userRowIndex = usersData.slice(1).findIndex(row => row[emailCol] === email);
 
   // Ne pas renvoyer d'erreur si l'utilisateur n'existe pas pour des raisons de sécurité.
   if (userRowIndex === -1) {
     logAction('forgotPassword', 'INFO', `Tentative de reset pour un email inexistant: ${email}`, email);
     return { success: true };
   }
-
+  
   const resetToken = Utilities.getUuid();
   const expiration = new Date(new Date().getTime() + 5 * 60 * 1000); // Expire dans 5 minutes
 
-  const sheetRow = userRowIndex + 1;
+  const sheetRow = userRowIndex + 2; // +1 pour compenser le slice, +1 car les index de feuille commencent à 1
   // Utiliser setValues pour une meilleure performance et pour éviter les erreurs de dimension.
   // On s'assure que les colonnes sont adjacentes pour que cela fonctionne.
   if (resetExpCol === resetTokenCol + 1) {
