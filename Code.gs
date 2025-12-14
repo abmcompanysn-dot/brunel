@@ -348,7 +348,7 @@ function forgotPassword(email) {
   // Ne pas renvoyer d'erreur si l'utilisateur n'existe pas pour des raisons de sécurité.
   if (userRowIndex === -1) {
     logAction('forgotPassword', 'INFO', `Tentative de reset pour un email inexistant: ${email}`, email);
-    return { success: true };
+    return { success: true, message: "Vérifiez votre boîte mail. Un lien vous a été envoyé, il expire dans 5 minutes." };
   }
   
   const resetToken = Utilities.getUuid();
@@ -367,12 +367,30 @@ function forgotPassword(email) {
 
   const resetUrl = `https://mahu-app.com/ResetPassword.html?token=${resetToken}`; // Remplacez par votre URL réelle
   const subject = "Réinitialisation de votre mot de passe Mahu";
-  const body = `Bonjour,\n\nVous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien ci-dessous pour continuer:\n\n${resetUrl}\n\nCe lien expirera dans 5 minutes. Si vous n'avez pas fait cette demande, veuillez ignorer cet email.\n\nL'équipe Mahu`;
+  // Version texte simple pour les clients mail qui ne supportent pas le HTML
+  const textBody = `Bonjour,\n\nVous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le lien ci-dessous (valide 5 minutes) pour continuer:\n${resetUrl}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.\n\nL'équipe Mahu`;
 
-  MailApp.sendEmail(email, subject, body);
+  // Version HTML pour un rendu plus professionnel
+  const htmlBody = `
+    <div style="font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; color: #333;">
+      <h2 style="color: #1a1a1a;">Réinitialisation de votre mot de passe</h2>
+      <p>Bonjour,</p>
+      <p>Vous avez demandé la réinitialisation de votre mot de passe pour votre compte Mahu.</p>
+      <p>Veuillez cliquer sur le bouton ci-dessous pour choisir un nouveau mot de passe. Ce lien est valide pendant <strong>5 minutes</strong>.</p>
+      <p style="margin: 25px 0;">
+        <a href="${resetUrl}" style="background-color: #007bff; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Réinitialiser le mot de passe</a>
+      </p>
+      <p>Si le bouton ne fonctionne pas, vous pouvez copier et coller le lien suivant dans votre navigateur :</p>
+      <p><a href="${resetUrl}" style="color: #007bff;">${resetUrl}</a></p>
+      <p>Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail en toute sécurité.</p>
+      <hr style="border: none; border-top: 1px solid #eee;" />
+      <p>Cordialement,<br>L'équipe Mahu</p>
+    </div>`;
+
+  MailApp.sendEmail(email, subject, textBody, { htmlBody: htmlBody });
   logAction('forgotPassword', 'SUCCESS', `Email de réinitialisation envoyé à ${email}`, email);
 
-  return { success: true };
+  return { success: true, message: "Vérifiez votre boîte mail. Un lien vous a été envoyé, il expire dans 5 minutes." };
 }
 
 /**
@@ -392,21 +410,23 @@ function resetPassword(token, newPassword) {
   const resetTokenCol = headers.indexOf('Reset_Token');
   const resetExpCol = headers.indexOf('Reset_Token_Expiration');
 
-  const userRowIndex = usersData.findIndex(row => row[resetTokenCol] === token);
+  // Cherche le token à partir de la 2ème ligne (index 1) pour ignorer les en-têtes
+  const userRowIndex = usersData.slice(1).findIndex(row => row[resetTokenCol] === token);
 
   // Si le token n'est trouvé dans aucune ligne, il est invalide.
   if (userRowIndex === -1) {
     logAction('resetPassword', 'ERROR', `Tentative de reset avec un token invalide: ${token}`, 'anonyme');
     return { success: false, error: "Token invalide ou déjà utilisé." };
   }
+  const userDataRow = usersData[userRowIndex + 1]; // +1 pour obtenir la bonne ligne de données
 
-  const expiration = new Date(usersData[userRowIndex][resetExpCol]);
+  const expiration = new Date(userDataRow[resetExpCol]);
   if (expiration < new Date()) {
     logAction('resetPassword', 'ERROR', `Tentative de reset avec un token expiré: ${token}`, 'anonyme');
     return { success: false, error: "Le token a expiré." };
   }
 
-  const sheetRow = userRowIndex + 1;
+  const sheetRow = userRowIndex + 2; // +1 pour compenser le slice, +1 car les index de feuille commencent à 1
   // Mettre à jour le mot de passe et effacer le token en une seule opération
   userSheet.getRange(sheetRow, passwordCol + 1).setValue(newPassword); // Mise à jour du mot de passe
   userSheet.getRange(sheetRow, resetTokenCol + 1, 1, 2).setValues([['', '']]); // Efface le token et son expiration
