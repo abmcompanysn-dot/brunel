@@ -1,5 +1,14 @@
 /**
  * ==================================================================
+ * CONFIGURATION CENTRALE DE L'APPLICATION
+ * ==================================================================
+ */
+const CONFIG = {
+  SENDER_NAME: "L'équipe Mahu" // Le nom qui apparaîtra comme expéditeur des e-mails.
+};
+
+/**
+ * ==================================================================
  * GESTIONNAIRES DE REQUÊTES (doGet, doPost, doOptions)
  * ==================================================================
  */
@@ -387,7 +396,7 @@ function forgotPassword(email) {
       <p>Cordialement,<br>L'équipe Mahu</p>
     </div>`;
 
-  MailApp.sendEmail(email, subject, textBody, { htmlBody: htmlBody });
+  MailApp.sendEmail(email, subject, textBody, { htmlBody: htmlBody, name: CONFIG.SENDER_NAME });
   logAction('forgotPassword', 'SUCCESS', `Email de réinitialisation envoyé à ${email}`, email);
 
   return { success: true, message: "Vérifiez votre boîte mail. Un lien vous a été envoyé, il expire dans 5 minutes." };
