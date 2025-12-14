@@ -529,6 +529,7 @@
         .share-actions {
             display: grid;
             grid-template-columns: 1fr 1fr; /* Deux boutons par ligne pour le partage */
+            gap: 10px; /* Ajoute un espace entre les boutons */
             }
         }
     </style>
@@ -623,9 +624,11 @@
                     <div class="profile-sidebar-column">
                         <div class="card">
                             <h3>Partager le Profil</h3>
-                            <a id="share-link" href="#" class="btn btn-secondary">Copier le lien</a>
-                            <a id="share-email" href="#" class="btn btn-secondary">Partager par Email</a>
-                            <a id="share-sms" href="#" class="btn btn-secondary">Partager par SMS</a>
+                            <div class="share-actions">
+                                <a id="share-link" href="#" class="btn btn-secondary">Copier le lien</a>
+                                <a id="share-email" href="#" class="btn btn-secondary">Partager par Email</a>
+                                <a id="share-sms" href="#" class="btn btn-secondary">Partager par SMS</a>
+                            </div>
                         </div>
                     </div>
                 </div>
