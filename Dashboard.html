@@ -607,7 +607,7 @@
                     <!-- Colonne principale -->
                     <div class="profile-main-column">
                         <div class="card profile-main-card">
-                            <div id="profile-cover-preview" class="profile-cover-image" style="background-image: url('https://via.placeholder.com/800x300?text=Couverture');">
+                            <div id="profile-cover-preview" class="profile-cover-image" style="background-image: url('https://placehold.co/800x300/333/ccc?text=Couverture');">
                                 <div class="edit-overlay">
                                     <button class="edit-overlay-btn" onclick="toggleEditMenu(event, 'cover-edit-menu')">+</button>
                                     <div id="cover-edit-menu" class="edit-dropdown-menu">
@@ -617,7 +617,7 @@
                                 </div>
                             </div>
                             <div class="profile-picture-container">
-                                <img id="profile-picture-preview" src="https://via.placeholder.com/150" alt="Photo de profil">
+                                <img id="profile-picture-preview" src="https://placehold.co/150x150/333/ccc?text=Profil" alt="Photo de profil">
                                 <div class="edit-overlay">
                                     <button class="edit-overlay-btn" onclick="toggleEditMenu(event, 'picture-edit-menu')">+</button>
                                     <div id="picture-edit-menu" class="edit-dropdown-menu">
@@ -633,7 +633,7 @@
                                     <button class="btn btn-primary" style="margin-top: 20px;" onclick="openModal('profil-edit-modal');">Modifier le Profil</button>
                                 </div>
                                 <div class="profile-info-qr">
-                                    <img id="profile-qrcode" src="https://via.placeholder.com/150?text=Chargement" alt="QR Code">
+                                    <img id="profile-qrcode" src="https://placehold.co/150x150/333/ccc?text=QR" alt="QR Code">
                                     <a id="download-qrcode-btn" href="#" download="qrcode-mahu.png" style="font-size: 0.8em; color: var(--text-secondary); display: block; margin-top: 5px;">Télécharger</a>
                                 </div>
                             </div>
@@ -822,10 +822,6 @@
                             <div class="form-group"><label for="Couleur_Theme">Couleur du Thème</label><input type="color" id="Couleur_Theme" name="Couleur_Theme" class="form-control" value="#007BFF" style="padding: 5px; height: 45px;"></div>
                         </div>
 
-                        <h4 style="margin-top: 25px;">Images</h4>
-                        <div class="form-group"><label for="profile-picture">Photo de profil / Logo</label><img id="image-preview" src="https://via.placeholder.com/100?text=Aperçu" alt="Aperçu" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; display: block; margin-bottom: 10px;"><input type="file" id="profile-picture" name="profilePicture" class="form-control" accept="image/*"></div>
-                        <div class="form-group"><label for="cover-image">Image de couverture</label><input type="file" id="cover-image" name="coverImage" class="form-control" accept="image/*"></div>
-
                         <h4 style="margin-top: 25px;">Marque</h4>
                         <div class="toggle-switch"><span>Cacher la marque Mahu</span><input type="checkbox" id="toggle-branding"></div>
 
@@ -845,13 +841,13 @@
                     <div class="phone-screen">
                         <div class="phone-screen-inner">
                             <div class="phone-qr-section">
-                                <img id="phone-qrcode-preview" src="https://via.placeholder.com/150?text=QR" alt="Aperçu QR Code">
+                                <img id="phone-qrcode-preview" src="https://placehold.co/150x150/333/ccc?text=QR" alt="Aperçu QR Code">
                                 <p>Mon QR Code</p>
                             </div>
                             <div class="phone-scrollable-content">
-                                <div id="phone-cover-preview" class="phone-cover" style="background-image: url('https://via.placeholder.com/800x300?text=Couverture');"></div>
+                                <div id="phone-cover-preview" class="phone-cover" style="background-image: url('https://placehold.co/800x300/333/ccc?text=Couverture');"></div>
                                 <div class="phone-header">
-                                    <img id="phone-picture-preview" src="https://via.placeholder.com/150" alt="Aperçu profil">
+                                    <img id="phone-picture-preview" src="https://placehold.co/150x150/333/ccc?text=Profil" alt="Aperçu profil">
                                     <h3 id="phone-name-preview">Nom Prénom</h3>
                                     <p id="phone-details-preview">Profession</p>
                                 </div>
@@ -1038,30 +1034,10 @@
                 Liens_Sociaux_JSON: getSocialLinksData()
             };
             
-            // Gestion des images
-            const profilePicFile = document.getElementById('profile-picture').files[0];
-            const coverFile = document.getElementById('cover-image').files[0];
-
-            const uploadAndSave = (picFile, covFile) => {
-                const uploads = [];
-                if (picFile) {
-                    uploads.push(uploadToImgBB(picFile).then(url => profileData.URL_Photo = url));
-                }
-                if (covFile) {
-                    uploads.push(uploadToImgBB(covFile).then(url => profileData.URL_Couverture = url));
-                }
-
-                Promise.all(uploads)
-                    .then(() => saveDataToSheet(profileData, button)) // Passer le bouton à la fonction de sauvegarde
-                    .catch(error => {
-                        console.error('Erreur d\'upload:', error);
-                        alert('Une erreur est survenue lors de l\'envoi des images.');
-                        button.textContent = 'Sauvegarder les changements';
-                        button.disabled = false;
-                    });
-            };
-
-            uploadAndSave(profilePicFile, coverFile); // Déclenche la sauvegarde après l'upload
+            // La gestion des images se fait maintenant via handleDirectImageChange
+            // Il n'y a plus de fichiers à uploader depuis ce formulaire.
+            // On sauvegarde directement les autres données.
+            saveDataToSheet(profileData, button);
         }
 
         function uploadToImgBB(file) {
@@ -1238,8 +1214,8 @@
             const fullUrl = `${baseUrl}ProfilePublic.html?user=${data.user.URL_Profil}`;
 
             // Aperçu
-            document.getElementById('profile-picture-preview').src = data.profile.URL_Photo || 'https://via.placeholder.com/150';
-            document.getElementById('profile-cover-preview').style.backgroundImage = `url('${data.profile.URL_Couverture || 'https://via.placeholder.com/800x300?text=Couverture'}')`;
+            document.getElementById('profile-picture-preview').src = data.profile.URL_Photo || 'https://placehold.co/150x150/333/ccc?text=Profil';
+            document.getElementById('profile-cover-preview').style.backgroundImage = `url('${data.profile.URL_Couverture || 'https://placehold.co/800x300/333/ccc?text=Couverture'}')`;
             document.getElementById('profile-name-preview').textContent = data.profile.Nom_Complet || 'Nom non défini';
             const subtitleParts = [data.profile.Profession, data.profile.Compagnie, data.profile.Location].filter(Boolean);
             document.getElementById('profile-details-preview').textContent = subtitleParts.join(' | ') || 'Informations non disponibles';
@@ -1248,7 +1224,7 @@
             // Utilisation de quickchart.io pour un QR code avec logo. On construit l'URL absolue du logo.
             const logoUrl = new URL('r/logo.png', window.location.href).href;
             document.getElementById('profile-qrcode').src = `https://quickchart.io/qr?text=${encodeURIComponent(fullUrl)}&logo=${logoUrl}&size=250&centerImage=true`;
-            document.getElementById('phone-qrcode-preview').src = `https://quickchart.io/qr?text=${encodeURIComponent(fullUrl)}&size=150`; // QR pour le téléphone
+            document.getElementById('phone-qrcode-preview').src = `https://quickchart.io/qr?text=${encodeURIComponent(fullUrl)}&size=150`;
             
             // Générer le lien de téléchargement en haute résolution
             const highResQrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(fullUrl)}&logo=${logoUrl}&size=1024&format=png&centerImage=true`;
@@ -1286,15 +1262,11 @@
             // Panneau "Apparence"
             // Remplir les champs d'apparence avec les données sauvegardées (ou des valeurs par défaut)
             document.querySelector('select[name="Mise_En_Page"]').value = data.profile.Mise_En_Page || 'default';
-            document.getElementById('Couleur_Theme').value = data.profile.Couleur_Theme || '#007BFF'; // Nouveau champ
-            // document.getElementById('Couleur_Theme').value = data.profile.Couleur_Theme || '#007BFF'; // Remplacé par les nouveaux champs
-            if (data.profile.URL_Photo) {
-                document.getElementById('image-preview').src = data.profile.URL_Photo;
-            }
+            document.getElementById('Couleur_Theme').value = data.profile.Couleur_Theme || '#007BFF';
 
             // Remplir l'aperçu du téléphone
-            document.getElementById('phone-picture-preview').src = data.profile.URL_Photo || 'https://via.placeholder.com/150';
-            document.getElementById('phone-cover-preview').style.backgroundImage = `url('${data.profile.URL_Couverture || 'https://via.placeholder.com/800x300?text=Couverture'}')`;
+            document.getElementById('phone-picture-preview').src = data.profile.URL_Photo || 'https://placehold.co/150x150/333/ccc?text=Profil';
+            document.getElementById('phone-cover-preview').style.backgroundImage = `url('${data.profile.URL_Couverture || 'https://placehold.co/800x300/333/ccc?text=Couverture'}')`;
             document.getElementById('phone-name-preview').textContent = data.profile.Nom_Complet || 'Nom non défini';
             const phoneSubtitleParts = [data.profile.Profession, data.profile.Compagnie, data.profile.Location].filter(Boolean);
             document.getElementById('phone-details-preview').textContent = phoneSubtitleParts.join(' | ') || 'Informations non disponibles';
@@ -1479,16 +1451,6 @@
             // Mettre à jour l'aperçu des boutons sociaux en direct
         });
 
-        document.getElementById('profile-picture').addEventListener('change', e => {
-            if (e.target.files && e.target.files[0]) {
-                document.getElementById('phone-picture-preview').src = URL.createObjectURL(e.target.files[0]);
-            }
-        });
-        document.getElementById('cover-image').addEventListener('change', e => {
-            if (e.target.files && e.target.files[0]) {
-                document.getElementById('phone-cover-preview').style.backgroundImage = `url('${URL.createObjectURL(e.target.files[0])}')`;
-            }
-        });
         function updatePhoneDetails() {
             const parts = [document.getElementById('Profession').value, document.getElementById('Compagnie').value, document.getElementById('Location').value].filter(Boolean);
             document.getElementById('phone-details-preview').textContent = parts.join(' | ') || 'Profession';
