@@ -788,8 +788,7 @@
             <div class="editor-nav">
                 <button class="editor-nav-btn active" onclick="showEditPane('edit-pane-about', this)">À propos</button>
                 <button class="editor-nav-btn" onclick="showEditPane('edit-pane-appearance', this)">Apparence</button>
-                <button class="editor-nav-btn" onclick="showEditPane('edit-pane-links', this)">Liens</button>
-                <button class="editor-nav-btn" onclick="showEditPane('edit-pane-modules', this)">Modules</button>
+                <!-- L'onglet "Liens" a été fusionné avec "À propos" -->
             </div>
             <div class="modal-editor-layout">
                 <form id="profile-form" onsubmit="handleSave(event)">
@@ -801,6 +800,11 @@
                         <div class="form-group"><label for="Profession">Profession</label><input type="text" id="Profession" name="Profession" class="form-control" placeholder="Ex: Développeur Web"></div>
                         <div class="form-group"><label for="Compagnie">Compagnie</label><input type="text" id="Compagnie" name="Compagnie" class="form-control" placeholder="Ex: Mahu Inc."></div>
                         <div class="form-group"><label for="Location">Location</label><input type="text" id="Location" name="Location" class="form-control" placeholder="Ex: Paris, France"></div>
+                        
+                        <h3 style="margin-top: 30px;">Réseaux Sociaux & Liens</h3>
+                        <div id="social-links-container"></div>
+                        <button type="button" class="btn btn-secondary" onclick="addSocialLink()" style="width: auto; margin-top: 10px;">Ajouter un lien</button>
+
                     </div>
                     <!-- Panneau d'édition "Apparence" -->
                     <div id="edit-pane-appearance" class="edit-pane">
@@ -826,12 +830,6 @@
                         <div class="toggle-switch"><span>Cacher la marque Mahu</span><input type="checkbox" id="toggle-branding"></div>
 
                         <div class="form-group" style="margin-top: 25px;"><label for="Langue">Langue</label><select id="Langue" name="Langue" class="form-control"><option value="fr">Français</option><option value="en">English</option></select></div>
-                    </div>
-                    <!-- Panneau d'édition "Liens" -->
-                    <div id="edit-pane-links" class="edit-pane">
-                        <h3>Réseaux Sociaux & Liens</h3>
-                        <div id="social-links-container"></div>
-                        <button type="button" class="btn btn-secondary" onclick="addSocialLink()" style="width: auto; margin-top: 10px;">Ajouter un lien</button>
                     </div>
                     <hr style="border-color: var(--border-color); margin: 30px 0;">
                     <button type="submit" id="save-button" class="btn btn-primary">Sauvegarder les changements</button>
@@ -1031,7 +1029,7 @@
                 Langue: profileForm.Langue.value,
 
                 // Panneau "Liens"
-                Liens_Sociaux_JSON: getSocialLinksData()
+                Liens_Sociaux: getSocialLinksData()
             };
             
             // La gestion des images se fait maintenant via handleDirectImageChange
@@ -1248,7 +1246,7 @@
             if (data.profile.URL_Photo) completeness += 20;
             if (data.profile.URL_Couverture) completeness += 20;
             if (subtitleParts.length > 0) completeness += 20;
-            if (JSON.parse(data.profile.Liens_Sociaux_JSON || '[]').length > 0) completeness += 20;
+            if (JSON.parse(data.profile.Liens_Sociaux || '[]').length > 0) completeness += 20;
             document.getElementById('profile-completeness-percent').textContent = `${completeness}%`;
             document.getElementById('profile-completeness-bar').style.width = `${completeness}%`;
 
@@ -1283,7 +1281,7 @@
             updatePhoneSocialLinks(); // Mettre à jour l'aperçu
 
             document.getElementById('social-links-container').innerHTML = ''; // Vider avant de remplir
-            const socialLinks = JSON.parse(data.profile.Liens_Sociaux_JSON || '[]');
+            const socialLinks = JSON.parse(data.profile.Liens_Sociaux || '[]');
             socialLinks.forEach(link => {
                 addSocialLink(link.type, link.url);
             });
