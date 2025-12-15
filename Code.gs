@@ -673,9 +673,16 @@ function getProfileData(profileUrl) {
  * @param {Object} data - Un objet contenant les données du formulaire.
  */
 function saveProfile(data, user) {
-  // Le payload peut arriver sous forme de JSON stringifié ou d'objet direct.
-  // On s'assure de toujours travailler avec un objet.
-  const payload = (typeof data === 'string') ? JSON.parse(data) : data;
+  // Correction critique : Les données peuvent arriver de deux manières.
+  // 1. En tant qu'objet 'payload' stringifié (depuis le formulaire principal).
+  // 2. En tant que paires clé/valeur directes (depuis la sauvegarde d'image).
+  // On unifie les deux cas en un seul objet 'payload'.
+  let payload;
+  if (typeof data === 'object' && Object.keys(data).length > 0) {
+    payload = data; // Cas où 'data' est déjà l'objet de données (ex: { URL_Photo: '...' })
+  } else {
+    payload = (typeof data === 'string') ? JSON.parse(data) : {}; // Cas du formulaire principal
+  }
 
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
