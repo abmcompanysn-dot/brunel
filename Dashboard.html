@@ -1120,12 +1120,22 @@
             const dataToSave = {};
             if (type === 'picture') dataToSave.URL_Photo = '';
             if (type === 'cover') dataToSave.URL_Couverture = '';
-            saveDataToSheet(dataToSave);
+            saveImageData(dataToSave); // Utiliser la nouvelle fonction de sauvegarde d'image
         }
 
         function exportLeads() {
             // TODO: Implémenter la logique d'exportation des prospects en CSV.
             alert("La fonctionnalité d'exportation en CSV est en cours de développement.");
+        }
+
+        // Nouvelle fonction dédiée à la sauvegarde des données d'image
+        function saveImageData(data) {
+            callApi('saveProfile', data)
+                .then(response => {
+                    alert(response.error || response.message || 'Image sauvegardée !');
+                    fetchDashboardData(); // Recharger les données pour afficher la nouvelle image
+                })
+                .catch(err => alert('Erreur de sauvegarde de l\'image: ' + (err.message || "Erreur inconnue")));
         }
 
         function saveDataToSheet(data, button) {
