@@ -1081,7 +1081,7 @@
                 Langue: profileForm.Langue.value,
 
                 // Panneau "Liens"
-                Liens_Sociaux: getSocialLinksData()
+                Liens_Sociaux_JSON: getSocialLinksData()
 
                 // La configuration du Wallet est maintenant gérée côté serveur, plus besoin de l'envoyer depuis le client.
             };
@@ -1607,8 +1607,9 @@
             // Gérer les images (simplifié pour l'instant, ne gère pas la modification des images existantes)
             // L'affichage des images existantes est maintenant géré.
             document.getElementById('product-image-previews').innerHTML = '';
-            if (product && product.Images) {
-                product.Images.forEach(imgUrl => {
+            if (product && product.Images_JSON) {
+                const images = JSON.parse(product.Images_JSON);
+                images.forEach(imgUrl => {
                     document.getElementById('product-image-previews').innerHTML += `<img src="${imgUrl}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px;">`;
                 });
             }
@@ -1647,7 +1648,7 @@
                 };
 
                 // 4. Appeler l'API pour sauvegarder
-                const response = await callApi('saveProduct', productData);
+                const response = await callApi('saveProduct', { payload: productData });
                 if (response.success) {
                     alert('Produit sauvegardé avec succès !');
                     closeModal('product-modal');
