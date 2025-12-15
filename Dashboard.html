@@ -1200,6 +1200,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
     <script>
+        let viewsChartInstance = null; // Variable pour stocker l'instance du graphique
+
         document.addEventListener('DOMContentLoaded', function() {
             fetchDashboardData();
             feather.replace();
@@ -1389,7 +1391,12 @@
             document.getElementById('stats-link-views').textContent = linkIndex !== -1 ? stats.data[linkIndex] : 0;
 
             const ctx = document.getElementById('viewsChart').getContext('2d');
-            new Chart(ctx, {
+            
+            if (viewsChartInstance) {
+                viewsChartInstance.destroy(); // Détruire l'ancienne instance du graphique
+            }
+
+            viewsChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: stats.labels,
