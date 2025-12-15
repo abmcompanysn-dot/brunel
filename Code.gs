@@ -673,6 +673,10 @@ function getProfileData(profileUrl) {
  * @param {Object} data - Un objet contenant les données du formulaire.
  */
 function saveProfile(data, user) {
+  // Le payload peut arriver sous forme de JSON stringifié ou d'objet direct.
+  // On s'assure de toujours travailler avec un objet.
+  const payload = (typeof data === 'string') ? JSON.parse(data) : data;
+
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
 
@@ -684,8 +688,8 @@ function saveProfile(data, user) {
     const userSheet = ss.getSheetByName('Utilisateurs');
 
     // 1. Gérer la mise à jour de l'URL du profil (si elle a changé)
-    if (data.URL_Profil && data.URL_Profil !== user.URL_Profil) {
-      const newUrl = data.URL_Profil.toLowerCase().replace(/[^a-z0-9-]/g, ''); // Nettoyage
+    if (payload.URL_Profil && payload.URL_Profil !== user.URL_Profil) {
+      const newUrl = payload.URL_Profil.toLowerCase().replace(/[^a-z-0-9-]/g, ''); // Nettoyage
       if (!newUrl) throw new Error("L'URL du profil ne peut pas être vide.");
 
       // Vérifier l'unicité de la nouvelle URL
@@ -702,7 +706,7 @@ function saveProfile(data, user) {
         // Si l'URL change, on invalide aussi le nouveau cache potentiel
         cache.remove(`profile_${newUrl}`);
       }
-      delete data.URL_Profil; // Supprimer pour ne pas l'écrire dans la feuille 'Profils'
+      delete payload.URL_Profil; // Supprimer pour ne pas l'écrire dans la feuille 'Profils'
     }
 
     // 2. Mettre à jour les autres données dans la feuille 'Profils'
@@ -715,8 +719,8 @@ function saveProfile(data, user) {
       const rowToUpdate = rowIndex + 2;
       headers.forEach((header, index) => {
         // Mettre à jour uniquement si la clé existe dans les données envoyées
-        if (Object.prototype.hasOwnProperty.call(data, header)) {
-          profileSheet.getRange(rowToUpdate, index + 1).setValue(data[header]);
+        if (Object.prototype.hasOwnProperty.call(payload, header)) {
+          profileSheet.getRange(rowToUpdate, index + 1).setValue(payload[header]);
         }
       });
       Logger.log(`Profil pour ${user.Email} mis à jour.`);

@@ -550,12 +550,16 @@ END:VCARD`;
         async function generateCardImage(data) {
             /**
              * Fonction pour dessiner un rectangle avec des coins arrondis.
+             * @param {CanvasRenderingContext2D} ctx
+             * @param {number} x
+             * @param {number} y
+             * @param {number} width
+             * @param {number} height
+             * @param {number|object} radius
              */
             function roundRect(ctx, x, y, width, height, radius) {
                 if (typeof radius === 'number') {
                     radius = {tl: radius, tr: radius, br: radius, bl: radius};
-                } else {
-                    radius = {...{tl: 0, tr: 0, br: 0, bl: 0}, ...radius};
                 }
                 ctx.beginPath();
                 ctx.moveTo(x + radius.tl, y);
@@ -572,12 +576,13 @@ END:VCARD`;
 
             /**
              * Dessine une icône SVG sur le canvas.
+             * @param {CanvasRenderingContext2D} ctx
              * @param {string} pathData - Le 'd' de la balise <path> du SVG.
              * @param {number} x - Position X.
              * @param {number} y - Position Y.
              * @param {number} size - Taille de l'icône.
              */
-            function drawIcon(pathData, x, y, size) {
+            function drawIcon(ctx, pathData, x, y, size) {
                 const path = new Path2D(pathData);
                 ctx.save();
                 ctx.translate(x, y);
@@ -608,11 +613,17 @@ END:VCARD`;
             try {
                 const qrCodeUrl = `https://quickchart.io/qr?text=${encodeURIComponent(window.location.href)}&size=500`; // QR code simple, sans logo
 
-                // Charger le logo Mahu et le QR code en parallèle
-                const [mahuLogoImg, qrCodeImg] = await Promise.all([
+                // Préparer les promesses de chargement d'images
+                const imagePromises = [
                     loadImage('r/logo.png'), // Utiliser un chemin relatif simple pour le logo local
                     loadImage(qrCodeUrl)
-                ]);
+                ];
+
+                if (data.URL_Photo) {
+                    imagePromises.push(loadImage(data.URL_Photo));
+                }
+
+                const [mahuLogoImg, qrCodeImg, profileImg] = await Promise.all(imagePromises);
 
                 // 1. Arrière-plan avec coins arrondis
                 ctx.fillStyle = data.Couleur_Theme || '#007BFF';
@@ -642,20 +653,20 @@ END:VCARD`;
                 let currentY = 80;
 
                 // Nom Complet
-                drawIcon("M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 7 a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", 40, currentY - 28, 32);
+                drawIcon(ctx, "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 7 a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", 40, currentY - 28, 32);
                 ctx.font = 'bold 36px -apple-system, sans-serif';
                 ctx.fillText(data.Nom_Complet || '', 90, currentY);
                 currentY += 70;
 
                 // Profession
-                drawIcon("M2 7h20v14H2z M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2", 40, currentY - 28, 32);
+                drawIcon(ctx, "M2 7h20v14H2z M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2", 40, currentY - 28, 32);
                 ctx.font = '32px -apple-system, sans-serif';
                 ctx.fillText(data.Profession || '', 90, currentY);
                 currentY += 70;
                 
                 // Compagnie (si elle existe)
                 if (data.Compagnie) {
-                    drawIcon("M3 21h18M5 21V7l7-4 7 4v14", 40, currentY - 28, 32);
+                    drawIcon(ctx, "M3 21h18M5 21V7l7-4 7 4v14", 40, currentY - 28, 32);
                     ctx.font = '32px -apple-system, sans-serif';
                     ctx.fillText(data.Compagnie, 90, currentY);
                     currentY += 70;
@@ -663,7 +674,7 @@ END:VCARD`;
                 
                 // Numéro de téléphone (s'il existe)
                 if (data.Telephone) {
-                    drawIcon("M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z", 40, currentY - 28, 32);
+                    drawIcon(ctx, "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z", 40, currentY - 28, 32);
                     ctx.font = '32px -apple-system, sans-serif';
                     ctx.fillText(data.Telephone, 90, currentY);
                     currentY += 70;
@@ -671,7 +682,7 @@ END:VCARD`;
 
                 // Adresse Email (si elle existe)
                 if (data.Email) {
-                    drawIcon("M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6L12 13 2 6", 40, currentY - 28, 32);
+                    drawIcon(ctx, "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6L12 13 2 6", 40, currentY - 28, 32);
                     ctx.font = '32px -apple-system, sans-serif';
                     ctx.fillText(data.Email, 90, currentY);
                 }
@@ -680,7 +691,7 @@ END:VCARD`;
                 const websiteLink = (JSON.parse(data.Liens_Sociaux_JSON || '[]')).find(link => link.type === 'website');
                 if (websiteLink) {
                     currentY += 70;
-                    drawIcon("M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72 M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72", 40, currentY - 28, 32);
+                    drawIcon(ctx, "M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72 M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72", 40, currentY - 28, 32);
                     ctx.font = '32px -apple-system, sans-serif';
                     ctx.fillText(websiteLink.url.replace(/^(https?:\/\/)?(www\.)?/, ''), 90, currentY);
                 }
