@@ -60,6 +60,9 @@ function doPost(e) {
           case 'saveProfile': // L'action saveProfile peut maintenant recevoir des données de différentes manières
             result = saveProfile(payload, user);
             break;
+          case 'saveProfileImage':
+            result = saveProfileImage(payload, user);
+            break;
           case 'updateOnboardingData':
             result = updateOnboardingData(payload, user);
             break;
@@ -738,6 +741,46 @@ function saveProfile(data, user) {
   } catch (e) {
     Logger.log(`Erreur dans saveProfile: ${e.message}`);
     return { error: e.message };
+  }
+}
+
+/**
+ * Met à jour UNIQUEMENT les images du profil (photo ou couverture).
+ * C'est une fonction plus stricte et sécurisée que d'utiliser saveProfile pour les images.
+ * @param {Object} data - Un objet contenant { imageType: 'picture'|'cover', imageUrl: '...' }.
+ * @param {Object} user - L'objet utilisateur authentifié.
+ */
+function saveProfileImage(data, user) {
+  if (!data || !data.imageType || !user) {
+    throw new Error("Données d'image ou utilisateur invalides.");
+  }
+
+  const { imageType, imageUrl } = data;
+  const fieldToUpdate = imageType === 'picture' ? 'URL_Photo' : 'URL_Couverture';
+
+  if (imageType !== 'picture' && imageType !== 'cover') {
+    return { success: false, error: "Type d'image non valide." };
+  }
+
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const profileSheet = ss.getSheetByName('Profils');
+    const profileRow = findRowIndex(profileSheet, 'ID_Utilisateur', user.ID_Unique);
+
+    if (profileRow === -1) {
+      return { success: false, error: "Profil non trouvé pour la mise à jour de l'image." };
+    }
+
+    const colIndex = findHeaderIndex(profileSheet, fieldToUpdate);
+    profileSheet.getRange(profileRow, colIndex).setValue(imageUrl);
+
+    // Invalider le cache pour que la modification soit visible immédiatement
+    CacheService.getScriptCache().remove(`profile_${user.URL_Profil}`);
+
+    return { success: true, message: "Image sauvegardée avec succès." };
+  } catch (e) {
+    Logger.log(`Erreur dans saveProfileImage: ${e.message}`);
+    return { success: false, error: e.message };
   }
 }
 

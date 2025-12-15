@@ -1107,20 +1107,16 @@
             // Uploader et sauvegarder
             alert('Mise à jour de l\'image en cours...');
             uploadToImgBB(file).then(url => {
-                const dataToSave = {};
-                if (type === 'picture') dataToSave.URL_Photo = url;
-                if (type === 'cover') dataToSave.URL_Couverture = url;
-                saveImageData(dataToSave); // Utiliser la fonction de sauvegarde dédiée aux images
+                // Utilise la nouvelle fonction avec le format attendu par le backend
+                saveImageData(type, url);
             }).catch(err => alert("Erreur d'upload: " + err.message));
         }
 
         function deleteImage(event, type) {
             event.preventDefault();
             if (!confirm("Voulez-vous vraiment supprimer cette image ?")) return;
-            const dataToSave = {};
-            if (type === 'picture') dataToSave.URL_Photo = '';
-            if (type === 'cover') dataToSave.URL_Couverture = '';
-            saveImageData(dataToSave); // Utiliser la nouvelle fonction de sauvegarde d'image
+            // Utilise la nouvelle fonction en passant une URL vide pour supprimer
+            saveImageData(type, '');
         }
 
         function exportLeads() {
@@ -1128,9 +1124,10 @@
             alert("La fonctionnalité d'exportation en CSV est en cours de développement.");
         }
 
-        // Nouvelle fonction dédiée à la sauvegarde des données d'image
-        function saveImageData(data) {
-            callApi('saveProfile', data)
+        // Fonction dédiée à la sauvegarde des données d'image via la nouvelle action
+        function saveImageData(imageType, imageUrl) {
+            const payload = { imageType: imageType, imageUrl: imageUrl };
+            callApi('saveProfileImage', { payload: payload })
                 .then(response => {
                     alert(response.error || response.message || 'Image sauvegardée !');
                     fetchDashboardData(); // Recharger les données pour afficher la nouvelle image
