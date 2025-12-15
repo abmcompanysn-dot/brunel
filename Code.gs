@@ -57,7 +57,7 @@ function doPost(e) {
           case 'getDashboardData':
             result = getDashboardData(user);
             break;
-          case 'saveProfile':
+          case 'saveProfile': // L'action saveProfile peut maintenant recevoir des données de différentes manières
             result = saveProfile(payload, user);
             break;
           case 'updateOnboardingData':
@@ -93,7 +93,7 @@ function doPost(e) {
     const errorMessage = `Erreur dans l'action '${action}': ${err.message} (Ligne: ${err.lineNumber}, Fichier: ${err.fileName})`;
     
     // Enregistre l'erreur détaillée dans la feuille de calcul pour le débogage
-    logAction(action, 'ERROR', errorMessage, userIdentifier, 'Vérifiez que les données envoyées sont correctes et que le token est valide. Si l\'erreur persiste, consultez les logs.');
+    logAction(action, 'ERROR', errorMessage, userIdentifier, `Vérifiez que les données envoyées sont correctes. Payload reçu: ${JSON.stringify(e.parameter)}. Si l'erreur persiste, consultez les logs.`);
     
     // Renvoie une réponse d'erreur générique au client, mais avec les en-têtes CORS
     return corsify({ success: false, error: "Une erreur interne est survenue. L'incident a été enregistré." });
@@ -673,13 +673,14 @@ function getProfileData(profileUrl) {
  * @param {Object} data - Un objet contenant les données du formulaire.
  */
 function saveProfile(data, user) {
-  // Correction critique : Les données peuvent arriver de deux manières.
-  // 1. En tant qu'objet 'payload' stringifié (depuis le formulaire principal).
-  // 2. En tant que paires clé/valeur directes (depuis la sauvegarde d'image).
-  // On unifie les deux cas en un seul objet 'payload'.
+  // Correction pour gérer les différents formats de données reçues.
+  // Les données peuvent être un objet JSON stringifié dans 'payload' (formulaire principal)
+  // ou des paires clé/valeur directes (sauvegarde d'image).
   let payload;
-  if (typeof data === 'object' && Object.keys(data).length > 0) {
-    payload = data; // Cas où 'data' est déjà l'objet de données (ex: { URL_Photo: '...' })
+  // Si 'data' est un objet avec des clés, c'est probablement une sauvegarde d'image.
+  // On vérifie que ce n'est pas un objet vide {} qui vient de JSON.parse(e.parameter.payload) quand payload est absent.
+  if (typeof data === 'object' && data !== null && Object.keys(data).length > 0) {
+    payload = data;
   } else {
     payload = (typeof data === 'string') ? JSON.parse(data) : {}; // Cas du formulaire principal
   }
