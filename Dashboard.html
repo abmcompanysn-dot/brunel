@@ -2,6 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="description" content="Tableau de bord personnel pour la gestion de votre profil Mahu, de vos contacts et de vos statistiques.">
+    <meta name="robots" content="noindex, nofollow"> <!-- Page privée, ne pas indexer -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tableau de Bord</title>
     <link rel="icon" href="r/logo.png" type="image/png">
@@ -608,7 +610,7 @@
                                 <div class="profile-info-text">
                                     <h2 id="profile-name-preview">Nom Prénom</h2>
                                     <p id="profile-details-preview">Profession | Entreprise | Lieu</p>
-                                    <button class="btn btn-primary" style="margin-top: 20px;" onclick="openModal('profil-edit-modal')">Modifier le Profil</button>
+                                    <button class="btn btn-primary" style="margin-top: 20px;" onclick="openModal('profil-edit-modal');">Modifier le Profil</button>
                                 </div>
                                 <div class="profile-info-qr">
                                     <img id="profile-qrcode" src="https://via.placeholder.com/150?text=Chargement" alt="QR Code">
@@ -1116,7 +1118,11 @@
 
         function deleteImage(event, type) {
             event.preventDefault();
-            alert("La suppression de l'image sera effective après la prochaine sauvegarde.");
+            if (!confirm("Voulez-vous vraiment supprimer cette image ?")) return;
+            const dataToSave = {};
+            if (type === 'picture') dataToSave.URL_Photo = '';
+            if (type === 'cover') dataToSave.URL_Couverture = '';
+            saveDataToSheet(dataToSave);
         }
 
         function exportLeads() {
@@ -1125,17 +1131,20 @@
         }
 
         function saveDataToSheet(data, button) {
+            const saveButton = button || document.getElementById('save-button'); // Utilise le bouton passé ou le bouton par défaut
+            if (saveButton) {
+                saveButton.textContent = 'Sauvegarde en cours...';
+                saveButton.disabled = true;
+            }
             callApi('saveProfile', data) // Envoyer directement l'objet de données
                 .then(response => {
                     alert(response.error || response.message || 'Profil sauvegardé !');
                     closeModal('profil-edit-modal');
                     fetchDashboardData(); // Recharger les données
                 })
-                .catch(err => {
-                    alert('Erreur de sauvegarde: ' + (err.message || "Erreur inconnue"));
-                }).finally(() => {
-                    document.getElementById('save-button').textContent = 'Sauvegarder les changements';
-                    document.getElementById('save-button').disabled = false;
+                .catch(err => alert('Erreur de sauvegarde: ' + (err.message || "Erreur inconnue")))
+                .finally(() => {
+                    if (saveButton) { saveButton.textContent = 'Sauvegarder les changements'; saveButton.disabled = false; }
                 });
         }
     </script>

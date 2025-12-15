@@ -2,8 +2,11 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Les balises meta suivantes seront remplies dynamiquement par JavaScript -->
     <title>Profil Public</title>
+    <meta name="description" content="Découvrez le profil numérique de ce contact sur Mahu.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:type" content="profile">
     <style>
         :root {
             --accent-color: #007BFF; /* Sera défini dynamiquement par GAS */
@@ -388,6 +391,21 @@
                 onProfileError({ message: data.error });
                 return;
             }
+
+            // --- SEO DYNAMIQUE ---
+            const profileTitle = `${data.Nom_Complet || 'Profil'} - Mahu`;
+            const profileDescription = `Découvrez le profil numérique de ${data.Nom_Complet || 'ce contact'}. Profession: ${data.Profession || 'Non spécifié'}.`;
+            const profileUrl = window.location.href;
+            const profileImage = data.URL_Photo || 'https://mahu-app.com/r/og-image.png'; // Image par défaut
+
+            document.title = profileTitle;
+            document.querySelector('meta[name="description"]').setAttribute('content', profileDescription);
+            // Open Graph
+            document.head.insertAdjacentHTML('beforeend', `<meta property="og:title" content="${profileTitle}">`);
+            document.head.insertAdjacentHTML('beforeend', `<meta property="og:description" content="${profileDescription}">`);
+            document.head.insertAdjacentHTML('beforeend', `<meta property="og:url" content="${profileUrl}">`);
+            document.head.insertAdjacentHTML('beforeend', `<meta property="og:image" content="${profileImage}">`);
+            document.head.insertAdjacentHTML('beforeend', `<meta property="profile:first_name" content="${(data.Nom_Complet || '').split(' ')[0]}">`);
 
             const card = document.querySelector('.profile-card');
 
