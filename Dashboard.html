@@ -1110,7 +1110,7 @@
                 const dataToSave = {};
                 if (type === 'picture') dataToSave.URL_Photo = url;
                 if (type === 'cover') dataToSave.URL_Couverture = url;
-                saveDataToSheet(dataToSave);
+                saveImageData(dataToSave); // Utiliser la fonction de sauvegarde dédiée aux images
             }).catch(err => alert("Erreur d'upload: " + err.message));
         }
 
