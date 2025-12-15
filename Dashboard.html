@@ -578,7 +578,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>
                     <span>Intégrations</span>
                 </a>
-                <a href="Boutique.html" title="Boutique">
+                <a href="#" onclick="showPane(event, 'boutique-content', this)" title="Boutique">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
                     <span>Boutique</span>
                 </a>
@@ -723,12 +723,23 @@
                 <h1>Intégrations</h1>
                 <p style="max-width: 100%; text-align: left; margin-bottom: 20px; color: var(--text-secondary);">Connectez Mahu à d'autres services. Les clés API sont stockées de manière sécurisée et ne sont jamais partagées publiquement.</p>
                 <div class="card">
-                    <h3>Google Wallet</h3>
-                    <p>Remplissez ces informations depuis votre <a href="https://pay.google.com/business/console" target="_blank">console Google Pay & Wallet</a> pour activer le bouton "Ajouter à Google Wallet".</p>
-                    <div class="form-group"><label for="wallet-issuer-id">ID de l'émetteur (Issuer ID)</label><input type="text" id="wallet-issuer-id" class="form-control" placeholder="Chargement..."></div>
-                    <div class="form-group"><label for="wallet-class-id">ID de la classe (Class ID)</label><input type="text" id="wallet-class-id" class="form-control" placeholder="Chargement..."></div>
-                    <div class="form-group"><label for="wallet-service-email">Email du compte de service</label><input type="text" id="wallet-service-email" class="form-control" placeholder="Chargement..."></div>
-                    <div class="form-group"><label for="wallet-private-key">Clé privée du compte de service</label><textarea id="wallet-private-key" class="form-control" rows="4" placeholder="Chargement..."></textarea></div>
+                    <h3>Intégrations disponibles</h3>
+                    <p>La possibilité d'ajouter votre carte à <strong>Google Wallet</strong> et <strong>Apple Wallet</strong> est disponible directement dans l'onglet "Paramètres".</p>
+                    <p>Nous travaillons à l'ajout de nouvelles intégrations pour enrichir votre expérience. Revenez bientôt !</p>
+                    <!-- Le formulaire de configuration a été retiré pour simplifier l'interface. La configuration se fait côté serveur. -->
+                </div>
+            </div>
+
+            <!-- Panneau Boutique -->
+            <div id="boutique-content" class="content-pane">
+                <h1>Ma Boutique</h1>
+                <div class="card">
+                    <h3>Mes Produits</h3>
+                    <p>Gérez ici les produits et articles de votre boutique. Ils apparaîtront sur votre page boutique publique si le module est activé.</p>
+                    <button class="btn btn-primary" style="float: right; margin-bottom: 15px;" onclick="openProductModal()">Ajouter un produit</button>
+                    <div id="product-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; clear: both;">
+                        <!-- Les produits chargés par JS apparaîtront ici -->
+                    </div>
                 </div>
             </div>
 
@@ -753,6 +764,10 @@
                     <div class="toggle-switch">
                         <span>Capture de prospects</span>
                         <input type="checkbox" id="toggle-lead" onchange="toggleModule('Lead_Capture_Actif', this.checked)">
+                    </div>
+                    <div class="toggle-switch">
+                        <span>Module Boutique</span>
+                        <input type="checkbox" id="toggle-shop" onchange="toggleModule('Boutique_Active', this.checked)">
                     </div>
                 </div>
                 <div class="card">
@@ -855,6 +870,43 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Fenêtre Modale pour l'ajout/édition de produit -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <span class="close-btn" onclick="closeModal('product-modal')">&times;</span>
+            <h1 id="product-modal-title">Ajouter un produit</h1>
+            <form id="product-form" onsubmit="handleProductSave(event)">
+                <input type="hidden" id="product-id" name="product-id">
+                <div class="form-group">
+                    <label for="product-name">Nom du produit</label>
+                    <input type="text" id="product-name" name="product-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-price">Prix (en €)</label>
+                    <input type="number" id="product-price" name="product-price" class="form-control" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="product-description">Description</label>
+                    <textarea id="product-description" name="product-description" class="form-control"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Images (jusqu'à 5)</label>
+                    <p style="font-size: 0.8em; color: var(--text-secondary); margin-top: -8px;">La première image sera l'image principale.</p>
+                    <div id="product-image-inputs">
+                        <input type="file" name="product-image-1" class="form-control" accept="image/*" onchange="previewProductImage(this, 1)">
+                        <!-- D'autres inputs seront ajoutés par JS si besoin -->
+                    </div>
+                    <div id="product-image-previews" style="display: flex; gap: 10px; margin-top: 10px;">
+                        <!-- Les aperçus d'images apparaîtront ici -->
+                    </div>
+                </div>
+                <hr style="border-color: var(--border-color); margin: 30px 0;">
+                <button type="submit" id="product-save-button" class="btn btn-primary">Sauvegarder le produit</button>
+                <button type="button" class="btn btn-danger" id="product-delete-button" onclick="handleProductDelete()" style="display: none; margin-left: 10px;">Supprimer</button>
+            </form>
         </div>
     </div>
 
@@ -999,7 +1051,7 @@
 
             newLinkEntry.innerHTML = `
                 ${selectHTML}
-                <input type="url" class="form-control" name="social_url_${uniqueId}" placeholder="https://..." value="${url}" required oninput="updatePhoneSocialLinks()">
+                <input type="text" class="form-control" name="social_url_${uniqueId}" placeholder="Ex: instagram.com/profil" value="${url}" oninput="updatePhoneSocialLinks()">
                 <button type="button" class="btn btn-danger" onclick="this.parentElement.remove(); updatePhoneSocialLinks();">✕</button>
             `;
             container.appendChild(newLinkEntry);
@@ -1030,6 +1082,8 @@
 
                 // Panneau "Liens"
                 Liens_Sociaux: getSocialLinksData()
+
+                // La configuration du Wallet est maintenant gérée côté serveur, plus besoin de l'envoyer depuis le client.
             };
             
             // La gestion des images se fait maintenant via handleDirectImageChange
@@ -1139,7 +1193,7 @@
                 saveButton.textContent = 'Sauvegarde en cours...';
                 saveButton.disabled = true;
             }
-            callApi('saveProfile', data) // Envoyer directement l'objet de données
+            callApi('saveProfile', data) // Envoyer directement l'objet de données sans les infos Wallet
                 .then(response => {
                     alert(response.error || response.message || 'Profil sauvegardé !');
                     closeModal('profil-edit-modal');
@@ -1250,12 +1304,6 @@
             document.getElementById('profile-completeness-percent').textContent = `${completeness}%`;
             document.getElementById('profile-completeness-bar').style.width = `${completeness}%`;
 
-            // Remplir les intégrations
-            document.getElementById('wallet-issuer-id').value = data.profile.Wallet_Issuer_ID || '';
-            document.getElementById('wallet-class-id').value = data.profile.Wallet_Class_ID || '';
-            document.getElementById('wallet-service-email').value = data.profile.Wallet_Service_Email || '';
-            document.getElementById('wallet-private-key').value = data.profile.Wallet_Private_Key || '';
-
 
             // Remplir l'éditeur de profil
             // Panneau "À propos"
@@ -1313,6 +1361,7 @@
             // Mettre à jour les toggles des modules
             document.getElementById('toggle-cv').checked = data.profile.CV_Actif === 'OUI';
             document.getElementById('toggle-lead').checked = data.profile.Lead_Capture_Actif === 'OUI';
+            document.getElementById('toggle-shop').checked = data.profile.Boutique_Active === 'OUI';
 
 
             // Remplir les paramètres
@@ -1323,6 +1372,7 @@
             hideSkeletons('#contact-content');
             hideSkeletons('#statistique-content');
             hideSkeletons('#integration-content');
+            hideSkeletons('#boutique-content');
             hideSkeletons('#parametre-content');
 
             // --- Remplir les statistiques et dessiner le graphique ---
@@ -1333,6 +1383,11 @@
             }
             document.getElementById('stats-total-views').textContent = data.totalViews ?? 0;
             document.getElementById('stats-total-prospects').textContent = data.totalProspects ?? 0;
+
+            // --- Remplir la section boutique ---
+            if (data.products) {
+                populateProductList(data.products);
+            }
         }
 
         function getSocialLinksData() {
@@ -1341,7 +1396,7 @@
             const links = [];
             entries.forEach(entry => {
                 const type = entry.querySelector('select').value;
-                const url = entry.querySelector('input[type="url"]').value;
+                const url = entry.querySelector('input[type="text"]').value;
                 if (url) {
                     links.push({ type, url });
                 }
@@ -1486,7 +1541,7 @@
 
             entries.forEach(entry => {
                 const type = entry.querySelector('select').value;
-                const url = entry.querySelector('input[type="url"]').value.trim();
+                const url = entry.querySelector('input[type="text"]').value.trim();
                 if (url) {
                     const iconSrc = iconMap[type]; // Récupère le chemin de votre SVG
                     const linkName = entry.querySelector('select').options[entry.querySelector('select').selectedIndex].text;
@@ -1509,6 +1564,114 @@
                 .then(() => localStorage.removeItem('authToken')) // Supprimer le token
                 .finally(() => window.location.href = 'index.html');
         }
+
+        // --- Logique pour la Boutique ---
+
+        function populateProductList(products) {
+            const productListContainer = document.getElementById('product-list');
+            productListContainer.innerHTML = ''; // Vider la liste
+            if (products.length === 0) {
+                productListContainer.innerHTML = '<p>Vous n\'avez encore ajouté aucun produit.</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'card';
+                productCard.style.cursor = 'pointer';
+                productCard.onclick = () => openProductModal(product);
+
+                const imageUrl = (product.Images_JSON && JSON.parse(product.Images_JSON)[0]) ? JSON.parse(product.Images_JSON)[0] : 'https://placehold.co/300x200/333/ccc?text=Produit';
+
+                productCard.innerHTML = `
+                    <img src="${imageUrl}" alt="${product.Nom}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 8px; margin-bottom: 15px;">
+                    <h4 style="margin: 0 0 5px 0;">${product.Nom}</h4>
+                    <p style="margin: 0; font-weight: bold; color: var(--accent-color);">${product.Prix} €</p>
+                `;
+                productListContainer.appendChild(productCard);
+            });
+        }
+
+        function openProductModal(product = null) {
+            const form = document.getElementById('product-form');
+            form.reset();
+            document.getElementById('product-modal-title').textContent = product ? 'Modifier le produit' : 'Ajouter un produit';
+            document.getElementById('product-id').value = product ? product.ID : '';
+            document.getElementById('product-name').value = product ? product.Nom : '';
+            document.getElementById('product-price').value = product ? product.Prix : '';
+            document.getElementById('product-description').value = product ? product.Description : '';
+            
+            // Gérer le bouton supprimer
+            document.getElementById('product-delete-button').style.display = product ? 'inline-block' : 'none';
+
+            // Gérer les images (simplifié pour l'instant, ne gère pas la modification des images existantes)
+            // L'affichage des images existantes est maintenant géré.
+            document.getElementById('product-image-previews').innerHTML = '';
+            if (product && product.Images) {
+                product.Images.forEach(imgUrl => {
+                    document.getElementById('product-image-previews').innerHTML += `<img src="${imgUrl}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px;">`;
+                });
+            }
+
+            openModal('product-modal');
+        }
+
+        async function handleProductSave(event) {
+            event.preventDefault();
+            const button = document.getElementById('product-save-button');
+            button.disabled = true;
+            button.textContent = 'Sauvegarde...';
+
+            const form = document.getElementById('product-form');
+            const imageInputs = form.querySelectorAll('input[type="file"]');
+            const existingImages = Array.from(document.querySelectorAll('#product-image-previews img')).map(img => img.src);
+
+            // 1. Uploader les nouvelles images
+            const uploadPromises = Array.from(imageInputs)
+                .filter(input => input.files[0])
+                .map(input => uploadToImgBB(input.files[0]));
+
+            try {
+                const newImageUrls = await Promise.all(uploadPromises);
+
+                // 2. Combiner les images
+                const allImageUrls = [...existingImages, ...newImageUrls];
+
+                // 3. Préparer les données du produit
+                const productData = {
+                    ID_Produit: document.getElementById('product-id').value,
+                    Nom: document.getElementById('product-name').value,
+                    Prix: document.getElementById('product-price').value,
+                    Description: document.getElementById('product-description').value,
+                    Images_JSON: allImageUrls
+                };
+
+                // 4. Appeler l'API pour sauvegarder
+                const response = await callApi('saveProduct', productData);
+                if (response.success) {
+                    alert('Produit sauvegardé avec succès !');
+                    closeModal('product-modal');
+                    fetchDashboardData(); // Recharger les données pour voir le nouveau produit
+                } else {
+                    throw new Error(response.error || 'Erreur inconnue lors de la sauvegarde.');
+                }
+            } catch (error) {
+                alert('Erreur lors de la sauvegarde du produit : ' + error.message);
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Sauvegarder le produit';
+            }
+        }
+
+        function handleProductDelete() {
+            if (!confirm("Voulez-vous vraiment supprimer ce produit ? Cette action est irréversible.")) return;
+            const productId = document.getElementById('product-id').value;
+            callApi('deleteProduct', { ID_Produit: productId }).then(response => {
+                alert(response.message || response.error);
+                if (response.success) { closeModal('product-modal'); fetchDashboardData(); }
+            });
+        }
+
     </script>
 </body>
 </html> 

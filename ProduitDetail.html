@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Le titre et la description seront mis à jour par JS -->
+    <title>Détail du Produit</title>
+    <link rel="icon" href="r/logo.png" type="image/png">
+    <style>
+        :root {
+            --bg-main: #f4f7f6;
+            --card-bg: #FFFFFF;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --accent-color: #000000;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .breadcrumb {
+            margin-bottom: 20px;
+        }
+        .breadcrumb a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        .product-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        /* Carrousel d'images */
+        .image-gallery {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .main-image img {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            display: block;
+        }
+        .thumbnails {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .thumbnails img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+        .thumbnails img.active {
+            border-color: var(--accent-color);
+        }
+
+        /* Informations produit */
+        .product-details h1 {
+            margin: 0 0 15px 0;
+            font-size: 2.2em;
+        }
+        .product-details .price {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+        .product-details .description {
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+        .btn-add-to-cart {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            background-color: var(--accent-color);
+            color: var(--card-bg);
+            font-weight: bold;
+            font-size: 1.1em;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: opacity 0.2s;
+        }
+        .btn-add-to-cart:hover {
+            opacity: 0.8;
+        }
+
+        /* Squelette de chargement */
+        .skeleton {
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+
+        @media (max-width: 768px) {
+            .product-layout {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                margin: 20px auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="breadcrumb">
+            <a id="back-to-shop" href="BoutiquePublique.html">Retour à la boutique</a>
+        </div>
+
+        <div id="product-layout" class="product-layout">
+            <!-- Colonne Images -->
+            <div class="image-gallery">
+                <div class="main-image skeleton" style="height: 400px;">
+                    <img id="main-product-image" src="" alt="Image principale du produit">
+                </div>
+                <div id="product-thumbnails" class="thumbnails">
+                    <div class="skeleton" style="width: 80px; height: 80px;"></div>
+                    <div class="skeleton" style="width: 80px; height: 80px;"></div>
+                    <div class="skeleton" style="width: 80px; height: 80px;"></div>
+                </div>
+            </div>
+
+            <!-- Colonne Détails -->
+            <div class="product-details">
+                <h1 id="product-name" class="skeleton" style="height: 40px; width: 80%;"></h1>
+                <p id="product-price" class="price skeleton" style="height: 36px; width: 40%;"></p>
+                <div id="product-description" class="description">
+                    <p class="skeleton" style="height: 18px;"></p>
+                    <p class="skeleton" style="height: 18px; width: 90%;"></p>
+                    <p class="skeleton" style="height: 18px; width: 70%;"></p>
+                </div>
+                <button id="add-to-cart-btn" class="btn-add-to-cart">Ajouter au panier</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const productId = params.get('id');
+            const userUrl = params.get('user');
+
+            if (!productId || !userUrl) {
+                document.body.innerHTML = '<h1>Produit ou utilisateur non spécifié.</h1>';
+                return;
+            }
+            
+            document.getElementById('back-to-shop').href = `BoutiquePublique.html?user=${userUrl}`;
+            fetchProductData(productId, userUrl);
+        });
+
+        function fetchProductData(productId, userUrl) {
+            // On appelle une nouvelle action API 'getPublicProductData'
+            callApi('getPublicProductData', { payload: { productId, userUrl } })
+                .then(data => {
+                    if (data.error) {
+                        document.body.innerHTML = `<h1>Erreur: ${data.error}</h1>`;
+                    } else {
+                        populateProductDetails(data);
+                    }
+                })
+                .catch(err => {
+                    document.body.innerHTML = `<h1>Erreur de chargement.</h1>`;
+                });
+        }
+
+        function populateProductDetails(product) {
+            // SEO et titre de la page
+            document.title = `${product.Nom} - Mahu`;
+            
+            // Enlever les classes skeleton
+            document.querySelectorAll('.skeleton').forEach(el => el.classList.remove('skeleton'));
+
+            // Remplir les informations
+            document.getElementById('product-name').textContent = product.Nom;
+            document.getElementById('product-price').textContent = `${product.Prix} €`;
+            document.getElementById('product-description').textContent = product.Description || "Aucune description disponible.";
+
+            // Gérer la galerie d'images
+            const images = JSON.parse(product.Images_JSON || '[]');
+            const mainImage = document.getElementById('main-product-image');
+            const thumbnailsContainer = document.getElementById('product-thumbnails');
+            thumbnailsContainer.innerHTML = '';
+
+            if (images.length > 0) {
+                mainImage.src = images[0];
+                images.forEach((imgUrl, index) => {
+                    const thumb = document.createElement('img');
+                    thumb.src = imgUrl;
+                    thumb.alt = `Aperçu ${index + 1}`;
+                    if (index === 0) thumb.classList.add('active');
+                    thumb.onclick = () => {
+                        mainImage.src = imgUrl;
+                        document.querySelectorAll('.thumbnails img').forEach(t => t.classList.remove('active'));
+                        thumb.classList.add('active');
+                    };
+                    thumbnailsContainer.appendChild(thumb);
+                });
+            } else {
+                mainImage.src = 'https://placehold.co/400x400/eee/999?text=Image';
+            }
+        }
+
+        // La fonction callApi doit être définie ici ou dans config.js
+        // On la copie ici pour que la page soit autonome
+        function callApi(action, data = {}) {
+            const formData = new FormData();
+            formData.append('action', action);
+            if (data.payload) {
+                formData.append('payload', JSON.stringify(data.payload));
+            }
+            return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
+        }
+    </script>
+
+</body>
+</html>
+

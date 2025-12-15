@@ -75,6 +75,13 @@ function doPost(e) {
           case 'generateGoogleWalletPass':
             result = generateGoogleWalletPass(user);
             break;
+          case 'getPublicProductData': // Nouvelle action publique
+            result = getPublicProductData(payload);
+            break;
+          case 'saveProduct':
+          case 'deleteProduct':
+            result = handleProductActions(action, payload, user);
+            break;
           case 'logout':
             result = { success: true }; // Simple success for logout
             break;
@@ -168,6 +175,8 @@ function setupSpreadsheet() {
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
+    { name: 'Produits', headers: ['ID_Produit', 'ID_Utilisateur', 'Nom', 'Description', 'Prix', 'Images_JSON', 'Date_Creation', 'Actif'] },
+    { name: 'Categories', headers: ['ID_Categorie', 'ID_Utilisateur', 'Nom_Categorie'] },
     // L'onglet Commandes n'était pas dans la nouvelle spec, mais on peut le garder si besoin.
     // { name: 'Commandes NFC', headers: ['ID_Commande', 'ID_Utilisateur', 'Type_Carte', 'Quantite', 'Date_Commande', 'Statut'] },
   ];
@@ -214,6 +223,8 @@ function verifyAndFixSheetStructure() {
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
+    { name: 'Produits', headers: ['ID_Produit', 'ID_Utilisateur', 'Nom', 'Description', 'Prix', 'Images_JSON', 'Date_Creation', 'Actif'] },
+    { name: 'Categories', headers: ['ID_Categorie', 'ID_Utilisateur', 'Nom_Categorie'] },
   ];
 
   requiredSheets.forEach(sheetInfo => {
@@ -558,7 +569,21 @@ function getDashboardData(user) {
       .filter(row => row[0] === user.ID_Unique) // Filtrer par ID_Profil_Source (colonne A)
       // Formater pour le frontend (les indices sont pour les colonnes 0=ID_Profil_Source, 1=Date_Capture, 2=Nom_Prospect, 3=Contact_Prospect, 4=Message_Note)
       .map(row => ({ id: row[0], date: row[1], nom: row[2], contact: row[3], note: row[4] })) 
-      .slice(0, 10); // Limiter aux 10 derniers
+      .slice(0, 10); // Limiter aux 10 derniers pour l'aperçu
+
+    // --- Récupérer les produits de la boutique ---
+    const productsSheet = ss.getSheetByName('Produits');
+    const allProducts = productsSheet.getLastRow() > 1
+      ? productsSheet.getRange('A2:H' + productsSheet.getLastRow()).getValues()
+      : [];
+    const productsHeaders = productsSheet.getRange(1, 1, 1, productsSheet.getLastColumn()).getValues()[0];
+    const userProducts = allProducts
+      .filter(row => row[1] === user.ID_Unique) // Filtrer par ID_Utilisateur (colonne B)
+      .map(row => {
+        const productObj = {};
+        productsHeaders.forEach((header, index) => productObj[header] = row[index]);
+        return productObj;
+      });
 
     const totalProspectsCount = allProspects.filter(row => row[0] === user.ID_Unique).length;
 
@@ -569,6 +594,7 @@ function getDashboardData(user) {
       user: user,
       profile: profile,
       prospects: userProspects,
+      products: userProducts, // Ajout des produits
       appUrl: appUrl,
       stats: stats, // Nouvelles données pour le graphique
       totalViews: totalUserViews, // Nouvelle donnée
@@ -668,6 +694,47 @@ function getProfileData(profileUrl) {
   } catch (e) {
     Logger.log(`Erreur dans getProfileData: ${e.message}`);
     return { error: e.message };
+  }
+}
+
+/**
+ * Récupère les données d'un produit spécifique pour la page de détail publique.
+ * @param {Object} payload - Contient { productId, userUrl }.
+ * @returns {Object} Les données du produit ou une erreur.
+ */
+function getPublicProductData(payload) {
+  const { productId, userUrl } = payload;
+  if (!productId || !userUrl) {
+    return { error: "ID de produit ou URL utilisateur manquant." };
+  }
+
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const usersSheet = ss.getSheetByName('Utilisateurs');
+    const productsSheet = ss.getSheetByName('Produits');
+
+    // 1. Trouver l'ID de l'utilisateur à partir de son URL
+    const usersData = usersSheet.getDataRange().getValues();
+    const urlCol = usersData[0].indexOf('URL_Profil');
+    const userIdCol = usersData[0].indexOf('ID_Unique');
+    const userRow = usersData.find(row => row[urlCol] === userUrl);
+    if (!userRow) return { error: "Vendeur non trouvé." };
+    const userId = userRow[userIdCol];
+
+    // 2. Trouver le produit par son ID et vérifier qu'il appartient bien à cet utilisateur
+    const productsData = productsSheet.getDataRange().getValues();
+    const productsHeaders = productsData.shift();
+    const prodIdCol = productsHeaders.indexOf('ID_Produit');
+    const prodUserIdCol = productsHeaders.indexOf('ID_Utilisateur');
+    const productRow = productsData.find(row => row[prodIdCol] === productId && row[prodUserIdCol] === userId);
+
+    if (!productRow) return { error: "Produit non trouvé." };
+
+    // 3. Transformer la ligne en objet
+    return productsHeaders.reduce((obj, header, index) => { obj[header] = productRow[index]; return obj; }, {});
+
+  } catch (e) {
+    return { error: "Erreur lors de la récupération du produit." };
   }
 }
 
@@ -944,6 +1011,66 @@ function updateOnboardingData(request, user) {
   }
 }
 
+/**
+ * ==================================================================
+ * LOGIQUE POUR LA GESTION DE LA BOUTIQUE
+ * ==================================================================
+ */
+
+/**
+ * Gère la création, la mise à jour et la suppression de produits.
+ * @param {string} action - 'saveProduct' ou 'deleteProduct'.
+ * @param {Object} payload - Les données du produit.
+ * @param {Object} user - L'utilisateur authentifié.
+ */
+function handleProductActions(action, payload, user) {
+  const productsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Produits');
+  const headers = productsSheet.getRange(1, 1, 1, productsSheet.getLastColumn()).getValues()[0];
+  const productIdCol = headers.indexOf('ID_Produit');
+  const userIdCol = headers.indexOf('ID_Utilisateur');
+
+  if (action === 'saveProduct') {
+    const productData = payload;
+    const productId = productData.ID_Produit || 'prod_' + Utilities.getUuid();
+    
+    const data = productsSheet.getDataRange().getValues();
+    const rowIndex = data.findIndex(row => row[productIdCol] === productId && row[userIdCol] === user.ID_Unique);
+
+    const newRowData = [
+      productId,
+      user.ID_Unique,
+      productData.Nom,
+      productData.Description,
+      productData.Prix,
+      JSON.stringify(productData.Images_JSON || []),
+      new Date(),
+      'OUI' // Actif par défaut
+    ];
+
+    if (rowIndex !== -1) {
+      // Mise à jour d'un produit existant
+      productsSheet.getRange(rowIndex + 1, 1, 1, newRowData.length).setValues([newRowData]);
+      logAction('saveProduct', 'SUCCESS', `Produit ${productId} mis à jour.`, user.Email);
+    } else {
+      // Création d'un nouveau produit
+      productsSheet.appendRow(newRowData);
+      logAction('saveProduct', 'SUCCESS', `Nouveau produit ${productId} créé.`, user.Email);
+    }
+    return { success: true, message: 'Produit sauvegardé.' };
+
+  } else if (action === 'deleteProduct') {
+    const productId = payload.ID_Produit;
+    const data = productsSheet.getDataRange().getValues();
+    const rowIndex = data.findIndex(row => row[productIdCol] === productId && row[userIdCol] === user.ID_Unique);
+
+    if (rowIndex !== -1) {
+      productsSheet.deleteRow(rowIndex + 1);
+      logAction('deleteProduct', 'SUCCESS', `Produit ${productId} supprimé.`, user.Email);
+      return { success: true, message: 'Produit supprimé.' };
+    }
+    return { success: false, error: 'Produit non trouvé ou non autorisé.' };
+  }
+}
 /**
  * ==================================================================
  * LOGIQUE POUR GOOGLE WALLET

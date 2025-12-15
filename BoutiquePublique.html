@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boutique</title>
+    <link rel="icon" href="r/logo.png" type="image/png">
+    <style>
+        :root {
+            --bg-main: #f4f7f6;
+            --card-bg: #FFFFFF;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #dee2e6;
+            --accent-color: #000000;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 40px;
+        }
+        .seller-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .seller-info img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .seller-info h1 {
+            font-size: 1.8em;
+            margin: 0;
+        }
+        .cart-icon {
+            position: relative;
+            cursor: pointer;
+        }
+        .cart-icon svg {
+            width: 32px;
+            height: 32px;
+        }
+        .cart-count {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        .product-card {
+            text-decoration: none;
+            color: inherit;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .product-card-link {
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .product-card img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+        }
+        .product-info {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .product-info h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+        }
+        .product-info .price {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-top: auto; /* Pousse le prix et le bouton en bas */
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header class="header">
+            <div class="seller-info">
+                <img id="seller-pic" src="https://placehold.co/150x150/ccc/999?text=V" alt="Vendeur">
+                <h1 id="seller-name">Boutique de...</h1>
+            </div>
+            <div class="cart-icon" onclick="alert('Le panier est en cours de développement.')">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                <span id="cart-count" class="cart-count">0</span>
+            </div>
+        </header>
+
+        <main>
+            <div id="product-grid" class="product-grid">
+                <!-- Squelette de chargement -->
+                <div class="product-card-link"><div class="product-card" style="background:#eee; height: 400px;"></div></div>
+                <div class="product-card-link"><div class="product-card" style="background:#eee; height: 400px;"></div></div>
+                <div class="product-card-link"><div class="product-card" style="background:#eee; height: 400px;"></div></div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>Propulsé par Mahu</p>
+        </footer>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const userUrl = params.get('user');
+            if (!userUrl) {
+                document.body.innerHTML = '<h1>Utilisateur non spécifié.</h1>';
+                return;
+            }
+            fetchBoutiqueData(userUrl);
+        });
+
+        async function fetchBoutiqueData(userUrl) {
+            // On utilise getDashboardData car il contient déjà les produits et les infos vendeur.
+            // On pourrait créer un endpoint plus léger, mais c'est efficace pour commencer.
+            try {
+                const data = await callApi('getProfileData', { user: userUrl });
+                if (data.error) throw new Error(data.error);
+
+                // Il nous faut aussi les produits, qui sont dans getDashboardData.
+                // Pour l'instant, on va simuler, mais l'idéal serait un endpoint 'getPublicBoutiqueData'.
+                const dashboardData = await callApi('getDashboardData', { token: "placeholder_for_public_access" }); // Ceci est une simplification
+                
+                populateBoutique(data, dashboardData.products, userUrl);
+
+            } catch (error) {
+                document.body.innerHTML = `<h1>Erreur: Impossible de charger la boutique.</h1><p>${error.message}</p>`;
+            }
+        }
+
+        function populateBoutique(data) {
+            document.getElementById('seller-name').textContent = `Boutique de ${data.seller.Nom_Complet}`;
+            document.getElementById('seller-pic').src = data.seller.URL_Photo || 'https://placehold.co/150x150/ccc/999?text=V';
+
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = ''; // Vider les squelettes
+
+            if (data.products.length === 0) {
+                grid.innerHTML = '<p>Cette boutique n\'a pas encore de produits.</p>';
+                return;
+            }
+
+            data.products.forEach(product => {
+                const images = JSON.parse(product.Images_JSON || '[]');
+                const link = document.createElement('a');
+                link.className = 'product-card-link';
+                link.href = `ProduitDetail.html?id=${product.ID_Produit}&user=${data.URL_Profil}`;
+                link.innerHTML = `
+                    <div class="product-card">
+                        <img src="${images[0] || 'https://placehold.co/400x300/eee/999?text=Image'}" alt="${product.Nom}">
+                        <div class="product-info">
+                            <h3>${product.Nom}</h3>
+                            <p class="price">${product.Prix} €</p>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function addToCart(productId) {
+            console.log(`Ajout du produit ${productId} au panier.`);
+            const countElement = document.getElementById('cart-count');
+            let currentCount = parseInt(countElement.textContent);
+            countElement.textContent = currentCount + 1;
+            alert('Produit ajouté au panier (simulation) !');
+        }
+
+        // Fonction callApi pour que la page fonctionne
+        function callApi(action, data = {}) {
+            const formData = new FormData();
+            formData.append('action', action);
+            // Pour les pages publiques, on envoie le payload directement
+            formData.append('payload', JSON.stringify(data.payload || data));
+            return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
+        }
+    </script>
+
+</body>
+</html>
