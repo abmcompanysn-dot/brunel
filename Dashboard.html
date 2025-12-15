@@ -295,8 +295,10 @@
             right: 10px;
         }
         .profile-picture-container .edit-overlay {
-            top: 0;
-            right: 650px;
+            top: 5px;
+            right: 0;
+            left: 85px; /* Positionne le bouton à droite de l'image de profil */
+            width: 32px; /* Assure que le conteneur ne s'étire pas */
         }
         .edit-overlay-btn {
             background-color: rgba(0, 0, 0, 0.7);
@@ -429,6 +431,10 @@
             height: 600px;
             border-radius: 25px;
             display: flex;
+            position: relative; /* Ajout pour le positionnement du bouton de fermeture */
+        }
+        .phone-screen-inner {
+            flex-grow: 1;
             flex-direction: column;
             overflow: hidden; /* Empêche le défilement global */
         }
@@ -522,6 +528,10 @@
                 grid-template-columns: 1fr;
             }
             .modal-editor-layout {
+                display: flex;
+                flex-direction: column-reverse; /* Met le téléphone en haut sur mobile */
+            }
+            .phone-preview {
                 grid-template-columns: 1fr;
             }
             .modal-content {
@@ -533,6 +543,16 @@
             grid-template-columns: 1fr 1fr; /* Deux boutons par ligne pour le partage */
             gap: 10px; /* Ajoute un espace entre les boutons */
             }
+            .profile-picture-container .edit-overlay {
+                left: auto; /* Annule le positionnement à gauche */
+                right: calc(50% - 60px); /* Centre le bouton par rapport à l'image */
+                transform: translateX(100%);
+            }
+            .phone-screen {
+                height: 500px; /* Réduit la hauteur sur les petits écrans */
+            }
+            .modal-editor-layout > form {
+                max-height: 50vh; overflow-y: auto; padding-right: 10px; }
         }
     </style>
 </head>
@@ -823,18 +843,20 @@
                 </form>
                 <div class="phone-preview">
                     <div class="phone-screen">
-                        <div class="phone-qr-section">
-                            <img id="phone-qrcode-preview" src="https://via.placeholder.com/150?text=QR" alt="Aperçu QR Code">
-                            <p>Mon QR Code</p>
-                        </div>
-                        <div class="phone-scrollable-content">
-                            <div id="phone-cover-preview" class="phone-cover" style="background-image: url('https://via.placeholder.com/800x300?text=Couverture');"></div>
-                            <div class="phone-header">
-                                <img id="phone-picture-preview" src="https://via.placeholder.com/150" alt="Aperçu profil">
-                                <h3 id="phone-name-preview">Nom Prénom</h3>
-                                <p id="phone-details-preview">Profession</p>
+                        <div class="phone-screen-inner">
+                            <div class="phone-qr-section">
+                                <img id="phone-qrcode-preview" src="https://via.placeholder.com/150?text=QR" alt="Aperçu QR Code">
+                                <p>Mon QR Code</p>
                             </div>
-                            <div id="phone-social-links-preview" class="phone-social-links"></div>
+                            <div class="phone-scrollable-content">
+                                <div id="phone-cover-preview" class="phone-cover" style="background-image: url('https://via.placeholder.com/800x300?text=Couverture');"></div>
+                                <div class="phone-header">
+                                    <img id="phone-picture-preview" src="https://via.placeholder.com/150" alt="Aperçu profil">
+                                    <h3 id="phone-name-preview">Nom Prénom</h3>
+                                    <p id="phone-details-preview">Profession</p>
+                                </div>
+                                <div id="phone-social-links-preview" class="phone-social-links"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
