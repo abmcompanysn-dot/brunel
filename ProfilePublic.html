@@ -27,7 +27,6 @@
             align-items: flex-start;
             min-height: 100vh;
             padding: 20px;
-            box-sizing: border-box;
         }
 
         .profile-card {
@@ -86,8 +85,8 @@
 
         .action-buttons {
             margin: 30px 0;
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 15px;
         }
 
@@ -97,14 +96,13 @@
             border-radius: 8px;
             padding: 15px 5px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: background-color 0.3s;
             text-decoration: none;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             gap: 8px;
-            flex: 1 1 80px; /* Permet aux boutons de s'adapter */
             font-size: 0.8em;
             font-weight: 500;
         }
@@ -120,10 +118,7 @@
         }
         
         .download-btn {
-            border: 1px solid var(--border-color);
-        }
-        .shop-btn {
-            border: 1px solid var(--border-color);
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
         .download-btn:hover { border-color: var(--accent-color); }
 
@@ -208,48 +203,6 @@
             transition: opacity 0.3s;
         }
 
-        /* Nouveaux styles pour la section Boutique */
-        #shop-preview-module {
-            display: none; /* Caché par défaut */
-            text-align: left;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-        }
-        .shop-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-        .shop-item {
-            text-decoration: none;
-            color: var(--text-light);
-            background-color: rgba(0,0,0,0.2);
-            border-radius: 8px;
-            overflow: hidden;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .shop-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-        .shop-item img {
-            width: 100%;
-            height: 100px;
-            object-fit: cover;
-        }
-        .shop-item-info {
-            padding: 10px;
-        }
-        .shop-item-info h4 {
-            margin: 0 0 5px 0;
-            font-size: 0.9em;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
         /* Styles pour le squelette de chargement */
         .skeleton {
             background-color: #3a3a3a;
@@ -275,31 +228,6 @@
         .spin {
             animation: spin 1s linear infinite;
         }
-
-        /* Styles pour les champs du formulaire */
-        #lead-capture-module .form-control {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-            border: 1px solid var(--border-color);
-            background-color: rgba(0,0,0,0.2);
-            color: var(--text-light);
-            font-size: 1em;
-            box-sizing: border-box;
-        }
-        #lead-capture-module .btn-submit {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 5px;
-            background-color: var(--accent-color);
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            margin-top: 10px;
-        } 
 
     </style>
 </head>
@@ -349,10 +277,6 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 <span>Télécharger la carte</span>
             </a>
-            <a href="#" id="shop-btn" class="action-btn shop-btn" title="Visiter la boutique" style="display: none;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-                <span>Boutique</span>
-            </a>
         </div>
         <div class="social-links">
             <!-- Les liens sociaux seront injectés ici par GAS -->
@@ -361,16 +285,8 @@
             <a href="#" target="_blank" class="social-link"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg><span>Twitter</span></a>
         </div>
 
-        <!-- Aperçu de la boutique -->
-        <div id="shop-preview-module">
-            <h3 style="margin-bottom: 15px; margin-top: 0;">Produits Récents</h3>
-            <div id="shop-grid" class="shop-grid">
-                <!-- Les produits seront injectés ici -->
-            </div>
-        </div>
-
         <!-- Formulaire de contact directement sur la carte -->
-        <div id="lead-capture-module" style="display: none; text-align: left; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+        <div id="lead-capture-module" style="text-align: left; margin-top: 30px;">
             <h3 style="margin-bottom: 15px; margin-top: 0;">Entrons en contact</h3>
             <form id="lead-form" onsubmit="submitLead(event)">
                 <input type="text" id="lead-name" placeholder="Votre nom complet" required class="form-control">
@@ -396,6 +312,31 @@
     <div id="toast" class="toast"></div>
 
     <script src="config.js"></script>
+    <style>
+        /* Styles pour les champs du formulaire */
+        #lead-capture-module .form-control {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid var(--border-color);
+            background-color: rgba(0,0,0,0.2);
+            color: var(--text-light);
+            font-size: 1em;
+        }
+        #lead-capture-module .btn-submit {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--accent-color);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        } 
+    </style>
 
     <script>
         /**
@@ -415,11 +356,10 @@
         window.addEventListener('load', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const profileUrl = urlParams.get('user');
-            const source = urlParams.get('source') || 'Lien'; // 'NFC', 'QR', 'Lien', etc.
+            const source = urlParams.get('source') || 'Lien'; // 'NFC', 'QR', 'Lien'
 
             if (profileUrl) {
-                // On appelle une nouvelle action qui ramène aussi les produits
-                callApi('getPublicProfileData', { payload: { user: profileUrl } })
+                callApi('getProfileData', { user: profileUrl })
                     .then(data => {
                         if (data.error) {
                             onProfileError({ message: data.error });
@@ -453,10 +393,10 @@
             }
 
             // --- SEO DYNAMIQUE ---
-            const profileTitle = `${data.seller.Nom_Complet || 'Profil'} - Mahu`;
-            const profileDescription = `Découvrez le profil numérique de ${data.seller.Nom_Complet || 'ce contact'}. Profession: ${data.seller.Profession || 'Non spécifié'}.`;
+            const profileTitle = `${data.Nom_Complet || 'Profil'} - Mahu`;
+            const profileDescription = `Découvrez le profil numérique de ${data.Nom_Complet || 'ce contact'}. Profession: ${data.Profession || 'Non spécifié'}.`;
             const profileUrl = window.location.href;
-            const profileImage = data.seller.URL_Photo || 'https://mahu-app.com/r/og-image.png'; // Image par défaut
+            const profileImage = data.URL_Photo || 'https://mahu-app.com/r/og-image.png'; // Image par défaut
 
             document.title = profileTitle;
             document.querySelector('meta[name="description"]').setAttribute('content', profileDescription);
@@ -465,19 +405,19 @@
             document.head.insertAdjacentHTML('beforeend', `<meta property="og:description" content="${profileDescription}">`);
             document.head.insertAdjacentHTML('beforeend', `<meta property="og:url" content="${profileUrl}">`);
             document.head.insertAdjacentHTML('beforeend', `<meta property="og:image" content="${profileImage}">`);
-            document.head.insertAdjacentHTML('beforeend', `<meta property="profile:first_name" content="${(data.seller.Nom_Complet || '').split(' ')[0]}">`);
+            document.head.insertAdjacentHTML('beforeend', `<meta property="profile:first_name" content="${(data.Nom_Complet || '').split(' ')[0]}">`);
 
             const card = document.querySelector('.profile-card');
 
             // Mettre à jour la couleur d'accent
-            document.documentElement.style.setProperty('--accent-color', data.seller.Couleur_Theme || '#007BFF');
+            document.documentElement.style.setProperty('--accent-color', data.Couleur_Theme || '#007BFF');
 
             // --- LOGIQUE D'AFFICHAGE CONDITIONNEL ---
-            if (data.seller.URL_Photo) {
+            if (data.URL_Photo) {
                 // Comportement normal si la photo de profil existe
-                card.querySelector('.profile-cover').style.backgroundImage = `url('${data.seller.URL_Couverture || ''}')`;
+                card.querySelector('.profile-cover').style.backgroundImage = `url('${data.URL_Couverture || ''}')`;
                 const profileImg = card.querySelector('.profile-header img');
-                profileImg.src = data.seller.URL_Photo;
+                profileImg.src = data.URL_Photo;
                 profileImg.style.display = 'block';
             } else {
                 // Comportement si PAS de photo de profil
@@ -492,64 +432,40 @@
             }
 
             const nameElement = card.querySelector('.profile-header h1 .real-text');
-            nameElement.textContent = data.seller.Nom_Complet || 'Nom non défini';
+            nameElement.textContent = data.Nom_Complet || 'Nom non défini';
             nameElement.style.display = 'inline';
             
             // Concaténer Profession, Compagnie, Location
-            const subtitleParts = [data.seller.Profession, data.seller.Compagnie, data.seller.Location].filter(Boolean); // Filtre les valeurs vides
+            const subtitleParts = [data.Profession, data.Compagnie, data.Location].filter(Boolean); // Filtre les valeurs vides
             const subtitleElement = card.querySelector('.profile-header p .real-text');
             subtitleElement.textContent = subtitleParts.join(' | ') || 'Informations non disponibles';
             subtitleElement.style.display = 'inline';
 
             // Remplir les champs copiables et les boutons d'action
             const emailField = document.getElementById('email-address');
-            emailField.textContent = data.seller.Email || 'email@example.com';
+            emailField.textContent = data.Email || 'email@example.com';
             emailField.style.display = 'inline';
-            document.querySelector('a[title="Envoyer un email"]').href = `mailto:${data.seller.Email}`;
+            document.querySelector('a[title="Envoyer un email"]').href = `mailto:${data.Email}`;
             // Le téléphone n'est pas dans le modèle de données public actuel, on peut le cacher s'il est vide
             const phoneField = document.getElementById('phone-number');
-            if (data.seller.Telephone) {
-                phoneField.textContent = data.seller.Telephone;
+            if (data.Telephone) {
+                phoneField.textContent = data.Telephone;
                 phoneField.style.display = 'inline';
-                document.getElementById('call-btn').href = `tel:${data.seller.Telephone}`;
+                document.getElementById('call-btn').href = `tel:${data.Telephone}`;
             } else {
                 phoneField.parentElement.style.display = 'none';
                 document.getElementById('call-btn').style.display = 'none';
             }
 
             // Afficher le module de capture de prospects si activé
-            if (data.seller.Lead_Capture_Actif === 'OUI') {
+            if (data.Lead_Capture_Actif === 'OUI') {
                 document.getElementById('lead-capture-module').style.display = 'block';
-            }
-
-            // Afficher le module boutique si activé ET s'il y a des produits
-            if (data.seller.Boutique_Active === 'OUI' && data.products && data.products.length > 0) {
-                const shopBtn = document.getElementById('shop-btn');
-                shopBtn.style.display = 'flex';
-                shopBtn.href = `BoutiquePublique.html?user=${data.seller.URL_Profil}`;
-
-                const shopModule = document.getElementById('shop-preview-module');
-                shopModule.style.display = 'block';
-                const shopGrid = document.getElementById('shop-grid');
-                shopGrid.innerHTML = ''; // Vider le contenu
-
-                // Afficher jusqu'à 3 produits
-                data.products.slice(0, 3).forEach(product => {
-                    const images = JSON.parse(product.Images_JSON || '[]');
-                    const imageUrl = images[0] || 'https://placehold.co/300x200/eee/999?text=Image';
-                    shopGrid.innerHTML += `
-                        <a href="ProduitDetail.html?id=${product.ID_Produit}&user=${data.seller.URL_Profil}" class="shop-item">
-                            <img src="${imageUrl}" alt="${product.Nom}">
-                            <div class="shop-item-info"><h4>${product.Nom}</h4></div>
-                        </a>
-                    `;
-                });
             }
 
             // Remplir les liens sociaux
             const socialLinksContainer = document.querySelector('.social-links');
             socialLinksContainer.innerHTML = ''; // Vider les exemples
-            const socialLinks = JSON.parse(data.seller.Liens_Sociaux_JSON || '[]');
+            const socialLinks = JSON.parse(data.Liens_Sociaux_JSON || '[]');
             
             const iconMap = {
                 website: '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>',
@@ -598,7 +514,7 @@
                 });
             });
 
-            // Cacher le squelette et afficher la carte
+            // Cacher le squelette
             card.classList.remove('loading');
         }
 
@@ -617,7 +533,7 @@ END:VCARD`;
             const url = URL.createObjectURL(blob);
             
             const a = document.createElement('a');
-            a.href = url; // Les données sont maintenant dans data.seller
+            a.href = url;
             a.download = `${(data.Nom_Complet || 'contact').replace(/ /g, '_')}.vcf`;
             document.body.appendChild(a);
             a.click();
@@ -634,16 +550,12 @@ END:VCARD`;
         async function generateCardImage(data) {
             /**
              * Fonction pour dessiner un rectangle avec des coins arrondis.
-             * @param {CanvasRenderingContext2D} ctx
-             * @param {number} x
-             * @param {number} y
-             * @param {number} width
-             * @param {number} height
-             * @param {number|object} radius
              */
             function roundRect(ctx, x, y, width, height, radius) {
                 if (typeof radius === 'number') {
                     radius = {tl: radius, tr: radius, br: radius, bl: radius};
+                } else {
+                    radius = {...{tl: 0, tr: 0, br: 0, bl: 0}, ...radius};
                 }
                 ctx.beginPath();
                 ctx.moveTo(x + radius.tl, y);
@@ -660,13 +572,12 @@ END:VCARD`;
 
             /**
              * Dessine une icône SVG sur le canvas.
-             * @param {CanvasRenderingContext2D} ctx
              * @param {string} pathData - Le 'd' de la balise <path> du SVG.
              * @param {number} x - Position X.
              * @param {number} y - Position Y.
              * @param {number} size - Taille de l'icône.
              */
-            function drawIcon(ctx, pathData, x, y, size) {
+            function drawIcon(pathData, x, y, size) {
                 const path = new Path2D(pathData);
                 ctx.save();
                 ctx.translate(x, y);
@@ -697,25 +608,19 @@ END:VCARD`;
             try {
                 const qrCodeUrl = `https://quickchart.io/qr?text=${encodeURIComponent(window.location.href)}&size=500`; // QR code simple, sans logo
 
-                // Préparer les promesses de chargement d'images
-                const imagePromises = [
+                // Charger le logo Mahu et le QR code en parallèle
+                const [mahuLogoImg, qrCodeImg] = await Promise.all([
                     loadImage('r/logo.png'), // Utiliser un chemin relatif simple pour le logo local
                     loadImage(qrCodeUrl)
-                ];
-
-                if (data.seller.URL_Photo) {
-                    imagePromises.push(loadImage(data.seller.URL_Photo));
-                }
-
-                const [mahuLogoImg, qrCodeImg, profileImg] = await Promise.all(imagePromises);
+                ]);
 
                 // 1. Arrière-plan avec coins arrondis
-                ctx.fillStyle = data.seller.Couleur_Theme || '#007BFF';
+                ctx.fillStyle = data.Couleur_Theme || '#007BFF';
                 roundRect(ctx, 0, 0, cardWidth, cardHeight, 30);
                 ctx.fill();
 
                 // 2. Logo Mahu en blanc en bas à gauche
-                // On crée un canvas temporaire pour isoler le logo et le colorer en blanc (data.seller)
+                // On crée un canvas temporaire pour isoler le logo et le colorer en blanc
                 const logoCanvas = document.createElement('canvas');
                 logoCanvas.width = mahuLogoImg.width;
                 logoCanvas.height = mahuLogoImg.height;
@@ -737,45 +642,45 @@ END:VCARD`;
                 let currentY = 80;
 
                 // Nom Complet
-                drawIcon(ctx, "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 7 a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", 40, currentY - 28, 32);
+                drawIcon("M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2 M12 7 a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", 40, currentY - 28, 32);
                 ctx.font = 'bold 36px -apple-system, sans-serif';
-                ctx.fillText(data.seller.Nom_Complet || '', 90, currentY);
+                ctx.fillText(data.Nom_Complet || '', 90, currentY);
                 currentY += 70;
 
                 // Profession
-                drawIcon(ctx, "M2 7h20v14H2z M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2", 40, currentY - 28, 32);
+                drawIcon("M2 7h20v14H2z M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2", 40, currentY - 28, 32);
                 ctx.font = '32px -apple-system, sans-serif';
-                ctx.fillText(data.seller.Profession || '', 90, currentY);
+                ctx.fillText(data.Profession || '', 90, currentY);
                 currentY += 70;
                 
                 // Compagnie (si elle existe)
-                if (data.seller.Compagnie) {
-                    drawIcon(ctx, "M3 21h18M5 21V7l7-4 7 4v14", 40, currentY - 28, 32);
+                if (data.Compagnie) {
+                    drawIcon("M3 21h18M5 21V7l7-4 7 4v14", 40, currentY - 28, 32);
                     ctx.font = '32px -apple-system, sans-serif';
-                    ctx.fillText(data.seller.Compagnie, 90, currentY);
+                    ctx.fillText(data.Compagnie, 90, currentY);
                     currentY += 70;
                 }
                 
                 // Numéro de téléphone (s'il existe)
-                if (data.seller.Telephone) {
-                    drawIcon(ctx, "M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z", 40, currentY - 28, 32);
+                if (data.Telephone) {
+                    drawIcon("M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z", 40, currentY - 28, 32);
                     ctx.font = '32px -apple-system, sans-serif';
-                    ctx.fillText(data.seller.Telephone, 90, currentY);
+                    ctx.fillText(data.Telephone, 90, currentY);
                     currentY += 70;
                 }
 
                 // Adresse Email (si elle existe)
-                if (data.seller.Email) {
-                    drawIcon(ctx, "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6L12 13 2 6", 40, currentY - 28, 32);
+                if (data.Email) {
+                    drawIcon("M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6L12 13 2 6", 40, currentY - 28, 32);
                     ctx.font = '32px -apple-system, sans-serif';
-                    ctx.fillText(data.seller.Email, 90, currentY);
+                    ctx.fillText(data.Email, 90, currentY);
                 }
 
                 // Site Web (s'il existe)
-                const websiteLink = (JSON.parse(data.seller.Liens_Sociaux_JSON || '[]')).find(link => link.type === 'website');
+                const websiteLink = (JSON.parse(data.Liens_Sociaux_JSON || '[]')).find(link => link.type === 'website');
                 if (websiteLink) {
                     currentY += 70;
-                    drawIcon(ctx, "M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72 M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72", 40, currentY - 28, 32);
+                    drawIcon("M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72 M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72", 40, currentY - 28, 32);
                     ctx.font = '32px -apple-system, sans-serif';
                     ctx.fillText(websiteLink.url.replace(/^(https?:\/\/)?(www\.)?/, ''), 90, currentY);
                 }
@@ -783,7 +688,7 @@ END:VCARD`;
                 // 5. Déclencher le téléchargement
                 const a = document.createElement('a');
                 a.href = canvas.toDataURL('image/png');
-                a.download = `carte_visite_${(data.seller.Nom_Complet || 'mahu').replace(/ /g, '_')}.png`;
+                a.download = `carte_visite_${(data.Nom_Complet || 'mahu').replace(/ /g, '_')}.png`;
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
