@@ -276,7 +276,7 @@
             <ul class="desktop-links">
                 <li><a href="index.html#features">Technologie</a></li>
                 <li><a href="index.html#about">À Propos</a></li>
-                <li><a href="index.html#cards">Nos Offres</a></li>
+                <li><a href="Boutique.html">Boutique</a></li>
             </ul>
             <div class="nav-actions">
                 <a href="Connexion.html" class="primary" id="login-link">
@@ -289,9 +289,7 @@
                     <div class="more-menu-dropdown">
                         <a href="index.html#features">Technologie</a>
                         <a href="index.html#about">À Propos</a>
-                        <a href="index.html#cards">Nos Offres</a>
                         <a href="Boutique.html">Boutique</a>
-                        <a href="Panier.html" id="cart-link">Panier (0)</a>
                     </div>
                 </div>
             </div>
@@ -420,30 +418,6 @@
             </div>
         </section>
 
-        <section id="cards" class="container">
-            <h2 class="section-title">Nos Offres</h2>
-            <p class="section-subtitle">Trouvez la carte qui correspond à votre style. Chaque carte donne accès à vie à notre plateforme.</p>
-            <div class="grid-3">
-                <div class="card product-card">
-                    <h3>Carte Classique PVC</h3>
-                    <p>La carte en PVC premium, durable et élégante. Personnalisable avec votre logo et QR code.</p> 
-                    <div class="price" style="font-size: 2em; font-weight: bold; margin: 20px 0;">29.99€ <span style="font-size: 0.5em; font-weight: normal; color: var(--text-secondary);">/ unité</span></div>
-                    <a href="#" class="btn" onclick="event.preventDefault(); addToCart('pvc', 'Carte Classique PVC', 29.99)">Ajouter au panier</a>
-                </div>
-                <div class="card product-card">
-                    <h3>Carte Métal Noir</h3>
-                    <p>Une finition luxueuse en métal brossé pour un impact maximal. Gravure laser de précision.</p>
-                    <div class="price" style="font-size: 2em; font-weight: bold; margin: 20px 0;">79.99€ <span style="font-size: 0.5em; font-weight: normal; color: var(--text-secondary);">/ unité</span></div>
-                    <a href="#" class="btn" onclick="event.preventDefault(); addToCart('metal', 'Carte Métal Noir', 79.99)">Ajouter au panier</a>
-                </div>
-                <div class="card product-card">
-                    <h3>Carte Bois de Bambou</h3>
-                    <p>Écologique et unique, chaque carte en bois véritable est une pièce d'artisanat.</p>
-                    <div class="price" style="font-size: 2em; font-weight: bold; margin: 20px 0;">59.99€ <span style="font-size: 0.5em; font-weight: normal; color: var(--text-secondary);">/ unité</span></div>
-                    <a href="#" class="btn" onclick="event.preventDefault(); addToCart('wood', 'Carte Bois de Bambou', 59.99)">Ajouter au panier</a>
-                </div>
-            </div>
-        </section>
     </main>
 
     <script src="config.js"></script>
@@ -468,38 +442,6 @@
         }
 
         /**
-         * Ajoute un produit au panier (localStorage) et synchronise si l'utilisateur est connecté.
-         */
-        function addToCart(id, name, price) {
-            let cart = JSON.parse(localStorage.getItem('cart')) || [];
-            const existingItem = cart.find(item => item.id === id);
-            if (existingItem) {
-                existingItem.quantity++;
-            } else {
-                cart.push({ id, name, price, quantity: 1 });
-            }
-            localStorage.setItem('cart', JSON.stringify(cart));
-            alert(name + ' a été ajouté au panier !');
-            // Si l'utilisateur est connecté, synchroniser le panier avec le backend
-            if (localStorage.getItem('userIsLoggedIn') === 'true') {
-                callApi('syncCart', { payload: cart }).catch(err => console.error('Erreur de synchro panier:', err));
-            }
-            updateCartCounter();
-        }
-
-        /**
-         * Met à jour le compteur d'articles dans le header.
-         */
-        function updateCartCounter() {
-            const cart = JSON.parse(localStorage.getItem('cart')) || [];
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            const cartLink = document.getElementById('cart-link');
-            if (cartLink) {
-                cartLink.textContent = `Panier (${totalItems})`;
-            }
-        }
-
-        /**
          * Affiche ou cache le menu "trois points".
          */
         function toggleMoreMenu(event) {
@@ -521,8 +463,6 @@
          * Logique exécutée au chargement du DOM.
          */
         document.addEventListener('DOMContentLoaded', () => { 
-            updateCartCounter(); 
-
             // Attacher l'événement au menu "trois points" de manière propre
             const moreMenuIcon = document.querySelector('.more-menu-icon');
             if (moreMenuIcon) {

@@ -178,7 +178,6 @@
             <ul class="desktop-links">
                 <li><a href="index.html#features">Technologie</a></li>
                 <li><a href="index.html#about">À Propos</a></li>
-                <li><a href="index.html#cards">Nos Offres</a></li>
             </ul>
             <div class="nav-actions">
                 <a href="Connexion.html" class="primary" id="login-link">
@@ -189,9 +188,7 @@
                     <div class="more-menu-dropdown">
                         <a href="index.html#features">Technologie</a>
                         <a href="index.html#about">À Propos</a>
-                        <a href="index.html#cards">Nos Offres</a>
                         <a href="Boutique.html">Boutique</a>
-                        <a href="Panier.html" id="cart-link">Panier (0)</a>
                     </div>
                 </div>
             </div>
@@ -308,18 +305,6 @@
             return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
         }
 
-        /**
-         * Met à jour le compteur d'articles dans le header.
-         */
-        function updateCartCounter() {
-            const cart = JSON.parse(localStorage.getItem('cart')) || [];
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            const cartLink = document.getElementById('cart-link');
-            if (cartLink) {
-                cartLink.textContent = `Panier (${totalItems})`;
-            }
-        }
-
         // ===================================================================
 
         let currentStep = 1;
@@ -410,8 +395,6 @@
 
         // Initialiser la barre de progression au chargement
         document.addEventListener('DOMContentLoaded', () => {
-            updateCartCounter();
-
             // Gestion du menu "trois points"
             const moreMenuIcon = document.querySelector('.more-menu-icon');
             if (moreMenuIcon) {

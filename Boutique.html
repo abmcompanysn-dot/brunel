@@ -2,18 +2,18 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="description" content="Découvrez et achetez nos cartes de visite numériques Mahu. Choisissez parmi nos modèles en PVC, métal ou bois pour un networking moderne et efficace.">
-    <meta name="keywords" content="acheter carte NFC, boutique carte de visite, carte PVC, carte métal, carte bois, Mahu">
-    <meta property="og:title" content="Boutique - Mahu">
-    <meta property="og:description" content="Choisissez la carte de visite numérique qui vous représente.">
+    <meta name="description" content="Explorez notre boutique spécialisée en technologies NFC et RFID. Trouvez des lecteurs, cartes, tags, et solutions complètes pour vos projets.">
+    <meta name="keywords" content="boutique RFID, acheter NFC, lecteur RFID, tag NFC, carte RFID, solution identification, matériel RFID">
+    <meta property="og:title" content="Boutique RFID & NFC - Mahu">
+    <meta property="og:description" content="Votre fournisseur expert en matériel et solutions RFID/NFC.">
     <meta property="og:url" content="https://mahu-app.com/Boutique.html">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Boutique - Mahu</title>
+    <title>Boutique RFID & NFC - Mahu</title>
     <link rel="stylesheet" href="style.css">
     <style>
         /* Styles pour la barre de navigation (copiés de index.html pour la cohérence) */
         header {
-            position: fixed; /* Reste en haut de l'écran */
+            position: sticky; /* Reste en haut lors du défilement */
             top: 0;
             left: 0;
             width: 100%;
@@ -78,114 +78,101 @@
             display: none;
         }
 
-        /* Cartes Produit spécifiques */
-        .product-card .price {
-            font-size: 2em;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-        .price span {
-            font-size: 0.5em;
-            font-weight: normal;
-            color: var(--text-secondary);
-        } 
-        .product-card .product-image-wrapper {
-            height: 180px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        /* Nouvelle grille de produits */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
         }
 
-        /* Carrousel d'images amélioré dans la carte produit */
-        .product-carousel {
-            position: relative;
-            width: 100%;
-            height: 180px;
-            border-radius: 8px;
+        .product-card {
+            background-color: var(--card-background);
+            border-radius: 12px;
             overflow: hidden;
-            margin: -30px -30px 20px -30px; /* Pour toucher les bords */
-            background-color: #e0e0e0; /* Fond par défaut */
-        }
-        .carousel-inner {
-            display: flex;
-            height: 100%;
-            width: 400%; /* 100% par image, 4 images */
-            transition: transform 0.5s ease-in-out;
-        }
-        .carousel-item {
-            width: 25%; /* 100% / 4 images */
-            height: 100%;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .carousel-item-dark { background: #1a1a1a; }
-        .carousel-item-light { background: #f0f0f0; }
-        .carousel-item-grey { background: #cccccc; }
-        .carousel-item-white { background: #ffffff; }
-        .carousel-item-metal-black { background: #111111; }
-        .carousel-item-metal-brushed { background: #333333; }
-        .carousel-item-metal-silver { background: #e0e0e0; }
-        
-
-        .carousel-nav {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 10px;
-            box-sizing: border-box;
-        }
-        .carousel-btn {
-            background-color: rgba(255, 255, 255, 0.7);
-            border: none;
-            color: var(--text-primary);
-            font-size: 1.5em;
-            cursor: pointer;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            line-height: 40px;
-            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeIn 0.5s ease-out forwards;
             opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .product-carousel:hover .carousel-btn {
-            opacity: 1;
+            transform: translateY(20px);
         }
 
-        /* Styles simplifiés pour le fond du carrousel (thème noir/blanc) */
-        .pvc-style { background-color: #e0e0e0; }
-        .metal-style { background-color: #333333; }
-        .wood-style { background-color: #d7ccc8; }
-        .sticker-style { background-color: #f5f5f5; }
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-        /* Superposition du design de la carte (transparent) */
-        .card-design-overlay {
-            position: absolute;
-            top: 0; left: 0;
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .product-image-container {
+            position: relative;
+            height: 220px;
+            background-color: #e9ecef;
+        }
+
+        .product-image-container img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            z-index: 2;
         }
 
-        /* Superposition du logo Mahu sur chaque carte */
-        .mahu-logo-overlay {
-            position: absolute;
-            top: 15px; left: 20px;
-            width: 45px;
-            height: auto;
-            z-index: 4;
-            opacity: 0.8;
-            filter: brightness(0); /* Logo Mahu en noir par défaut */
+        .product-info {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            min-height: 160px; /* Hauteur minimale pour l'alignement */
         }
-        /* Pour les fonds sombres */
-        .logo-inverted {
-            filter: invert(1);
+
+        .product-info h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+            flex-grow: 1; /* Pousse le prix vers le bas */
+        }
+
+        .product-info .price {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: var(--blue);
+            margin-top: 15px;
+        }
+
+        .product-info .btn {
+            margin-top: 15px;
+        }
+
+        /* Hero Section pour la boutique */
+        .shop-hero {
+            padding: 80px 20px;
+            text-align: center;
+            background: linear-gradient(45deg, var(--blue), var(--purple));
+            color: white;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            animation: backgroundPan 10s ease-in-out infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes backgroundPan {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .shop-hero h1 {
+            font-size: 3em;
+            margin: 0 0 10px 0;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .shop-hero p {
+            font-size: 1.2em;
+            max-width: 700px;
+            margin: 0 auto;
+            opacity: 0.9;
         }
 
         /* Bouton Retour en Haut */
@@ -221,7 +208,6 @@
             <ul class="desktop-links">
                 <li><a href="index.html#features">Technologie</a></li>
                 <li><a href="index.html#about">À Propos</a></li>
-                <li><a href="index.html#cards">Nos Offres</a></li>
             </ul>
             <div class="nav-actions">
                 <a href="Connexion.html" class="primary" id="login-link">
@@ -232,9 +218,7 @@
                     <div class="more-menu-dropdown">
                         <a href="index.html#features">Technologie</a>
                         <a href="index.html#about">À Propos</a>
-                        <a href="index.html#cards">Nos Offres</a>
                         <a href="Boutique.html" class="active">Boutique</a>
-                        <a href="Panier.html" id="cart-link">Panier (0)</a>
                     </div>
                 </div>
             </div>
@@ -243,102 +227,13 @@
 
     <main>
         <section class="container">
-            <h1 class="section-title">Notre Boutique</h1>
-            <p class="section-subtitle">Choisissez la carte qui vous représente. Chaque carte est équipée de la technologie NFC et donne un accès à vie à notre plateforme de gestion.</p>
+            <div class="shop-hero">
+                <h1>Le Futur de l'Identification est Ici</h1>
+                <p>Découvrez notre sélection experte de matériel RFID et NFC pour tous vos projets, de l'identification personnelle à la logistique avancée.</p>
+            </div>
 
-            <div class="grid-3">
-                <div class="card product-card">
-                    <div class="product-carousel" data-index="0">
-                        <button class="carousel-btn prev" onclick="navigateCarousel(this, -1)">&#10094;</button>
-                        <div class="carousel-inner">
-                            <div class="carousel-item carousel-item-dark">
-                                <img src="r/v/1.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay logo-inverted">
-                            </div>
-                            <div class="carousel-item carousel-item-light">
-                                <img src="r/v/2.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
-                            </div>
-                            <div class="carousel-item carousel-item-grey">
-                                <img src="r/v/3.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
-                            </div>
-                            <div class="carousel-item carousel-item-white">
-                                <img src="r/v/4.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
-                            </div>
-                        </div>
-                        <button class="carousel-btn next" onclick="navigateCarousel(this, 1)">&#10095;</button>
-                    </div>
-                    <h3>Carte Classique PVC</h3>
-                    <p>La carte en PVC premium, durable et élégante. Personnalisable avec votre logo et QR code. Le standard de l'efficacité.</p>
-                    <div class="price">29.99€ <span>/ unité</span></div>
-                    <a href="#" class="btn" onclick="addToCart('pvc', 'Carte Classique PVC', 29.99); return false;">Ajouter au Panier</a>
-                </div>
-                <div class="card product-card">
-                    <div class="product-carousel" data-index="0">
-                        <button class="carousel-btn prev" onclick="navigateCarousel(this, -1)">&#10094;</button>
-                        <div class="carousel-inner">
-                            <div class="carousel-item carousel-item-metal-black"> <!-- Noir Mat -->
-                                <img src="r/v/2.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay logo-inverted">
-                            </div>
-                            <div class="carousel-item carousel-item-metal-brushed"> <!-- Noir brossé -->
-                                <img src="r/v/1.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay logo-inverted">
-                            </div>
-                            <div class="carousel-item carousel-item-metal-silver"> <!-- Argent -->
-                                <img src="r/v/3.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
-                            </div>
-                            <div class="carousel-item carousel-item-white"> <!-- Blanc -->
-                                <img src="r/v/4.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
-                            </div>
-                        </div>
-                        <button class="carousel-btn next" onclick="navigateCarousel(this, 1)">&#10095;</button>
-                    </div>
-                    <h3>Carte Métal Noir</h3>
-                    <p>Une finition luxueuse en métal brossé noir pour un impact maximal. Gravure laser de précision pour un rendu inoubliable.</p>
-                    <div class="price">79.99€ <span>/ unité</span></div>
-                    <a href="#" class="btn" onclick="addToCart('metal', 'Carte Métal', 79.99); return false;">Ajouter au Panier</a>
-                </div>
-                <div class="card product-card">
-                    <div class="product-carousel" data-index="0">
-                        <button class="carousel-btn prev" onclick="navigateCarousel(this, -1)">&#10094;</button>
-                        <div class="carousel-inner">
-                            <div class="carousel-item wood-style"> <!-- Bambou -->
-                                <img src="r/v/1.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
-                            </div>
-                            <div class="carousel-item wood-style" style="background-color: #a1887f;"> <!-- Bois foncé --> <!-- Gardé en ligne car unique -->
-                                <img src="r/v/2.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay logo-inverted">
-                            </div>
-                            <div class="carousel-item wood-style" style="background-color: #efebe9;"> <!-- Bois clair --> <!-- Gardé en ligne car unique -->
-                                <img src="r/v/3.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay">
-                            </div>
-                            <div class="carousel-item wood-style" style="background-color: #8d6e63;"> <!-- Bois cerisier --> <!-- Gardé en ligne car unique -->
-                                <img src="r/v/4.svg" class="card-design-overlay"><img src="r/logo.png" class="mahu-logo-overlay logo-inverted">
-                            </div>
-                        </div>
-
-                        <button class="carousel-btn next" onclick="navigateCarousel(this, 1)">&#10095;</button>
-                    </div>
-                    <h3>Carte Bois de Bambou</h3>
-                    <p>Écologique et unique, chaque carte en bois de bambou véritable est une pièce d'artisanat. Pour ceux qui veulent se démarquer durablement.</p>
-                    <div class="price">59.99€ <span>/ unité</span></div>
-                    <a href="#" class="btn" onclick="addToCart('wood', 'Carte Bois', 59.99); return false;">Ajouter au Panier</a>
-                </div>
-                 <div class="card product-card">
-                    <div class="product-image-wrapper sticker-style">
-                        <img src="r/v/4.svg" alt="Sticker NFC" style="height: 120px; width: auto;">
-                    </div>
-                    <h3>Sticker NFC</h3>
-                    <p>Transformez n'importe quel objet en carte de visite. Collez ce sticker discret au dos de votre téléphone et partagez vos infos instantanément.</p>
-                    <div class="price">19.99€ <span>/ unité</span></div>
-                    <a href="#" class="btn" onclick="addToCart('sticker', 'Sticker NFC', 19.99); return false;">Ajouter au Panier</a>
-                </div>
-                 <div class="card product-card">
-                    <!-- Pour le pack, on peut montrer une seule image ou un montage -->
-                    <div class="product-image-wrapper" style="background: #e0e0e0;">
-                        <img src="r/v/1.svg" alt="Pack Équipe" style="height: 120px; width: auto;">
-                    </div>
-                    <h3>Pack Équipe (10 Cartes)</h3>
-                    <p>Équipez toute votre équipe avec nos cartes classiques. Gestion centralisée des profils depuis un seul tableau de bord administrateur.</p>
-                    <div class="price">249.99€ <span>/ pack</span></div>
-                    <a href="#" class="btn" onclick="addToCart('pack10', 'Pack Équipe (10 Cartes)', 249.99); return false;">Ajouter au Panier</a>
-                </div>
+            <div id="product-grid" class="product-grid">
+                <!-- Les produits seront injectés ici par JavaScript -->
             </div>
         </section>
     </main>
@@ -349,75 +244,58 @@
 
     <script>
         /**
-         * ===================================================================
-         *                        SCRIPT CENTRALISÉ
-         * ===================================================================
-         * Les fonctions communes sont définies ici pour éviter la répétition.
-         * Fonction centralisée pour appeler l'API backend via POST.
+         * Données des produits (25 exemples)
          */
-        function callApi(action, data = {}) {
-            const formData = new FormData();
-            formData.append('action', action);
-            for (const key in data) {
-                const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
-                formData.append(key, value);
-            }
-            return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
+        const products = [
+            { name: "Lecteur RFID USB de Bureau", price: 32500, desc: "Lecteur plug-and-play pour l'encodage et la lecture de tags HF.", image: "r/logo.png" },
+            { name: "Module Lecteur RFID UART", price: 16000, desc: "Module compact pour intégration dans des systèmes embarqués.", image: "r/logo.png" },
+            { name: "Antenne RFID Longue Portée UHF", price: 85000, desc: "Antenne directionnelle pour portails et zones de lecture étendues.", image: "r/logo.png" },
+            { name: "Pack de 100 Cartes PVC NFC", price: 45000, desc: "Cartes blanches NTAG215, idéales pour l'impression et l'encodage.", image: "r/logo.png" },
+            { name: "Rouleau de 500 Étiquettes RFID UHF", price: 98000, desc: "Étiquettes adhésives pour la gestion d'inventaire et la logistique.", image: "r/logo.png" },
+            { name- "Tags NFC Adhésifs (Pack de 50)", price: 19500, desc: "Petits tags NTAG213 pour le marketing interactif et l'automatisation.", image: "r/logo.png" },
+            { name: "Lecteur RFID Mobile Bluetooth", price: 145000, desc: "Terminal portable pour la lecture de tags sur le terrain.", image: "r/logo.png" },
+            { name: "Carte NFC en Métal Noir Mat", price: 13000, desc: "Carte de visite premium avec puce NFC intégrée.", image: "r/logo.png" },
+            { name: "Bracelet Silicone RFID", price: 4500, desc: "Bracelet étanche pour le contrôle d'accès événementiel.", image: "r/logo.png" },
+            { name: "Tag RFID pour Vêtements (Lot de 100)", price: 32000, desc: "Tags textiles lavables pour la gestion de blanchisserie.", image: "r/logo.png" },
+            { name: "Lecteur RFID 4 ports UHF", price: 350000, desc: "Lecteur fixe haute performance pour applications industrielles.", image: "r/logo.png" },
+            { name: "Imprimante RFID de Bureau", price: 550000, desc: "Imprimez et encodez vos étiquettes RFID à la demande.", image: "r/logo.png" },
+            { name: "Tag NFC Anti-Métal (Pack de 20)", price: 18000, desc: "Tags conçus pour fonctionner sur des surfaces métalliques.", image: "rlogo.png" },
+            { name: "Carte NFC en Bois de Bambou", price: 9500, desc: "Carte de visite écologique et élégante avec puce NFC.", image: "r/logo.png" },
+            { name: "Kit de Développement RFID", price: 75000, desc: "Tout le nécessaire pour démarrer vos projets RFID/NFC.", image: "r/logo.png" },
+            { name: "Porte-clés NFC Époxy (Lot de 10)", price: 15000, desc: "Porte-clés design et résistants pour le contrôle d'accès.", image: "r/logo.png" },
+            { name: "Lecteur d'Empreinte et RFID", price: 65000, desc: "Solution de contrôle d'accès biométrique et RFID.", image: "r/logo.png" },
+            { name: "Tag RFID pour Outils (Lot de 10)", price: 25000, desc: "Tags robustes pour le suivi d'outillage et d'équipements.", image: "r/logo.png" },
+            { name: "Module NFC pour Raspberry Pi", price: 12500, desc: "Ajoutez la fonctionnalité NFC à vos projets Raspberry Pi.", image: "r/logo.png" },
+            { name: "Serrure de Casier RFID", price: 28000, desc: "Serrure électronique autonome pour casiers et vestiaires.", image: "r/logo.png" },
+            { name: "Tag RFID pour Pare-brise", price: 3500, desc: "Étiquette pour l'identification de véhicules et le contrôle de parking.", image: "r/logo.png" },
+            { name: "Lecteur RFID Encastrable", price: 42000, desc: "Module lecteur à intégrer dans des bornes ou des murs.", image: "r/logo.png" },
+            { name: "Puce NFC Injectable (Animal)", price: 5500, desc: "Microchip biocompatible pour l'identification animale.", image: "r/logo.png" },
+            { name: "Logiciel de Gestion d'Inventaire RFID", price: 250000, desc: "Licence logicielle pour le suivi de stock en temps réel.", image: "r/logo.png" },
+            { name: "Portique de Détection RFID UHF", price: 1200000, desc: "Solution complète pour la détection antivol et la logistique.", image: "r/logo.png" }
+        ];
+
+        function displayProducts() {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = ''; // Vider la grille
+
+            products.forEach((product, index) => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.style.animationDelay = `${index * 50}ms`; // Délai pour l'animation d'apparition
+
+                card.innerHTML = `
+                    <div class="product-image-container">
+                        <img src="${product.image}" alt="${product.name}">
+                    </div>
+                    <div class="product-info">
+                        <h3>${product.name}</h3>
+                        <p class="price">${product.price.toLocaleString('fr-FR')} FCFA</p>
+                        <a href="#" class="btn" onclick="alert('Fonctionnalité à venir')">Voir le produit</a>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
         }
-
-        /**
-         * Ajoute un produit au panier (localStorage) et synchronise si l'utilisateur est connecté.
-         */
-        function addToCart(id, name, price) {
-            let cart = JSON.parse(localStorage.getItem('cart')) || [];
-            const existingItem = cart.find(item => item.id === id);
-            if (existingItem) {
-                existingItem.quantity++;
-            } else {
-                cart.push({ id, name, price, quantity: 1 });
-            }
-            localStorage.setItem('cart', JSON.stringify(cart));
-            alert(name + ' a été ajouté au panier !');
-            // Si l'utilisateur est connecté, synchroniser le panier avec le backend
-            if (localStorage.getItem('userIsLoggedIn') === 'true') {
-                callApi('syncCart', { payload: cart }).catch(err => console.error('Erreur de synchro panier:', err));
-            }
-            updateCartCounter();
-        }
-
-        /**
-         * Met à jour le compteur d'articles dans le header.
-         */
-        function updateCartCounter() {
-            const cart = JSON.parse(localStorage.getItem('cart')) || [];
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            const cartLink = document.getElementById('cart-link');
-            if (cartLink) {
-                cartLink.textContent = `Panier (${totalItems})`;
-            }
-        }
-
-        function navigateCarousel(button, direction) {
-            const carousel = button.closest('.product-carousel');
-            const inner = carousel.querySelector('.carousel-inner');
-            const itemsCount = inner.children.length;
-            let index = parseInt(carousel.dataset.index || 0);
-
-            index += direction;
-
-            if (index < 0) {
-                index = itemsCount - 1;
-            } else if (index >= itemsCount) {
-                index = 0;
-            }
-
-            carousel.dataset.index = index;
-            inner.style.transform = `translateX(-${index * (100 / itemsCount)}%)`;
-        }
-
-        // ===================================================================
-        //                  SCRIPTS SPÉCIFIQUES À LA PAGE
-        // ===================================================================
 
         // Logique pour le bouton "Retour en Haut"
         const backToTopButton = document.getElementById('back-to-top');
@@ -436,8 +314,7 @@
          * Logique exécutée au chargement du DOM.
          */
         document.addEventListener('DOMContentLoaded', () => {
-            updateCartCounter();
-
+            displayProducts();
             // Gestion du menu "trois points"
             const moreMenuIcon = document.querySelector('.more-menu-icon');
             if (moreMenuIcon) {
