@@ -316,7 +316,7 @@
         /* Styles pour les champs du formulaire */
         #lead-capture-module .form-control {
             width: 100%;
-            padding: 12px;
+            padding: 8px;
             margin-bottom: 15px;
             border-radius: 5px;
             border: 1px solid var(--border-color);
@@ -485,12 +485,16 @@
             socialLinks.forEach(link => {
                 const linkName = link.type.charAt(0).toUpperCase() + link.type.slice(1);
                 const icon = iconMap[link.type] || iconMap['other']; // Icône par défaut
-                socialLinksContainer.innerHTML += `
-                <a href="${link.url}" target="_blank" class="social-link">
-                  ${icon}
-                  <span>${linkName}</span>
-                </a>
-              `;
+                
+                // Création sécurisée des éléments pour éviter les failles XSS
+                const a = document.createElement('a');
+                a.href = link.url;
+                if (/^\s*javascript:/i.test(link.url)) a.href = '#'; // Bloquer les attaques XSS via javascript:
+                a.target = "_blank";
+                a.className = "social-link";
+                a.innerHTML = `${icon}<span></span>`;
+                a.querySelector('span').textContent = linkName; // Texte sécurisé
+                socialLinksContainer.appendChild(a);
             });
 
             // Configurer le bouton "Télécharger la carte"

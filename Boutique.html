@@ -198,7 +198,67 @@
             .section-title {
                 font-size: 2.2em;
             }
+            .modal-content {
+                flex-direction: column;
+                margin: 10% auto;
+                width: 95%;
+            }
+            .modal-gallery {
+                height: 300px;
+            }
         }
+
+        /* Styles pour la Modale Produit */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.85);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: #1a1a1a;
+            margin: 5% auto;
+            padding: 0;
+            border: 1px solid #333;
+            width: 80%;
+            max-width: 900px;
+            border-radius: 15px;
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .modal-gallery { flex: 1.2; position: relative; background: #000; display: flex; align-items: center; justify-content: center; min-height: 400px; }
+        .modal-gallery img { max-width: 100%; max-height: 100%; object-fit: contain; display: none; }
+        .modal-gallery img.active { display: block; animation: fadeIn 0.3s; }
+        
+        .gallery-nav { position: absolute; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; }
+        .gallery-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; transition: background 0.3s; }
+        .gallery-btn:hover { background: rgba(255,255,255,0.4); }
+
+        .modal-info { flex: 1; padding: 40px; display: flex; flex-direction: column; color: #fff; }
+        .close-modal { align-self: flex-end; font-size: 28px; cursor: pointer; color: #888; margin-bottom: 20px; }
+        .close-modal:hover { color: #fff; }
+        
+        .modal-info h2 { font-size: 2em; margin-bottom: 10px; color: #fff; }
+        .modal-info .price { font-size: 1.8em; color: var(--blue); font-weight: bold; margin-bottom: 20px; }
+        .modal-info p { line-height: 1.6; color: #ccc; margin-bottom: 30px; }
+        
+        .order-form { margin-top: auto; border-top: 1px solid #333; padding-top: 20px; }
+        .order-form label { display: block; margin-bottom: 8px; color: #aaa; }
+        .order-form input { width: 100%; padding: 8px; background: #333; border: 1px solid #444; border-radius: 8px; color: white; margin-bottom: 10px; box-sizing: border-box; }
+        .order-form input:focus { outline: none; border-color: var(--blue); }
+        
     </style>
 </head>
 <body>
@@ -228,8 +288,8 @@
     <main>
         <section class="container">
             <div class="shop-hero">
-                <h1>Le Futur de l'Identification est Ici</h1>
-                <p>Découvrez notre sélection experte de matériel RFID et NFC pour tous vos projets, de l'identification personnelle à la logistique avancée.</p>
+                <h1>La Boutique Officielle Mahu</h1>
+                <p>Découvrez nos cartes de visite NFC, tags et accessoires connectés pour révolutionner votre networking.</p>
             </div>
 
             <div id="product-grid" class="product-grid">
@@ -238,40 +298,53 @@
         </section>
     </main>
 
+    <!-- Modale Produit -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-gallery">
+                <div class="gallery-nav">
+                    <button class="gallery-btn" onclick="changeSlide(-1)">&#10094;</button>
+                    <button class="gallery-btn" onclick="changeSlide(1)">&#10095;</button>
+                </div>
+                <div id="modal-images-container">
+                    <!-- Images injectées via JS -->
+                </div>
+            </div>
+            <div class="modal-info">
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+                <h2 id="modal-title">Titre Produit</h2>
+                <div class="price" id="modal-price">0 FCFA</div>
+                <p id="modal-desc">Description du produit...</p>
+                
+                <div class="order-form">
+                    <label for="order-name">Nom complet :</label>
+                    <input type="text" id="order-name" placeholder="Votre nom">
+                    <label for="order-email">Email :</label>
+                    <input type="email" id="order-email" placeholder="votre@email.com">
+                    <label for="order-phone">Téléphone :</label>
+                    <input type="tel" id="order-phone" placeholder="Ex: 07 07 07 07 07">
+                    <button class="btn primary" style="width: 100%;" onclick="submitOrder()">Commander via WhatsApp/GS</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="back-to-top" onclick="scrollToTop()">&#8679;</div>
 
     <script src="config.js"></script>
 
     <script>
         /**
-         * Données des produits (25 exemples)
+         * Données des produits Mahu
          */
         const products = [
-            { name: "Lecteur RFID USB de Bureau", price: 32500, desc: "Lecteur plug-and-play pour l'encodage et la lecture de tags HF.", image: "r/logo.png" },
-            { name: "Module Lecteur RFID UART", price: 16000, desc: "Module compact pour intégration dans des systèmes embarqués.", image: "r/logo.png" },
-            { name: "Antenne RFID Longue Portée UHF", price: 85000, desc: "Antenne directionnelle pour portails et zones de lecture étendues.", image: "r/logo.png" },
-            { name: "Pack de 100 Cartes PVC NFC", price: 45000, desc: "Cartes blanches NTAG215, idéales pour l'impression et l'encodage.", image: "r/logo.png" },
-            { name: "Rouleau de 500 Étiquettes RFID UHF", price: 98000, desc: "Étiquettes adhésives pour la gestion d'inventaire et la logistique.", image: "r/logo.png" },
-            { name- "Tags NFC Adhésifs (Pack de 50)", price: 19500, desc: "Petits tags NTAG213 pour le marketing interactif et l'automatisation.", image: "r/logo.png" },
-            { name: "Lecteur RFID Mobile Bluetooth", price: 145000, desc: "Terminal portable pour la lecture de tags sur le terrain.", image: "r/logo.png" },
-            { name: "Carte NFC en Métal Noir Mat", price: 13000, desc: "Carte de visite premium avec puce NFC intégrée.", image: "r/logo.png" },
-            { name: "Bracelet Silicone RFID", price: 4500, desc: "Bracelet étanche pour le contrôle d'accès événementiel.", image: "r/logo.png" },
-            { name: "Tag RFID pour Vêtements (Lot de 100)", price: 32000, desc: "Tags textiles lavables pour la gestion de blanchisserie.", image: "r/logo.png" },
-            { name: "Lecteur RFID 4 ports UHF", price: 350000, desc: "Lecteur fixe haute performance pour applications industrielles.", image: "r/logo.png" },
-            { name: "Imprimante RFID de Bureau", price: 550000, desc: "Imprimez et encodez vos étiquettes RFID à la demande.", image: "r/logo.png" },
-            { name: "Tag NFC Anti-Métal (Pack de 20)", price: 18000, desc: "Tags conçus pour fonctionner sur des surfaces métalliques.", image: "rlogo.png" },
-            { name: "Carte NFC en Bois de Bambou", price: 9500, desc: "Carte de visite écologique et élégante avec puce NFC.", image: "r/logo.png" },
-            { name: "Kit de Développement RFID", price: 75000, desc: "Tout le nécessaire pour démarrer vos projets RFID/NFC.", image: "r/logo.png" },
-            { name: "Porte-clés NFC Époxy (Lot de 10)", price: 15000, desc: "Porte-clés design et résistants pour le contrôle d'accès.", image: "r/logo.png" },
-            { name: "Lecteur d'Empreinte et RFID", price: 65000, desc: "Solution de contrôle d'accès biométrique et RFID.", image: "r/logo.png" },
-            { name: "Tag RFID pour Outils (Lot de 10)", price: 25000, desc: "Tags robustes pour le suivi d'outillage et d'équipements.", image: "r/logo.png" },
-            { name: "Module NFC pour Raspberry Pi", price: 12500, desc: "Ajoutez la fonctionnalité NFC à vos projets Raspberry Pi.", image: "r/logo.png" },
-            { name: "Serrure de Casier RFID", price: 28000, desc: "Serrure électronique autonome pour casiers et vestiaires.", image: "r/logo.png" },
-            { name: "Tag RFID pour Pare-brise", price: 3500, desc: "Étiquette pour l'identification de véhicules et le contrôle de parking.", image: "r/logo.png" },
-            { name: "Lecteur RFID Encastrable", price: 42000, desc: "Module lecteur à intégrer dans des bornes ou des murs.", image: "r/logo.png" },
-            { name: "Puce NFC Injectable (Animal)", price: 5500, desc: "Microchip biocompatible pour l'identification animale.", image: "r/logo.png" },
-            { name: "Logiciel de Gestion d'Inventaire RFID", price: 250000, desc: "Licence logicielle pour le suivi de stock en temps réel.", image: "r/logo.png" },
-            { name: "Portique de Détection RFID UHF", price: 1200000, desc: "Solution complète pour la détection antivol et la logistique.", image: "r/logo.png" }
+            { name: "Carte Mahu PVC - Noir Mat", price: 15000, desc: "L'élégance du noir mat. Durable, professionnelle et instantanée. Un visage de nos cartes PVC en noir.", images: ["r/1.svg"] },
+            { name: "Carte Mahu Bois - Édition Prestige", price: 30000, desc: "L'authenticité du bois avec la puissance du digital. Disponible en plusieurs essences.", images: ["r/bois/b1.avif", "r/bois/b2.avif", "r/bois/b3.avif", "r/bois/b4.avif", "r/bois/b5.avif", "r/bois/b6.avif"] },
+            { name: "Carte Avis Google / Réseaux", price: 10000, desc: "Boostez vos avis Google et votre présence sur les réseaux sociaux instantanément.", images: ["r/avis/a.avif"] },
+            { name: "Protection Carte Bancaire", price: 2500, desc: "Étui de protection anti-fraude et anti-copie pour vos cartes bancaires sans contact.", images: ["r/avis/b.avif"] },
+            { name: "Tag NFC - Modèle C", price: 5000, desc: "Tag NFC programmable pour automatiser vos tâches ou partager des infos.", images: ["r/avis/c.avif"] },
+            { name: "Tag NFC - Modèle D", price: 5000, desc: "Puce NFC adhésive discrète et performante pour tous vos objets.", images: ["r/avis/d.avif"] },
+            { name: "Tag NFC - Modèle E", price: 5000, desc: "Tag NFC design, idéal pour une utilisation personnelle ou professionnelle.", images: ["r/avis/e.avif"] }
         ];
 
         function displayProducts() {
@@ -285,16 +358,84 @@
 
                 card.innerHTML = `
                     <div class="product-image-container">
-                        <img src="${product.image}" alt="${product.name}">
+                        <img src="${product.images[0]}" alt="${product.name}">
                     </div>
                     <div class="product-info">
                         <h3>${product.name}</h3>
                         <p class="price">${product.price.toLocaleString('fr-FR')} FCFA</p>
-                        <a href="#" class="btn" onclick="alert('Fonctionnalité à venir')">Voir le produit</a>
+                        <button class="btn" onclick="openModal(${index})">Voir les détails</button>
                     </div>
                 `;
                 grid.appendChild(card);
             });
+        }
+
+        // --- Logique de la Modale et du Carrousel ---
+        let currentProductIndex = 0;
+        let currentSlideIndex = 0;
+
+        function openModal(index) {
+            currentProductIndex = index;
+            currentSlideIndex = 0;
+            const product = products[index];
+            
+            document.getElementById('modal-title').innerText = product.name;
+            document.getElementById('modal-price').innerText = product.price.toLocaleString('fr-FR') + " FCFA";
+            document.getElementById('modal-desc').innerText = product.desc;
+            
+            const container = document.getElementById('modal-images-container');
+            container.innerHTML = '';
+            
+            product.images.forEach((imgSrc, i) => {
+                const img = document.createElement('img');
+                img.src = imgSrc;
+                if (i === 0) img.classList.add('active');
+                container.appendChild(img);
+            });
+
+            document.getElementById('product-modal').style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Empêcher le défilement
+        }
+
+        function closeModal() {
+            document.getElementById('product-modal').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function changeSlide(n) {
+            const images = document.querySelectorAll('#modal-images-container img');
+            if (images.length <= 1) return;
+
+            images[currentSlideIndex].classList.remove('active');
+            currentSlideIndex = (currentSlideIndex + n + images.length) % images.length;
+            images[currentSlideIndex].classList.add('active');
+        }
+
+        function submitOrder() {
+            const name = document.getElementById('order-name').value;
+            const email = document.getElementById('order-email').value;
+            const phone = document.getElementById('order-phone').value;
+            if (!name || !email || !phone) {
+                alert("Veuillez remplir tous les champs (Nom, Email, Téléphone).");
+                return;
+            }
+            
+            const product = products[currentProductIndex];
+            // Logique d'envoi vers Google Sheets ou WhatsApp
+            // Ici, on simule l'envoi ou on redirige vers WhatsApp
+            const message = `Nouvelle Commande !\n\nProduit : ${product.name}\nPrix : ${product.price} FCFA\n\nClient :\nNom : ${name}\nEmail : ${email}\nTéléphone : ${phone}`;
+            const whatsappUrl = `https://wa.me/2250707070707?text=${encodeURIComponent(message)}`; // Remplacez par votre numéro
+            
+            window.open(whatsappUrl, '_blank');
+            // Si vous avez un script Google Apps Script, vous feriez un fetch() ici.
+        }
+
+        // Fermer la modale en cliquant en dehors
+        window.onclick = function(event) {
+            const modal = document.getElementById('product-modal');
+            if (event.target == modal) {
+                closeModal();
+            }
         }
 
         // Logique pour le bouton "Retour en Haut"
