@@ -266,6 +266,42 @@
             color: var(--text-primary);
         }
 
+        /* Styles pour la section À Propos (Sticky Layout) */
+        .about-layout {
+            display: flex;
+            gap: 50px;
+            align-items: flex-start;
+            padding: 20px 0;
+        }
+        .about-text-column {
+            flex: 1.5;
+        }
+        .about-image-column {
+            flex: 1;
+            position: sticky;
+            top: 120px; /* Ajusté pour le header */
+        }
+        .about-image-column img {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            object-fit: cover;
+        }
+        .about-block {
+            margin-bottom: 30px;
+        }
+        @media (max-width: 992px) {
+            .about-layout {
+                flex-direction: column-reverse;
+            }
+            .about-image-column {
+                position: static;
+                width: 100%;
+                margin-bottom: 30px;
+            }
+        }
+
     </style>
 </head>
 <body>
@@ -331,16 +367,22 @@
         </section>
 
         <section id="about" class="container">
-            <h2 class="section-title">À Propos de Mahu</h2>
-            <p class="section-subtitle">Nous réinventons la manière dont les professionnels se connectent. Fini les cartes en papier oubliées, place à une interaction mémorable et digitale.</p>
-            <div class="grid-2">
-                <div class="card">
-                    <h3>Notre Vision</h3>
-                    <p>Mahu est née d'une idée simple : rendre le networking plus efficace, plus moderne et plus respectueux de l'environnement. Nous avons combiné design et technologie pour créer un produit qui change la donne.</p>
+            <div class="about-layout">
+                <div class="about-text-column">
+                    <h2 class="section-title" style="text-align: left;">À Propos de Mahu</h2>
+                    <p class="section-subtitle" style="text-align: left; margin-bottom: 40px;">Nous réinventons la manière dont les professionnels se connectent. Fini les cartes en papier oubliées, place à une interaction mémorable et digitale.</p>
+                    
+                    <div class="card about-block">
+                        <h3>Notre Vision</h3>
+                        <p>Mahu est née d'une idée simple : rendre le networking plus efficace, plus moderne et plus respectueux de l'environnement. Nous avons combiné design et technologie pour créer un produit qui change la donne.</p>
+                    </div>
+                    <div class="card about-block">
+                        <h3>Notre Mission</h3>
+                        <p>Notre mission est de fournir à chaque professionnel un outil de networking puissant qui reflète son identité numérique. Nous voulons simplifier le partage d'informations et créer des connexions durables grâce à une technologie intuitive.</p>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3>Notre Mission</h3>
-                    <p>Notre mission est de fournir à chaque professionnel un outil de networking puissant qui reflète son identité numérique. Nous voulons simplifier le partage d'informations et créer des connexions durables grâce à une technologie intuitive.</p>
+                <div class="about-image-column">
+                    <img src="r/v.webp" alt="À propos de Mahu">
                 </div>
             </div>
         </section>

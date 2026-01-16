@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Démo : Image fixe et Texte défilant</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #121212;
+            color: #f8f9fa;
+            margin: 0;
+        }
+
+        .main-container {
+            display: flex;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .text-column {
+            flex: 1.5; /* Donne un peu plus de place au texte */
+        }
+
+        .text-block {
+            background-color: #1E1E1E;
+            border: 1px solid #444;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .text-block h2 {
+            margin-top: 0;
+            color: #ffffff;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .text-block p {
+            line-height: 1.6;
+            color: #adb5bd;
+        }
+
+        .image-column {
+            flex: 1;
+        }
+
+        .sticky-image-wrapper {
+            position: sticky;
+            top: 40px; /* Espace par rapport au haut de la page */
+        }
+
+        .sticky-image-wrapper img {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Pour les écrans plus petits (mobiles) */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column; /* Empile les colonnes verticalement */
+            }
+            .sticky-image-wrapper {
+                position: static; /* Annule le "sticky" sur mobile */
+                margin-bottom: 30px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        
+        <div class="text-column">
+            <h1>Titre de la section</h1>
+            <p style="color: #adb5bd; margin-bottom: 30px;">Ici, vous pouvez faire défiler le contenu texte sur la gauche, tandis que l'image reste visible sur la droite.</p>
+
+            <div class="text-block">
+                <h2>Bloc de contenu 1</h2>
+                <p>C'est le premier bloc de texte. Il peut contenir n'importe quelle information. L'idée est que chaque "bloc" représente une section ou une idée, comme vous l'avez demandé.</p>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi.</p>
+            </div>
+
+            <div class="text-block">
+                <h2>Bloc de contenu 2 : "Sans forme"</h2>
+                <p>Vous avez mentionné des blocs "sans forme". J'ai interprété cela comme des conteneurs simples, sans design trop complexe, qui s'adaptent à leur contenu. Ceux-ci ont juste un fond et des bords arrondis pour bien séparer les informations.</p>
+                <p>Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat. Duis semper. Duis arcu massa, scelerisque vitae, consequat in, pretium a, enim. Pellentesque congue. Ut in risus volutpat libero pharetra tempor. Cras vestibulum bibendum augue. Praesent egestas leo in pede.</p>
+            </div>
+
+            <div class="text-block">
+                <h2>Bloc de contenu 3 : "Contenu indéfini"</h2>
+                <p>Cette mise en page fonctionne que vos blocs soient courts ou très longs. Le conteneur s'adaptera à la hauteur de votre texte.</p>
+                <p>Praesent blandit odio eu enim. Pellentesque sed dui ut augue blandit sodales. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam nibh. Mauris ac mauris sed pede pellentesque fermentum. Maecenas adipiscing ante non diam. </p>
+                <p>Fusce consectetuer risus a nunc. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor, facilisis luctus, metus. Phasellus ultrices nulla quis nibh. Quisque a lectus. Donec consectetuer ligula vulputate sem tristique cursus. Nam nulla quam, gravida non, commodo a, sodales sit amet, nisi.</p>
+                <p>Pellentesque fermentum dolor. Aliquam quam lectus, facilisis auctor, ultrices ut, elementum vulputate, nunc.</p>
+            </div>
+            
+            <div class="text-block">
+                <h2>Dernier bloc</h2>
+                <p>Et voilà ! C'est une structure très flexible que vous pouvez adapter à vos besoins. Vous pouvez changer les couleurs, les polices, et bien sûr, le contenu.</p>
+            </div>
+
+        </div>
+
+        <div class="image-column">
+            <div class="sticky-image-wrapper">
+                <img src="https://placehold.co/600x800/333/ccc?text=Votre+Image+Ici" alt="Image de présentation">
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
