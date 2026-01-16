@@ -512,17 +512,33 @@
                 transform: translateX(calc(-1 * var(--sidebar-width-expanded)));
                 transition: transform 0.3s ease;
             }
-        .menu-toggle {
-            display: flex; /* Afficher le bouton sur mobile */
-        }
+            .menu-toggle {
+                display: flex; /* Afficher le bouton sur mobile */
+            }
             .sidebar.visible {
                 transform: translateX(0);
             }
+            body {
+                overflow-x: hidden;
+            }
             .main-content {
                 margin-left: 0 !important;
-            padding: 20px;
-        }
-        .main-content.collapsed { margin-left: 0 !important; }
+                padding: 15px;
+                width: 100%;
+                overflow-x: hidden;
+            }
+            .main-content.collapsed { margin-left: 0 !important; }
+
+            .card {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .stat-item .number { font-size: 1.8em; }
 
             .profile-preview-grid {
                 grid-template-columns: 1fr;
@@ -536,12 +552,13 @@
             }
             .modal-content {
                 width: 95%;
-            margin: 10% auto; /* Moins de marge en haut sur mobile */
-        }
-        .share-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr; /* Deux boutons par ligne pour le partage */
-            gap: 10px; /* Ajoute un espace entre les boutons */
+                margin: 5% auto; /* Moins de marge en haut sur mobile */
+                padding: 20px;
+            }
+            .share-actions {
+                display: grid;
+                grid-template-columns: 1fr 1fr; /* Deux boutons par ligne pour le partage */
+                gap: 10px; /* Ajoute un espace entre les boutons */
             }
             .profile-picture-container .edit-overlay {
                 left: auto; /* Annule le positionnement à gauche */
@@ -552,7 +569,20 @@
                 height: 500px; /* Réduit la hauteur sur les petits écrans */
             }
             .modal-editor-layout > form {
-                max-height: 50vh; overflow-y: auto; padding-right: 10px; }
+                max-height: 50vh; overflow-y: auto; padding-right: 10px; 
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .share-actions {
+                grid-template-columns: 1fr;
+            }
+            h1 { font-size: 1.5em; }
+            h2 { font-size: 1.3em; }
+            h3 { font-size: 1.1em; }
         }
     </style>
 </head>
