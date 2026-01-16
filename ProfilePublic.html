@@ -396,7 +396,7 @@
             const profileTitle = `${data.Nom_Complet || 'Profil'} - Mahu`;
             const profileDescription = `Découvrez le profil numérique de ${data.Nom_Complet || 'ce contact'}. Profession: ${data.Profession || 'Non spécifié'}.`;
             const profileUrl = window.location.href;
-            const profileImage = data.URL_Photo || 'https://mahu-app.com/r/og-image.png'; // Image par défaut
+            const profileImage = data.URL_Photo || 'https://mahu.cards/r/og-image.png'; // Image par défaut
 
             document.title = profileTitle;
             document.querySelector('meta[name="description"]').setAttribute('content', profileDescription);
