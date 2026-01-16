@@ -387,7 +387,7 @@
         }
 
         function populateProfile(data) {
-            if (data.error) {
+            if (!data || data.error) {
                 onProfileError({ message: data.error });
                 return;
             }
@@ -757,4 +757,5 @@ END:VCARD`;
         }
     </script>
 </body>
+</html>
 </html>
