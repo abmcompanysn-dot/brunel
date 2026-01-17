@@ -1031,11 +1031,22 @@ function saveProfile(data, user) {
       cache.put(`profile_${currentProfileUrl}`, JSON.stringify(profileDataObject), 21600);
 
       return { success: true, message: "Profil sauvegardé avec succès." };
+    } else {
+      // CAS : Profil inexistant (ex: erreur lors de l'inscription). On le crée.
+      const newRow = headers.map(header => {
+        if (header === 'ID_Utilisateur') return user.ID_Unique;
+        if (header === 'Email') return user.Email;
+        // Si la donnée est dans le payload, on l'utilise, sinon vide
+        if (Object.prototype.hasOwnProperty.call(payload, header) && header !== 'URL_Profil') {
+            return payload[header];
+        }
+        return '';
+      });
+      profileSheet.appendRow(newRow);
+      return { success: true, message: "Profil créé et sauvegardé." };
     }
-    return { success: false, error: "Profil non trouvé pour la mise à jour." };
   } catch (e) {
     Logger.log(`Erreur dans saveProfile: ${e.message}`);
-    return { error: e.message };
   }
 }
 
