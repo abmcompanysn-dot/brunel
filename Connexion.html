@@ -217,6 +217,7 @@
                     <!-- Formulaire d'Inscription -->
                     <form id="register-form" onsubmit="handleAuth(event)" style="display: none;">
                         <h1>Inscription</h1>
+                        <input type="hidden" id="enterprise-id" value=""> <!-- Champ caché pour l'ID entreprise -->
                         <div class="form-group">
                             <label for="register-email">Email</label>
                             <input type="email" id="register-email" class="form-control" required>
@@ -351,6 +352,7 @@
             const isRegister = event.target.id === 'register-form';
             const email = document.getElementById(isRegister ? 'register-email' : 'login-email').value;
             const password = document.getElementById(isRegister ? 'register-password' : 'login-password').value;
+            const enterpriseId = document.getElementById('enterprise-id').value; // Récupérer l'ID entreprise si présent
             const formId = event.target.id;
             const button = event.target.querySelector('button');
             button.disabled = true;
@@ -358,7 +360,8 @@
 
             const action = isRegister ? 'registerUser' : 'loginUser';
 
-            callApi(action, { payload: { email, password } })
+            // Passer enterpriseId lors de l'inscription
+            callApi(action, { payload: { email, password, enterpriseId } })
                 .then(response => {
                     if (response.success) {
                         localStorage.setItem('authToken', response.token); // Sauvegarder le token !
@@ -428,6 +431,28 @@
                     dropdown.classList.remove('visible');
                 }
             });
+
+            // Pré-remplir l'email si présent dans l'URL (ex: depuis une notification)
+            const urlParams = new URLSearchParams(window.location.search);
+            const emailParam = urlParams.get('email');
+            if (emailParam) {
+                const loginEmailInput = document.getElementById('login-email');
+                if (loginEmailInput) {
+                    loginEmailInput.value = emailParam;
+                }
+            }
+
+            // Gestion du lien d'invitation entreprise
+            const enterpriseIdParam = urlParams.get('enterprise_id');
+            if (enterpriseIdParam) {
+                // Basculer sur l'inscription
+                toggleForms();
+                // Remplir le champ caché
+                document.getElementById('enterprise-id').value = enterpriseIdParam;
+                // Feedback visuel (optionnel)
+                const h1 = document.querySelector('#register-form h1');
+                if(h1) h1.textContent = "Rejoindre l'équipe";
+            }
         });
     </script>
 </body>

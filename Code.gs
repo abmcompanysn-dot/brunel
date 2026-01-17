@@ -41,7 +41,7 @@ function doPost(e) {
     let result;
 
     switch (action) {
-      case 'registerUser': result = registerUser(payload.email, payload.password); break;
+      case 'registerUser': result = registerUser(payload.email, payload.password, payload.enterpriseId); break;
       case 'loginUser': result = loginUser(payload.email, payload.password); break;
       case 'createCheckoutSession': result = createCheckoutSession(payload); break;
       case 'forgotPassword': result = forgotPassword(payload.email); break;
@@ -104,6 +104,9 @@ function doPost(e) {
             break;
           case 'contactSupport':
             result = handleSupportMessage(payload, user);
+            break;
+          case 'createEmployee':
+            result = createEmployee(payload, user);
             break;
           default:
             result = { error: 'Action POST non reconnue.' };
@@ -178,6 +181,7 @@ function onOpen() {
       .addItem('1. Initialiser les feuilles', 'setupSpreadsheet')
       .addSeparator()
       .addItem('Tester la notification CallMeBot', 'testCallMeBot')
+      .addItem('Mettre à jour la feuille Support', 'verifyAndFixSheetStructure')
       .addToUi();
 }
 
@@ -196,7 +200,7 @@ function setupSpreadsheet() {
     { name: 'Produits', headers: ['ID_Produit', 'ID_Utilisateur', 'Nom', 'Description', 'Prix', 'Images_JSON', 'Date_Creation', 'Actif'] },
     { name: 'Categories', headers: ['ID_Categorie', 'ID_Utilisateur', 'Nom_Categorie'] },
     { name: 'Documents', headers: ['ID_Document', 'ID_Utilisateur', 'Type', 'Nom', 'URL', 'Date_Ajout'] },
-    { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut'] },
+    { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut', 'Telephone'] },
     { name: 'Configuration', headers: ['Clé', 'Valeur', 'Description'] },
     // L'onglet Commandes n'était pas dans la nouvelle spec, mais on peut le garder si besoin.
     // { name: 'Commandes NFC', headers: ['ID_Commande', 'ID_Utilisateur', 'Type_Carte', 'Quantite', 'Date_Commande', 'Statut'] },
@@ -254,7 +258,7 @@ function verifyAndFixSheetStructure() {
     { name: 'Produits', headers: ['ID_Produit', 'ID_Utilisateur', 'Nom', 'Description', 'Prix', 'Images_JSON', 'Date_Creation', 'Actif'] },
     { name: 'Categories', headers: ['ID_Categorie', 'ID_Utilisateur', 'Nom_Categorie'] },
     { name: 'Documents', headers: ['ID_Document', 'ID_Utilisateur', 'Type', 'Nom', 'URL', 'Date_Ajout'] },
-    { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut'] },
+    { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut', 'Telephone'] },
     { name: 'Configuration', headers: ['Clé', 'Valeur', 'Description'] },
   ];
 
@@ -308,9 +312,10 @@ function logAction(action, status, message, userEmail, suggestion = '') {
  * Gère l'inscription d'un nouvel utilisateur.
  * @param {string} email - L'email de l'utilisateur.
  * @param {string} password - Le mot de passe.
+ * @param {string} [enterpriseId] - ID de l'entreprise si c'est un employé (optionnel).
  * @returns {Object} Un objet indiquant le succès ou l'échec.
  */
-function registerUser(email, password) {
+function registerUser(email, password, enterpriseId = '') {
   if (!email || !password) {
     throw new Error("L'email et le mot de passe sont requis.");
   }
@@ -336,7 +341,9 @@ function registerUser(email, password) {
   const passwordHash = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + password));
   const storedPassword = salt + "$" + passwordHash;
 
-  const newUserRow = [newId, email, storedPassword, '', 'Particulier', profileUrl, '[]', 'ONBOARDING_STARTED', token, expiration, '', ''];
+  const role = enterpriseId ? 'Employe' : 'Entreprise'; // Par défaut Entreprise si pas d'ID parent, sinon Employé
+  
+  const newUserRow = [newId, email, storedPassword, enterpriseId, role, profileUrl, '[]', 'ONBOARDING_STARTED', token, expiration, '', ''];
   userSheet.appendRow(newUserRow);
 
   // Créer un profil de base associé
@@ -582,6 +589,40 @@ function getUserByToken(token) {
 }
 
 /**
+ * Crée un compte employé depuis le tableau de bord administrateur.
+ */
+function createEmployee(data, adminUser) {
+  if (adminUser.Role !== 'Entreprise') {
+    throw new Error("Seuls les comptes Entreprise peuvent créer des employés.");
+  }
+
+  const email = data.email;
+  const password = data.password;
+  const name = data.name;
+
+  // Utilise la fonction d'inscription existante en passant l'ID de l'admin comme entreprise
+  const registerResult = registerUser(email, password, adminUser.ID_Unique);
+
+  if (!registerResult.success) {
+    return registerResult;
+  }
+
+  // Si succès, on met à jour le nom immédiatement
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const userSheet = ss.getSheetByName('Utilisateurs');
+  const profileSheet = ss.getSheetByName('Profils');
+  
+  // Trouver le nouvel utilisateur (c'est le dernier ajouté)
+  const lastRow = userSheet.getLastRow();
+  const newUserId = userSheet.getRange(lastRow, 1).getValue(); // ID_Unique est col 1
+  
+  // Mettre à jour le nom dans la feuille Profils (dernière ligne aussi)
+  profileSheet.getRange(profileSheet.getLastRow(), 3).setValue(name); // Nom_Complet est col 3
+
+  return { success: true, message: "Employé créé avec succès." };
+}
+
+/**
  * Fonction centrale pour charger toutes les données du tableau de bord en un seul appel.
  * @returns {Object} Un objet contenant toutes les données nécessaires pour le dashboard.
  */
@@ -671,6 +712,33 @@ function getDashboardData(user) {
 
     const totalProspectsCount = allProspects.filter(row => row[0] === user.ID_Unique).length;
 
+    // --- Données d'équipe (Si Entreprise) ---
+    let teamData = [];
+    if (user.Role === 'Entreprise') {
+      const usersData = ss.getSheetByName('Utilisateurs').getDataRange().getValues();
+      const uHeaders = usersData[0];
+      const uIdCol = uHeaders.indexOf('ID_Unique');
+      const uEntCol = uHeaders.indexOf('ID_Entreprise');
+      const uEmailCol = uHeaders.indexOf('Email');
+      const uUrlCol = uHeaders.indexOf('URL_Profil');
+
+      // Trouver tous les employés liés à cette entreprise
+      const employees = usersData.filter(row => row[uEntCol] === user.ID_Unique);
+      
+      teamData = employees.map(emp => {
+        const empId = emp[uIdCol];
+        // Trouver le nom dans les profils
+        const pRow = profilesData.find(p => p[profileUserIdCol] === empId);
+        const empName = pRow ? pRow[profilesHeaders.indexOf('Nom_Complet')] : 'Sans nom';
+        // Compter les prospects de cet employé
+        const empLeads = allProspects.filter(lead => lead[0] === empId).length;
+        
+        return {
+          id: empId, name: empName, email: emp[uEmailCol], url: emp[uUrlCol], leads: empLeads
+        };
+      });
+    }
+
     // Construire l'URL de base de l'application web
     const appUrl = "https://mahu.cards/ProfilePublic.html"; // URL générique
 
@@ -683,7 +751,8 @@ function getDashboardData(user) {
       appUrl: appUrl,
       stats: stats, // Nouvelles données pour le graphique
       totalViews: totalUserViews, // Nouvelle donnée
-      totalProspects: totalProspectsCount, // Nouvelle donnée
+      totalProspects: totalProspectsCount,
+      team: teamData, // Données de l'équipe
       onboardingStatus: user.Onboarding_Status // Ajout du statut d'onboarding
     };
   } catch (e) {
@@ -751,6 +820,7 @@ function getProfileData(profileUrl) {
     const userRowData = usersSheet.getRange(userRowIndex, 1, 1, usersSheet.getLastColumn()).getValues()[0];
     const userId = userRowData[usersHeaders.indexOf('ID_Unique')];
     const userEmail = userRowData[usersHeaders.indexOf('Email')];
+    const enterpriseId = userRowData[usersHeaders.indexOf('ID_Entreprise')]; // Récupérer l'ID entreprise
 
     // 4. Chercher le profil correspondant dans la feuille Profils
     const profilesHeaders = profilesSheet.getRange(1, 1, 1, profilesSheet.getLastColumn()).getValues()[0];
@@ -773,6 +843,30 @@ function getProfileData(profileUrl) {
     }, {});
 
     profileDataObject.Email = userEmail;
+
+    // --- LOGIQUE D'HÉRITAGE ENTREPRISE ---
+    // Si l'utilisateur a un ID_Entreprise (c'est un employé), on surcharge certaines données
+    // avec celles de l'entreprise (Design, Liens, Couverture, etc.)
+    if (enterpriseId) {
+      const entProfileFinder = profilesSheet.getRange(2, pIdColIdx, profilesSheet.getLastRow() - 1, 1)
+        .createTextFinder(enterpriseId)
+        .matchEntireCell(true);
+      const foundEntProfile = entProfileFinder.findNext();
+      
+      if (foundEntProfile) {
+        const entRowIndex = foundEntProfile.getRow();
+        const entData = profilesSheet.getRange(entRowIndex, 1, 1, profilesSheet.getLastColumn()).getValues()[0];
+        
+        // Champs à hériter de l'entreprise
+        const inheritedFields = ['Compagnie', 'Location', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque'];
+        
+        inheritedFields.forEach(field => {
+          const idx = profilesHeaders.indexOf(field);
+          // On écrase la donnée de l'employé par celle de l'entreprise
+          if (idx !== -1) profileDataObject[field] = entData[idx];
+        });
+      }
+    }
 
     // Mise en cache (6 heures)
     cache.put(cacheKey, JSON.stringify(profileDataObject), 21600); // 21600 secondes = 6 heures
@@ -973,7 +1067,8 @@ function handleLeadCapture(leadData) {
     // --- ENVOI EMAIL NOTIFICATION ---
     if (profileOwnerEmail) {
       try {
-        const dashboardUrl = "https://mahu.cards/Dashboard.html";
+        // Lien vers la page de connexion avec l'email pré-rempli
+        const connectionUrl = `https://mahu.cards/Connexion.html?email=${encodeURIComponent(profileOwnerEmail)}`;
         const subject = "Nouveau prospect sur votre carte Mahu !";
         const htmlBody = `
         <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #eeeeee; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
@@ -991,7 +1086,7 @@ function handleLeadCapture(leadData) {
                 <p style="margin: 0; font-style: italic; color: #555;">"${leadData.message || 'Aucun message'}"</p>
             </div>
             <div style="text-align: center; margin: 40px 0;">
-              <a href="${dashboardUrl}" style="background-color: #000000; color: #ffffff; padding: 16px 32px; text-decoration: none; font-weight: 500; font-size: 14px; display: inline-block; letter-spacing: 1px; text-transform: uppercase;">Voir mes prospects</a>
+              <a href="${connectionUrl}" style="background-color: #000000; color: #ffffff; padding: 16px 32px; text-decoration: none; font-weight: 500; font-size: 14px; display: inline-block; letter-spacing: 1px; text-transform: uppercase;">Me connecter pour voir</a>
             </div>
           </div>
           <div style="background-color: #fcfcfc; padding: 20px; text-align: center; font-size: 11px; color: #999999; border-top: 1px solid #eeeeee;">
@@ -1017,6 +1112,7 @@ function handleLeadCapture(leadData) {
  */
 function handleSupportMessage(data, user) {
   const email = user ? user.Email : (data.email || 'anonyme');
+  const phone = data.phone || '';
   const subject = data.subject || 'Demande de support';
   const message = data.message || '';
 
@@ -1024,7 +1120,8 @@ function handleSupportMessage(data, user) {
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const supportSheet = ss.getSheetByName('Support');
-  supportSheet.appendRow([new Date(), email, subject, message, 'NOUVEAU']);
+  // Ajout à la fin (correspond aux headers définis plus haut)
+  supportSheet.appendRow([new Date(), email, subject, message, 'NOUVEAU', phone]);
 
   // 1. Envoyer une confirmation par email à l'utilisateur
   const confirmationSubject = "Réception de votre demande de support";
@@ -1034,6 +1131,7 @@ function handleSupportMessage(data, user) {
         <h2 style="margin-top: 0;">Nous avons bien reçu votre message</h2>
         <p>Bonjour,</p>
         <p>Merci d'avoir contacté le support Mahu. Nous avons bien reçu votre demande concernant : "<strong>${subject}</strong>".</p>
+        ${phone ? `<p>Nous avons noté votre numéro : ${phone}</p>` : ''}
         <p>Notre équipe va l'examiner et reviendra vers vous dans les plus brefs délais.</p>
         <p>Votre message :</p>
         <blockquote style="background: #f9f9f9; border-left: 4px solid #000; padding: 10px; margin: 10px 0;">${message}</blockquote>
@@ -1046,7 +1144,7 @@ function handleSupportMessage(data, user) {
   }
 
   // 2. Envoyer une notification CallMeBot à l'admin
-  const adminMessage = `🔔 *Support Mahu*\n\n👤 De: ${email}\n📝 Sujet: ${subject}\n💬 Message: ${message}`;
+  const adminMessage = `🔔 *Support Mahu*\n\n👤 De: ${email}\n📞📞📞📞📞📞📞📞 Tel: ${phone}\n📝 Sujet: ${subject}\n💬 Message: ${message}`;
   sendCallMeBotMessage(adminMessage);
 
   return { success: true, message: "Message envoyé au support." };
@@ -1056,12 +1154,18 @@ function handleSupportMessage(data, user) {
  * Envoie un message via CallMeBot (WhatsApp).
  */
 function sendCallMeBotMessage(text) {
-  const phone = getConfigValue('CALLMEBOT_PHONE');
+  let phone = getConfigValue('CALLMEBOT_PHONE');
   const apiKey = getConfigValue('CALLMEBOT_API_KEY');
 
   if (!phone || !apiKey || phone === '+1234567890') {
     Logger.log("CallMeBot non configuré.");
     return;
+  }
+  
+  // Correction automatique : Ajoute le + si l'utilisateur a mis seulement le numéro (ex: 336...)
+  phone = String(phone).trim();
+  if (!phone.startsWith('+')) {
+    phone = '+' + phone;
   }
 
   const encodedText = encodeURIComponent(text);

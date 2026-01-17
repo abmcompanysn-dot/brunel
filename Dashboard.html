@@ -117,6 +117,10 @@
             color: white;
             font-weight: bold;
         }
+        
+        /* Cacher les éléments réservés aux admins pour les employés */
+        body.role-employe .admin-only { display: none !important; }
+        body.role-entreprise .employe-only { display: none !important; }
 
         .sidebar.collapsed nav a {
             justify-content: center; /* Centre l'icône quand replié */
@@ -650,6 +654,10 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     <span>Contacts</span>
                 </a>
+                <a href="#" onclick="showPane(event, 'team-content', this)" title="Mon Équipe" class="admin-only" id="nav-team">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <span>Mon Équipe</span>
+                </a>
                 <a href="#" onclick="showPane(event, 'statistique-content', this)" title="Statistiques">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                     <span>Statistiques</span>
@@ -690,7 +698,7 @@
                             <div id="profile-cover-preview" class="profile-cover-image" style="background-image: url('https://placehold.co/800x300/333/ccc?text=Couverture');">
                                 <div class="edit-overlay">
                                     <button class="edit-overlay-btn" onclick="toggleEditMenu(event, 'cover-edit-menu')">+</button>
-                                    <div id="cover-edit-menu" class="edit-dropdown-menu">
+                                    <div id="cover-edit-menu" class="edit-dropdown-menu admin-only"> <!-- Seul l'admin change la cover -->
                                         <a href="#" onclick="triggerFileInput('cover-image-input')">Modifier</a>
                                         <a href="#" onclick="deleteImage(event, 'cover')">Supprimer</a>
                                     </div>
@@ -810,6 +818,41 @@
                             <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
                         </tbody>
                     </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panneau Équipe (Entreprise uniquement) -->
+            <div id="team-content" class="content-pane admin-only">
+                <h1>Mon Équipe</h1>
+                <div class="card">
+                    <div class="card-header-flex">
+                        <h3>Membres de l'équipe</h3>
+                        <div>
+                            <button class="btn btn-secondary btn-with-icon" onclick="copyInviteLink()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>
+                                <span>Lien d'invitation</span>
+                            </button>
+                            <button class="btn btn-primary btn-with-icon" onclick="openModal('add-employee-modal')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                <span>Ajouter un membre</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Email</th>
+                                    <th>Prospects capturés</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="team-table-body">
+                                <!-- Rempli par JS -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -966,8 +1009,8 @@
             <span class="close-btn" onclick="closeModal('profil-edit-modal')">&times;</span>
             <h1>Modifier le Profil</h1>
             <div class="editor-nav">
-                <button class="editor-nav-btn active" onclick="showEditPane('edit-pane-about', this)">À propos</button>
-                <button class="editor-nav-btn" onclick="showEditPane('edit-pane-appearance', this)">Apparence</button>
+                <button class="editor-nav-btn active" onclick="showEditPane('edit-pane-about', this)">Informations</button>
+                <button class="editor-nav-btn admin-only" onclick="showEditPane('edit-pane-appearance', this)">Apparence & Liens</button>
                 <!-- L'onglet "Liens" a été fusionné avec "À propos" -->
             </div>
             <div class="modal-editor-layout">
@@ -977,17 +1020,18 @@
                         <h3>Contenu Principal</h3>
                         <div class="form-group"><label for="Nom_Complet">Nom complet</label><input type="text" id="Nom_Complet" name="Nom_Complet" class="form-control" placeholder="Ex: Jean Dupont"></div>
                         <div class="form-group"><label for="URL_Profil">URL du profil personnalisée</label><input type="text" id="URL_Profil" name="URL_Profil" class="form-control" placeholder="Ex: jean-dupont (lettres, chiffres et tirets uniquement)"></div>
-                        <div class="form-group"><label for="Profession">Profession</label><input type="text" id="Profession" name="Profession" class="form-control" placeholder="Ex: Développeur Web"></div>
-                        <div class="form-group"><label for="Compagnie">Compagnie</label><input type="text" id="Compagnie" name="Compagnie" class="form-control" placeholder="Ex: Mahu Inc."></div>
-                        <div class="form-group"><label for="Location">Location</label><input type="text" id="Location" name="Location" class="form-control" placeholder="Ex: Paris, France"></div>
+                        <div class="form-group"><label for="Profession">Profession</label><input type="text" id="Profession" name="Profession" class="form-control" placeholder="Ex: Commercial"></div>
+                        <!-- Compagnie et Location sont gérés par l'entreprise pour les employés -->
+                        <div class="form-group admin-only"><label for="Compagnie">Compagnie</label><input type="text" id="Compagnie" name="Compagnie" class="form-control" placeholder="Ex: Mahu Inc."></div>
+                        <div class="form-group admin-only"><label for="Location">Location</label><input type="text" id="Location" name="Location" class="form-control" placeholder="Ex: Paris, France"></div>
                         
-                        <h3 style="margin-top: 30px;">Réseaux Sociaux & Liens</h3>
-                        <div id="social-links-container"></div>
-                        <button type="button" class="btn btn-secondary" onclick="addSocialLink()" style="width: auto; margin-top: 10px;">Ajouter un lien</button>
-
                     </div>
                     <!-- Panneau d'édition "Apparence" -->
-                    <div id="edit-pane-appearance" class="edit-pane">
+                    <div id="edit-pane-appearance" class="edit-pane admin-only">
+                        <h3>Réseaux Sociaux & Liens (Entreprise)</h3>
+                        <div id="social-links-container"></div>
+                        <button type="button" class="btn btn-secondary" onclick="addSocialLink()" style="width: auto; margin-top: 10px; margin-bottom: 30px;">Ajouter un lien</button>
+
                         <h3>Apparence</h3>
                         <p class="text-secondary" style="color: var(--text-secondary); margin-top:-10px; margin-bottom: 20px;">Personnalisez l'aspect et la convivialité de votre profil.</p>
 
@@ -1034,6 +1078,24 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale Ajout Employé -->
+    <div id="add-employee-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-btn" onclick="closeModal('add-employee-modal')">&times;</span>
+            <h2>Ajouter un membre</h2>
+            <form onsubmit="handleCreateEmployee(event)">
+                <div class="form-group"><label>Nom complet</label><input type="text" id="new-emp-name" class="form-control" required></div>
+                <div class="form-group"><label>Email professionnel</label><input type="email" id="new-emp-email" class="form-control" required></div>
+                <div class="form-group"><label>Mot de passe provisoire</label><input type="text" id="new-emp-password" class="form-control" required value="Mahu1234"></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Créer le compte</button>
+            </form>
+            <div style="text-align: center; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px;">
+                <p style="color: var(--text-secondary);">Ou partagez ce lien pour qu'ils s'inscrivent eux-mêmes :</p>
+                <button type="button" class="btn btn-secondary" onclick="copyInviteLink()">Copier le lien d'invitation</button>
             </div>
         </div>
     </div>
@@ -1449,6 +1511,7 @@
     <script src="https://unpkg.com/feather-icons"></script>
     <script>
         let viewsChartInstance = null; // Variable pour stocker l'instance du graphique
+        let currentUser = null; // Variable globale pour stocker l'utilisateur courant
 
         document.addEventListener('DOMContentLoaded', function() {
             fetchDashboardData();
@@ -1486,6 +1549,15 @@
             const profile = data.profile || {};
             const prospects = data.prospects || [];
             const documents = data.documents || []; // Nouveaux documents
+
+            currentUser = user; // Stocker pour usage global
+
+            // --- GESTION DES RÔLES ---
+            if (user.Role === 'Entreprise') {
+                document.body.classList.add('role-entreprise');
+            } else {
+                document.body.classList.add('role-employe');
+            }
 
             // --- Remplir le panneau d'aperçu du profil ---
             const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
@@ -1581,6 +1653,17 @@
                 });
             } else {
                 nfcList.innerHTML = '<li>Aucune carte NFC liée.</li>';
+            }
+
+            // Remplir la liste de l'équipe (si Entreprise)
+            if (user.Role === 'Entreprise' && data.team) {
+                const teamBody = document.getElementById('team-table-body');
+                teamBody.innerHTML = '';
+                data.team.forEach(member => {
+                    teamBody.innerHTML += `
+                        <tr><td>${member.name}</td><td>${member.email}</td><td>${member.leads}</td>
+                        <td><a href="ProfilePublic.html?user=${member.url}" target="_blank" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em;">Voir</a></td></tr>`;
+                });
             }
 
             // Remplir la table des prospects

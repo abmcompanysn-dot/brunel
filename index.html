@@ -538,6 +538,10 @@
                         <input type="email" id="support-email" required class="form-control" placeholder="email@exemple.com">
                     </div>
                     <div class="form-group">
+                        <label for="support-phone">Téléphone (Optionnel)</label>
+                        <input type="tel" id="support-phone" class="form-control" placeholder="Votre numéro">
+                    </div>
+                    <div class="form-group">
                         <label for="support-subject">Sujet</label>
                         <input type="text" id="support-subject" required class="form-control" placeholder="Sujet de votre demande">
                     </div>
@@ -639,6 +643,7 @@
 
             const data = {
                 email: document.getElementById('support-email').value,
+                phone: document.getElementById('support-phone').value,
                 subject: document.getElementById('support-subject').value,
                 message: document.getElementById('support-message').value
             };
