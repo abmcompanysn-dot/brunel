@@ -30,7 +30,14 @@ function doPost(e) {
     const user = e.parameter.token ? getUserByToken(e.parameter.token) : null;
     const userEmail = user ? user.Email : 'anonyme';
     const action = e.parameter.action;
-    const payload = e.parameter.payload ? JSON.parse(e.parameter.payload) : {};
+    
+    // Amélioration de la gestion du payload pour accepter JSON ou paramètres plats
+    let payload = {};
+    if (e.parameter.payload) {
+      try { payload = JSON.parse(e.parameter.payload); } catch (z) { payload = e.parameter; }
+    } else {
+      payload = e.parameter;
+    }
     let result;
 
     switch (action) {
@@ -63,6 +70,12 @@ function doPost(e) {
           case 'saveProfileImage':
             result = saveProfileImage(payload, user);
             break;
+          case 'saveDocument':
+            result = saveDocument(payload, user);
+            break;
+          case 'deleteDocument':
+            result = deleteDocument(payload.docId, user);
+            break;
           case 'updateOnboardingData':
             result = updateOnboardingData(payload, user);
             break;
@@ -75,9 +88,6 @@ function doPost(e) {
           case 'generateGoogleWalletPass':
             result = generateGoogleWalletPass(user);
             break;
-          case 'getPublicProductData': // Nouvelle action publique
-            result = getPublicProductData(payload);
-            break;
           case 'saveProduct':
           case 'deleteProduct':
             result = handleProductActions(action, payload, user);
@@ -88,6 +98,12 @@ function doPost(e) {
           case 'syncCart':
             Logger.log(`Panier synchronisé pour ${user.Email}: ${JSON.stringify(payload)}`);
             result = { success: true };
+            break;
+          case 'linkNfcCard':
+            result = linkNfcCard(payload.nfcId, user);
+            break;
+          case 'contactSupport':
+            result = handleSupportMessage(payload, user);
             break;
           default:
             result = { error: 'Action POST non reconnue.' };
@@ -160,6 +176,8 @@ function onOpen() {
       .createMenu('Mahu Admin')
       .addItem('Vérifier et Réparer la Structure', 'verifyAndFixSheetStructure')
       .addItem('1. Initialiser les feuilles', 'setupSpreadsheet')
+      .addSeparator()
+      .addItem('Tester la notification CallMeBot', 'testCallMeBot')
       .addToUi();
 }
 
@@ -177,6 +195,9 @@ function setupSpreadsheet() {
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
     { name: 'Produits', headers: ['ID_Produit', 'ID_Utilisateur', 'Nom', 'Description', 'Prix', 'Images_JSON', 'Date_Creation', 'Actif'] },
     { name: 'Categories', headers: ['ID_Categorie', 'ID_Utilisateur', 'Nom_Categorie'] },
+    { name: 'Documents', headers: ['ID_Document', 'ID_Utilisateur', 'Type', 'Nom', 'URL', 'Date_Ajout'] },
+    { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut'] },
+    { name: 'Configuration', headers: ['Clé', 'Valeur', 'Description'] },
     // L'onglet Commandes n'était pas dans la nouvelle spec, mais on peut le garder si besoin.
     // { name: 'Commandes NFC', headers: ['ID_Commande', 'ID_Utilisateur', 'Type_Carte', 'Quantite', 'Date_Commande', 'Statut'] },
   ];
@@ -199,6 +220,13 @@ function setupSpreadsheet() {
           ['profil_test', new Date(), 'NFC']
         ];
         sheet.getRange(2, 1, exampleData.length, exampleData[0].length).setValues(exampleData);
+      }
+      
+      // Initialisation de la configuration
+      if (sheetInfo.name === 'Configuration') {
+        sheet.appendRow(['CALLMEBOT_PHONE', '+1234567890', 'Votre numéro (avec code pays) pour CallMeBot']);
+        sheet.appendRow(['CALLMEBOT_API_KEY', '123456', 'Votre clé API CallMeBot']);
+        sheet.appendRow(['EMAIL_SIGNATURE', '<p>Cordialement,<br><strong>L\'équipe Mahu</strong><br><a href="https://mahu.cards">mahu.cards</a></p>', 'Signature HTML des emails']);
       }
     } else {
       Logger.log(`La feuille "${sheetInfo.name}" existe déjà.`);
@@ -225,6 +253,9 @@ function verifyAndFixSheetStructure() {
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
     { name: 'Produits', headers: ['ID_Produit', 'ID_Utilisateur', 'Nom', 'Description', 'Prix', 'Images_JSON', 'Date_Creation', 'Actif'] },
     { name: 'Categories', headers: ['ID_Categorie', 'ID_Utilisateur', 'Nom_Categorie'] },
+    { name: 'Documents', headers: ['ID_Document', 'ID_Utilisateur', 'Type', 'Nom', 'URL', 'Date_Ajout'] },
+    { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut'] },
+    { name: 'Configuration', headers: ['Clé', 'Valeur', 'Description'] },
   ];
 
   requiredSheets.forEach(sheetInfo => {
@@ -276,7 +307,7 @@ function logAction(action, status, message, userEmail, suggestion = '') {
 /**
  * Gère l'inscription d'un nouvel utilisateur.
  * @param {string} email - L'email de l'utilisateur.
- * @param {string} password - Le mot de passe (sera stocké en clair, non recommandé pour la production).
+ * @param {string} password - Le mot de passe.
  * @returns {Object} Un objet indiquant le succès ou l'échec.
  */
 function registerUser(email, password) {
@@ -300,12 +331,45 @@ function registerUser(email, password) {
   const token = Utilities.getUuid();
   const expiration = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000); // Expire dans 7 jours
 
-  const newUserRow = [newId, email, password, '', 'Particulier', profileUrl, '[]', 'ONBOARDING_STARTED', token, expiration, '', ''];
+  // Sécurisation du mot de passe (Hash + Salt)
+  const salt = Utilities.getUuid(); // Utilise un UUID comme sel unique
+  const passwordHash = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + password));
+  const storedPassword = salt + "$" + passwordHash;
+
+  const newUserRow = [newId, email, storedPassword, '', 'Particulier', profileUrl, '[]', 'ONBOARDING_STARTED', token, expiration, '', ''];
   userSheet.appendRow(newUserRow);
 
   // Créer un profil de base associé
   const profileSheet = ss.getSheetByName('Profils');
   profileSheet.appendRow([newId, email, email.split('@')[0], '', '', '', '', '', '', '[]', 'NON', 'NON', '']); // Ligne de profil initial, avec une colonne vide pour le téléphone
+
+  // --- ENVOI EMAIL DE BIENVENUE ---
+  try {
+    const loginUrl = "https://mahu.cards/Connexion.html";
+    const subject = "Bienvenue sur Mahu !";
+    const htmlBody = `
+      <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #eeeeee; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+        <div style="background-color: #000000; padding: 30px 20px; text-align: center;">
+          <img src="https://mahu.cards/r/logo.png" alt="Mahu Logo" style="height: 50px; vertical-align: middle;">
+        </div>
+        <div style="padding: 40px 30px; color: #1a1a1a; line-height: 1.8; font-size: 16px;">
+          <h2 style="color: #000000; margin-top: 0; font-weight: 300; letter-spacing: 1px; text-transform: uppercase; font-size: 24px; text-align: center; margin-bottom: 30px;">Bienvenue chez Mahu</h2>
+          <p>Bonjour,</p>
+          <p>C'est un plaisir de vous accueillir. Votre compte Mahu a été créé avec succès, vous ouvrant les portes d'une nouvelle expérience de connexion.</p>
+          <p>Configurez dès à présent votre carte de visite numérique et distinguez-vous.</p>
+          <div style="text-align: center; margin: 40px 0;">
+            <a href="${loginUrl}" style="background-color: #000000; color: #ffffff; padding: 16px 32px; text-decoration: none; font-weight: 500; font-size: 14px; display: inline-block; letter-spacing: 1px; text-transform: uppercase;">Accéder à mon espace</a>
+          </div>
+        </div>
+        <div style="background-color: #fcfcfc; padding: 20px; text-align: center; font-size: 11px; color: #999999; border-top: 1px solid #eeeeee;">
+          &copy; ${new Date().getFullYear()} Mahu. L'excellence de la connexion.
+        </div>
+      </div>`;
+
+    sendEmail(email, subject, htmlBody);
+  } catch (e) {
+    Logger.log("Erreur envoi email bienvenue: " + e.message);
+  }
 
   SpreadsheetApp.flush();
   logAction('registerUser', 'SUCCESS', `Nouvel utilisateur créé: ${email}`, email);
@@ -333,8 +397,33 @@ function loginUser(email, password) {
   // On cherche l'utilisateur à partir de la 2ème ligne (index 1)
   const userRowIndex = usersData.slice(1).findIndex(row => row[emailCol] === email);
 
-  // Si l'utilisateur n'est pas trouvé ou si le mot de passe est incorrect
-  if (userRowIndex === -1 || usersData[userRowIndex + 1][passwordCol] !== password) {
+  // Si l'utilisateur n'est pas trouvé
+  if (userRowIndex === -1) {
+    return { success: false, error: "Email ou mot de passe incorrect." };
+  }
+
+  const storedPassword = usersData[userRowIndex + 1][passwordCol];
+  let isPasswordValid = false;
+
+  // Vérification du mot de passe (supporte le nouveau format sécurisé et l'ancien format en clair)
+  if (storedPassword.includes('$')) {
+    const parts = storedPassword.split('$');
+    const salt = parts[0];
+    const hash = parts[1];
+    const checkHash = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + password));
+    if (checkHash === hash) isPasswordValid = true;
+  } else {
+    // Fallback pour les anciens comptes : si le mot de passe correspond en clair, on le valide et on le sécurise
+    if (storedPassword === password) {
+      isPasswordValid = true;
+      // Auto-upgrade : on sécurise le mot de passe immédiatement
+      const newSalt = Utilities.getUuid();
+      const newHash = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, newSalt + password));
+      userSheet.getRange(userRowIndex + 2, passwordCol + 1).setValue(newSalt + "$" + newHash);
+    }
+  }
+
+  if (!isPasswordValid) {
     return { success: false, error: "Email ou mot de passe incorrect." };
   }
 
@@ -389,41 +478,36 @@ function forgotPassword(email) {
     userSheet.getRange(sheetRow, resetExpCol + 1).setValue(expiration);
   }
 
-  const resetUrl = `https://mahu0.abmcy.com/ResetPassword.html?token=${resetToken}`; // Remplacez par votre URL réelle
+  const resetUrl = `https://mahu.cards/ResetPassword.html?token=${resetToken}`;
   const subject = "Réinitialisation de votre mot de passe Mahu";
   // Version texte simple pour les clients mail qui ne supportent pas le HTML
   const textBody = `Bonjour,\n\nVous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le lien ci-dessous (valide 5 minutes) pour continuer:\n${resetUrl}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail.\n\nL'équipe Mahu`;
 
   // Version HTML pour un rendu plus professionnel
   const htmlBody = `
-    <div style="font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; color: #333;">
-      <h2 style="color: #1a1a1a;">Réinitialisation de votre mot de passe</h2>
-      <p>Bonjour,</p>
-      <p>Vous avez demandé la réinitialisation de votre mot de passe pour votre compte Mahu.</p>
-      <p>Veuillez cliquer sur le bouton ci-dessous pour choisir un nouveau mot de passe. Ce lien est valide pendant <strong>5 minutes</strong>.</p>
-      <p style="margin: 25px 0;">
-        <a href="${resetUrl}" style="background-color: #007bff; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Réinitialiser le mot de passe</a>
-      </p>
-      <p>Si le bouton ne fonctionne pas, vous pouvez copier et coller le lien suivant dans votre navigateur :</p>
-      <p><a href="${resetUrl}" style="color: #007bff;">${resetUrl}</a></p>
-      <p>Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet e-mail en toute sécurité.</p>
-      <hr style="border: none; border-top: 1px solid #eee;" />
-      <p>Cordialement,<br>L'équipe Mahu</p>
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #eeeeee; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+      <div style="background-color: #000000; padding: 30px 20px; text-align: center;">
+        <img src="https://mahu.cards/r/logo.png" alt="Mahu Logo" style="height: 50px; vertical-align: middle;">
+      </div>
+      <div style="padding: 40px 30px; color: #1a1a1a; line-height: 1.8; font-size: 16px;">
+        <h2 style="color: #000000; margin-top: 0; font-weight: 300; letter-spacing: 1px; text-transform: uppercase; font-size: 24px; text-align: center; margin-bottom: 30px;">Réinitialisation</h2>
+        <p>Bonjour,</p>
+        <p>Nous avons reçu une demande de réinitialisation pour votre compte Mahu.</p>
+        <p>Pour définir votre nouveau mot de passe, veuillez cliquer sur le bouton ci-dessous :</p>
+        <div style="text-align: center; margin: 40px 0;">
+          <a href="${resetUrl}" style="background-color: #000000; color: #ffffff; padding: 16px 32px; text-decoration: none; font-weight: 500; font-size: 14px; display: inline-block; letter-spacing: 1px; text-transform: uppercase;">Réinitialiser le mot de passe</a>
+        </div>
+        <p style="font-size: 13px; color: #666;">Ce lien est valide pendant <strong>5 minutes</strong>.</p>
+        <p style="font-size: 13px; color: #666;">Si le bouton ne fonctionne pas, copiez ce lien :<br>
+        <a href="${resetUrl}" style="color: #000000; text-decoration: underline;">${resetUrl}</a></p>
+        <p style="font-size: 13px; color: #999; margin-top: 30px; font-style: italic;">Si vous n'avez pas demandé cette réinitialisation, ignorez cet e-mail.</p>
+      </div>
+      <div style="background-color: #fcfcfc; padding: 20px; text-align: center; font-size: 11px; color: #999999; border-top: 1px solid #eeeeee;">
+        &copy; ${new Date().getFullYear()} Mahu. L'excellence de la connexion.
+      </div>
     </div>`;
 
-  // Options avancées pour l'envoi d'email
-  const mailOptions = {
-    htmlBody: htmlBody,
-    name: CONFIG.SENDER_NAME
-  };
-
-  // Si un alias est configuré, on l'utilise pour l'envoi.
-  // Cela nécessite le service GmailApp, plus puissant que MailApp.
-  if (CONFIG.SENDER_EMAIL_ALIAS) {
-    mailOptions.from = CONFIG.SENDER_EMAIL_ALIAS;
-  }
-
-  GmailApp.sendEmail(email, subject, textBody, mailOptions);
+  sendEmail(email, subject, htmlBody, textBody);
   logAction('forgotPassword', 'SUCCESS', `Email de réinitialisation envoyé à ${email}`, email);
 
   return { success: true, message: "Vérifiez votre boîte mail. Un lien vous a été envoyé, il expire dans 5 minutes." };
@@ -464,31 +548,16 @@ function resetPassword(token, newPassword) {
 
   const sheetRow = userRowIndex + 2; // +1 pour compenser le slice, +1 car les index de feuille commencent à 1
   // Mettre à jour le mot de passe et effacer le token en une seule opération
-  userSheet.getRange(sheetRow, passwordCol + 1).setValue(newPassword); // Mise à jour du mot de passe
+  
+  // Sécurisation du nouveau mot de passe
+  const salt = Utilities.getUuid();
+  const passwordHash = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + newPassword));
+  const storedPassword = salt + "$" + passwordHash;
+
+  userSheet.getRange(sheetRow, passwordCol + 1).setValue(storedPassword); // Mise à jour du mot de passe
   userSheet.getRange(sheetRow, resetTokenCol + 1, 1, 2).setValues([['', '']]); // Efface le token et son expiration
 
   return { success: true };
-}
-/**
- * Récupère l'utilisateur basé sur le token fourni.
- * @returns {Object} Les informations de l'utilisateur.
- */
-/**
- * Trouve un utilisateur par son email.
- * @param {string} email - L'email à rechercher.
- * @returns {Object|null} L'objet utilisateur ou null s'il n'est pas trouvé.
- */
-function findUserByEmail(email) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const userSheet = ss.getSheetByName('Utilisateurs');
-  const usersData = userSheet.getDataRange().getValues();
-  const headers = usersData.shift();
-  const emailCol = headers.indexOf('Email');
-  const userRow = usersData.find(row => row[emailCol] === email);
-
-  if (!userRow) return null;
-
-  return headers.reduce((obj, header, index) => { obj[header] = userRow[index]; return obj; }, {});
 }
 
 /**
@@ -585,15 +654,31 @@ function getDashboardData(user) {
         return productObj;
       });
 
+    // --- Récupérer les documents (Coffre-fort) ---
+    const docsSheet = ss.getSheetByName('Documents');
+    const allDocs = docsSheet && docsSheet.getLastRow() > 1
+      ? docsSheet.getRange('A2:F' + docsSheet.getLastRow()).getValues()
+      : [];
+    const userDocs = allDocs
+      .filter(row => row[1] === user.ID_Unique)
+      .map(row => ({
+        id: row[0],
+        type: row[2],
+        name: row[3],
+        url: row[4],
+        date: row[5]
+      }));
+
     const totalProspectsCount = allProspects.filter(row => row[0] === user.ID_Unique).length;
 
     // Construire l'URL de base de l'application web
-    const appUrl = "https://mahu-app.com/ProfilePublic.html"; // URL générique
+    const appUrl = "https://mahu.cards/ProfilePublic.html"; // URL générique
 
     return {
       user: user,
       profile: profile,
       prospects: userProspects,
+      documents: userDocs, // Ajout des documents
       products: userProducts, // Ajout des produits
       appUrl: appUrl,
       stats: stats, // Nouvelles données pour le graphique
@@ -627,6 +712,8 @@ function getPublicProfileUrl(user) {
  * @returns {Object} Un objet contenant toutes les données du profil à afficher.
  */
 function getProfileData(profileUrl) {
+  if (!profileUrl) return { error: "URL de profil manquante." };
+
   // --- OPTIMISATION RADICALE AVEC CACHE ---
   const cache = CacheService.getScriptCache();
   const cacheKey = `profile_${profileUrl}`;
@@ -637,56 +724,57 @@ function getProfileData(profileUrl) {
     return JSON.parse(cachedData);
   }
   try {
-    Logger.log(`Récupération des données pour le profil : ${profileUrl}`);
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const usersSheet = ss.getSheetByName('Utilisateurs');
     const profilesSheet = ss.getSheetByName('Profils');
 
-    if (!usersSheet || !profilesSheet) {
-      throw new Error("Les feuilles 'Utilisateurs' ou 'Profils' sont introuvables.");
-    }
+    // --- OPTIMISATION : Recherche ciblée avec TextFinder ---
+    // Cette méthode évite de charger toute la base de données en mémoire.
+    
+    // 1. Récupérer les en-têtes (opération très rapide)
+    const usersHeaders = usersSheet.getRange(1, 1, 1, usersSheet.getLastColumn()).getValues()[0];
+    const urlColIdx = usersHeaders.indexOf('URL_Profil') + 1; // +1 pour l'index 1-based
+    
+    if (urlColIdx === 0) return { error: "Colonne URL_Profil introuvable." };
+    if (usersSheet.getLastRow() <= 1) return { error: "Aucun utilisateur enregistré." };
 
-    // Lire toutes les données pour éviter les appels multiples
-    const usersData = usersSheet.getDataRange().getValues();
-    const profilesData = profilesSheet.getDataRange().getValues();
+    // 2. Chercher l'URL dans la colonne spécifique (très rapide même sur de grandes feuilles)
+    const userFinder = usersSheet.getRange(2, urlColIdx, usersSheet.getLastRow() - 1, 1)
+      .createTextFinder(profileUrl)
+      .matchEntireCell(true);
+    const foundUser = userFinder.findNext();
 
-    // Trouver les index des colonnes par leur nom pour plus de robustesse
-    const usersHeaders = usersData.shift(); // Retire et retourne la ligne d'en-tête
-    const urlProfilCol = usersHeaders.indexOf('URL_Profil');
-    const userIdCol = usersHeaders.indexOf('ID_Unique');
-    const userEmailCol = usersHeaders.indexOf('Email');
+    if (!foundUser) return { error: "Profil non trouvé." };
 
-    // 1. Trouver l'utilisateur par son URL de profil
-    const userRow = usersData.find(row => row[urlProfilCol] === profileUrl);
+    // 3. Récupérer l'ID et l'Email de l'utilisateur trouvé
+    const userRowIndex = foundUser.getRow();
+    const userRowData = usersSheet.getRange(userRowIndex, 1, 1, usersSheet.getLastColumn()).getValues()[0];
+    const userId = userRowData[usersHeaders.indexOf('ID_Unique')];
+    const userEmail = userRowData[usersHeaders.indexOf('Email')];
 
-    if (!userRow) {
-      Logger.log(`Aucun utilisateur trouvé pour l'URL : ${profileUrl}`);
-      return { error: "Profil non trouvé." };
-    }
+    // 4. Chercher le profil correspondant dans la feuille Profils
+    const profilesHeaders = profilesSheet.getRange(1, 1, 1, profilesSheet.getLastColumn()).getValues()[0];
+    const pIdColIdx = profilesHeaders.indexOf('ID_Utilisateur') + 1;
+    
+    const profileFinder = profilesSheet.getRange(2, pIdColIdx, profilesSheet.getLastRow() - 1, 1)
+      .createTextFinder(userId)
+      .matchEntireCell(true);
+    const foundProfile = profileFinder.findNext();
 
-    const userId = userRow[userIdCol];
+    if (!foundProfile) return { error: "Données de profil manquantes." };
 
-    // 2. Trouver le profil correspondant avec l'ID de l'utilisateur
-    const profilesHeaders = profilesData.shift();
-    const profileUserIdCol = profilesHeaders.indexOf('ID_Utilisateur');
-    const profileRow = profilesData.find(row => row[profileUserIdCol] === userId);
+    // 5. Lire les données du profil
+    const profileRowIndex = foundProfile.getRow();
+    const profileData = profilesSheet.getRange(profileRowIndex, 1, 1, profilesSheet.getLastColumn()).getValues()[0];
 
-    if (!profileRow) {
-      Logger.log(`Aucun profil trouvé pour l'ID utilisateur : ${userId}`);
-      return { error: "Données de profil non trouvées." };
-    }
-
-    // 3. Construire l'objet de données à retourner
-    // Cette méthode transforme la ligne de données en un objet clé-valeur
     const profileDataObject = profilesHeaders.reduce((obj, header, index) => {
-      obj[header] = profileRow[index];
+      obj[header] = profileData[index];
       return obj;
     }, {});
 
-    // Ajouter des informations de l'utilisateur si nécessaire (ex: email)
-    profileDataObject.Email = userRow[userEmailCol];
+    profileDataObject.Email = userEmail;
 
-    // Mettre les données en cache pour 6 heures pour des chargements futurs ultra-rapides
+    // Mise en cache (6 heures)
     cache.put(cacheKey, JSON.stringify(profileDataObject), 21600); // 21600 secondes = 6 heures
 
     return profileDataObject;
@@ -694,47 +782,6 @@ function getProfileData(profileUrl) {
   } catch (e) {
     Logger.log(`Erreur dans getProfileData: ${e.message}`);
     return { error: e.message };
-  }
-}
-
-/**
- * Récupère les données d'un produit spécifique pour la page de détail publique.
- * @param {Object} payload - Contient { productId, userUrl }.
- * @returns {Object} Les données du produit ou une erreur.
- */
-function getPublicProductData(payload) {
-  const { productId, userUrl } = payload;
-  if (!productId || !userUrl) {
-    return { error: "ID de produit ou URL utilisateur manquant." };
-  }
-
-  try {
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const usersSheet = ss.getSheetByName('Utilisateurs');
-    const productsSheet = ss.getSheetByName('Produits');
-
-    // 1. Trouver l'ID de l'utilisateur à partir de son URL
-    const usersData = usersSheet.getDataRange().getValues();
-    const urlCol = usersData[0].indexOf('URL_Profil');
-    const userIdCol = usersData[0].indexOf('ID_Unique');
-    const userRow = usersData.find(row => row[urlCol] === userUrl);
-    if (!userRow) return { error: "Vendeur non trouvé." };
-    const userId = userRow[userIdCol];
-
-    // 2. Trouver le produit par son ID et vérifier qu'il appartient bien à cet utilisateur
-    const productsData = productsSheet.getDataRange().getValues();
-    const productsHeaders = productsData.shift();
-    const prodIdCol = productsHeaders.indexOf('ID_Produit');
-    const prodUserIdCol = productsHeaders.indexOf('ID_Utilisateur');
-    const productRow = productsData.find(row => row[prodIdCol] === productId && row[prodUserIdCol] === userId);
-
-    if (!productRow) return { error: "Produit non trouvé." };
-
-    // 3. Transformer la ligne en objet
-    return productsHeaders.reduce((obj, header, index) => { obj[header] = productRow[index]; return obj; }, {});
-
-  } catch (e) {
-    return { error: "Erreur lors de la récupération du produit." };
   }
 }
 
@@ -757,51 +804,66 @@ function saveProfile(data, user) {
 
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-
-    // --- OPTIMISATION : Invalidation du cache ---
-    // On supprime l'ancienne version du profil du cache pour que les modifs soient visibles.
     const cache = CacheService.getScriptCache();
-    cache.remove(`profile_${user.URL_Profil}`);
     const profileSheet = ss.getSheetByName('Profils');
     const userSheet = ss.getSheetByName('Utilisateurs');
+    
+    let currentProfileUrl = user.URL_Profil;
 
     // 1. Gérer la mise à jour de l'URL du profil (si elle a changé)
     if (payload.URL_Profil && payload.URL_Profil !== user.URL_Profil) {
       const newUrl = payload.URL_Profil.toLowerCase().replace(/[^a-z-0-9-]/g, ''); // Nettoyage
       if (!newUrl) throw new Error("L'URL du profil ne peut pas être vide.");
 
-      // Vérifier l'unicité de la nouvelle URL
-      const usersData = userSheet.getRange('E2:E').getValues().flat();
-      if (usersData.includes(newUrl)) {
+      const usersData = userSheet.getDataRange().getValues();
+      const emailCol = usersData[0].indexOf('Email');
+      const urlCol = usersData[0].indexOf('URL_Profil');
+
+      // Vérifier l'unicité de la nouvelle URL (en excluant l'utilisateur actuel)
+      const isTaken = usersData.some((row, i) => i > 0 && row[urlCol] === newUrl && row[emailCol] !== user.Email);
+      if (isTaken) {
         return { success: false, error: "Cette URL de profil est déjà utilisée. Veuillez en choisir une autre." };
       }
 
       // Mettre à jour l'URL dans la feuille 'Utilisateurs'
-      const userRow = findRowIndex(userSheet, 'ID_Unique', user.ID_Unique);
-      if (userRow !== -1) {
-        const urlCol = findHeaderIndex(userSheet, 'URL_Profil');
-        userSheet.getRange(userRow, urlCol).setValue(newUrl);
-        // Si l'URL change, on invalide aussi le nouveau cache potentiel
-        cache.remove(`profile_${newUrl}`);
+      const userRowIndex = usersData.findIndex(row => row[emailCol] === user.Email);
+      if (userRowIndex !== -1) {
+        userSheet.getRange(userRowIndex + 1, urlCol + 1).setValue(newUrl);
+        
+        // Supprimer l'ancien cache car la clé change
+        cache.remove(`profile_${currentProfileUrl}`);
+        currentProfileUrl = newUrl;
       }
-      delete payload.URL_Profil; // Supprimer pour ne pas l'écrire dans la feuille 'Profils'
     }
 
-    // 2. Mettre à jour les autres données dans la feuille 'Profils'
+    // 2. Mettre à jour les autres données dans la feuille 'Profils' et le Cache
     const profilesData = profileSheet.getDataRange().getValues();
     const headers = profilesData.shift();
     const userIdCol = headers.indexOf('ID_Utilisateur');
-    const rowIndex = profilesData.findIndex(row => row[userIdCol] === user.ID_Unique);
+    const dataIndex = profilesData.findIndex(row => row[userIdCol] === user.ID_Unique);
 
-    if (rowIndex !== -1) {
-      const rowToUpdate = rowIndex + 2;
+    if (dataIndex !== -1) {
+      const rowToUpdate = dataIndex + 2;
+      const currentRow = profilesData[dataIndex];
+
       headers.forEach((header, index) => {
-        // Mettre à jour uniquement si la clé existe dans les données envoyées
-        if (Object.prototype.hasOwnProperty.call(payload, header)) {
+        // Mettre à jour uniquement si la clé existe dans les données envoyées et n'est pas l'URL (gérée avant)
+        if (Object.prototype.hasOwnProperty.call(payload, header) && header !== 'URL_Profil') {
           profileSheet.getRange(rowToUpdate, index + 1).setValue(payload[header]);
+          currentRow[index] = payload[header]; // Mise à jour en mémoire pour le cache
         }
       });
-      Logger.log(`Profil pour ${user.Email} mis à jour.`);
+      
+      // Reconstruire l'objet complet pour le cache
+      const profileDataObject = headers.reduce((obj, header, index) => {
+        obj[header] = currentRow[index];
+        return obj;
+      }, {});
+      profileDataObject.Email = user.Email;
+
+      // Mise à jour immédiate du cache (6 heures)
+      cache.put(`profile_${currentProfileUrl}`, JSON.stringify(profileDataObject), 21600);
+
       return { success: true, message: "Profil sauvegardé avec succès." };
     }
     return { success: false, error: "Profil non trouvé pour la mise à jour." };
@@ -832,44 +894,39 @@ function saveProfileImage(data, user) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const profileSheet = ss.getSheetByName('Profils');
-    const profileRow = findRowIndex(profileSheet, 'ID_Utilisateur', user.ID_Unique);
+    const profilesData = profileSheet.getDataRange().getValues();
+    const headers = profilesData.shift();
+    const userIdCol = headers.indexOf('ID_Utilisateur');
+    
+    const dataIndex = profilesData.findIndex(row => row[userIdCol] === user.ID_Unique);
 
-    if (profileRow === -1) {
+    if (dataIndex === -1) {
       return { success: false, error: "Profil non trouvé pour la mise à jour de l'image." };
     }
 
-    const colIndex = findHeaderIndex(profileSheet, fieldToUpdate);
-    profileSheet.getRange(profileRow, colIndex).setValue(imageUrl);
+    const rowToUpdate = dataIndex + 2;
+    const colIndex = headers.indexOf(fieldToUpdate);
+    
+    // Mise à jour Sheet
+    profileSheet.getRange(rowToUpdate, colIndex + 1).setValue(imageUrl);
 
-    // Invalider le cache pour que la modification soit visible immédiatement
-    CacheService.getScriptCache().remove(`profile_${user.URL_Profil}`);
+    // Mise à jour Cache (Intelligent)
+    const currentRow = profilesData[dataIndex];
+    currentRow[colIndex] = imageUrl; // Mise à jour en mémoire
+
+    const profileDataObject = headers.reduce((obj, header, index) => {
+      obj[header] = currentRow[index];
+      return obj;
+    }, {});
+    profileDataObject.Email = user.Email;
+
+    CacheService.getScriptCache().put(`profile_${user.URL_Profil}`, JSON.stringify(profileDataObject), 21600);
 
     return { success: true, message: "Image sauvegardée avec succès." };
   } catch (e) {
     Logger.log(`Erreur dans saveProfileImage: ${e.message}`);
     return { success: false, error: e.message };
   }
-}
-
-/**
- * Fonctions utilitaires pour trouver des lignes/colonnes (pour éviter la duplication de code)
- */
-function findHeaderIndex(sheet, headerName) {
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  const index = headers.indexOf(headerName);
-  if (index === -1) throw new Error(`Colonne '${headerName}' introuvable.`);
-  return index + 1; // Retourne un index 1-based pour les plages
-}
-
-function findRowIndex(sheet, colName, value) {
-  const colIndex = findHeaderIndex(sheet, colName) - 1; // Index 0-based
-  const data = sheet.getDataRange().getValues();
-  for (let i = 1; i < data.length; i++) { // Commence à 1 pour sauter l'en-tête
-    if (data[i][colIndex] == value) {
-      return i + 1; // Retourne un index 1-based pour les plages
-    }
-  }
-  return -1;
 }
 
 /**
@@ -901,15 +958,53 @@ function handleLeadCapture(leadData) {
     const usersData = usersSheet.getDataRange().getValues();
     const urlCol = usersData[0].indexOf('URL_Profil');
     const idCol = usersData[0].indexOf('ID_Unique');
+    const emailCol = usersData[0].indexOf('Email');
 
     const userRow = usersData.find(row => row[urlCol] === leadData.profileUrl);
     if (!userRow) throw new Error("Profil source introuvable.");
 
     const profileOwnerId = userRow[idCol];
+    const profileOwnerEmail = userRow[emailCol];
 
     const prospectsSheet = ss.getSheetByName('Prospects');
     prospectsSheet.appendRow([profileOwnerId, new Date(), leadData.name, leadData.contact, leadData.message]);
     Logger.log(`Nouveau prospect capturé pour ${profileOwnerId}: ${leadData.name}`);
+
+    // --- ENVOI EMAIL NOTIFICATION ---
+    if (profileOwnerEmail) {
+      try {
+        const dashboardUrl = "https://mahu.cards/Dashboard.html";
+        const subject = "Nouveau prospect sur votre carte Mahu !";
+        const htmlBody = `
+        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #eeeeee; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+          <div style="background-color: #000000; padding: 30px 20px; text-align: center;">
+            <img src="https://mahu.cards/r/logo.png" alt="Mahu Logo" style="height: 50px; vertical-align: middle;">
+          </div>
+          <div style="padding: 40px 30px; color: #1a1a1a; line-height: 1.8; font-size: 16px;">
+            <h2 style="color: #000000; margin-top: 0; font-weight: 300; letter-spacing: 1px; text-transform: uppercase; font-size: 24px; text-align: center; margin-bottom: 30px;">Nouveau Contact</h2>
+            <p>Bonjour,</p>
+            <p>Une nouvelle opportunité se présente. Une personne a partagé ses coordonnées via votre profil Mahu.</p>
+            <div style="background-color: #f9f9f9; padding: 25px; border-left: 4px solid #000000; margin: 30px 0;">
+                <p style="margin: 5px 0; font-size: 15px;"><strong>NOM :</strong> <span style="font-weight: 300;">${leadData.name}</span></p>
+                <p style="margin: 5px 0; font-size: 15px;"><strong>CONTACT :</strong> <span style="font-weight: 300;">${leadData.contact}</span></p>
+                <p style="margin: 15px 0 5px 0; font-size: 15px;"><strong>MESSAGE :</strong></p>
+                <p style="margin: 0; font-style: italic; color: #555;">"${leadData.message || 'Aucun message'}"</p>
+            </div>
+            <div style="text-align: center; margin: 40px 0;">
+              <a href="${dashboardUrl}" style="background-color: #000000; color: #ffffff; padding: 16px 32px; text-decoration: none; font-weight: 500; font-size: 14px; display: inline-block; letter-spacing: 1px; text-transform: uppercase;">Voir mes prospects</a>
+            </div>
+          </div>
+          <div style="background-color: #fcfcfc; padding: 20px; text-align: center; font-size: 11px; color: #999999; border-top: 1px solid #eeeeee;">
+            &copy; ${new Date().getFullYear()} Mahu. L'excellence de la connexion.
+          </div>
+        </div>`;
+
+        sendEmail(profileOwnerEmail, subject, htmlBody);
+      } catch (e) {
+        Logger.log("Erreur envoi email prospect: " + e.message);
+      }
+    }
+
     return { success: true };
   } catch (e) {
     Logger.log(`Erreur dans handleLeadCapture: ${e.message}`);
@@ -918,14 +1013,212 @@ function handleLeadCapture(leadData) {
 }
 
 /**
+ * Gère les messages de support.
+ */
+function handleSupportMessage(data, user) {
+  const email = user ? user.Email : (data.email || 'anonyme');
+  const subject = data.subject || 'Demande de support';
+  const message = data.message || '';
+
+  if (!message) throw new Error("Le message ne peut pas être vide.");
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const supportSheet = ss.getSheetByName('Support');
+  supportSheet.appendRow([new Date(), email, subject, message, 'NOUVEAU']);
+
+  // 1. Envoyer une confirmation par email à l'utilisateur
+  const confirmationSubject = "Réception de votre demande de support";
+  const confirmationBody = `
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #eeeeee;">
+      <div style="padding: 30px; color: #1a1a1a;">
+        <h2 style="margin-top: 0;">Nous avons bien reçu votre message</h2>
+        <p>Bonjour,</p>
+        <p>Merci d'avoir contacté le support Mahu. Nous avons bien reçu votre demande concernant : "<strong>${subject}</strong>".</p>
+        <p>Notre équipe va l'examiner et reviendra vers vous dans les plus brefs délais.</p>
+        <p>Votre message :</p>
+        <blockquote style="background: #f9f9f9; border-left: 4px solid #000; padding: 10px; margin: 10px 0;">${message}</blockquote>
+      </div>
+    </div>`;
+  
+  // On envoie l'email uniquement si on a une adresse valide
+  if (email && email.includes('@')) {
+    sendEmail(email, confirmationSubject, confirmationBody);
+  }
+
+  // 2. Envoyer une notification CallMeBot à l'admin
+  const adminMessage = `🔔 *Support Mahu*\n\n👤 De: ${email}\n📝 Sujet: ${subject}\n💬 Message: ${message}`;
+  sendCallMeBotMessage(adminMessage);
+
+  return { success: true, message: "Message envoyé au support." };
+}
+
+/**
+ * Envoie un message via CallMeBot (WhatsApp).
+ */
+function sendCallMeBotMessage(text) {
+  const phone = getConfigValue('CALLMEBOT_PHONE');
+  const apiKey = getConfigValue('CALLMEBOT_API_KEY');
+
+  if (!phone || !apiKey || phone === '+1234567890') {
+    Logger.log("CallMeBot non configuré.");
+    return;
+  }
+
+  const encodedText = encodeURIComponent(text);
+  const url = `https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodedText}&apikey=${apiKey}`;
+
+  try {
+    UrlFetchApp.fetch(url);
+    Logger.log("Notification CallMeBot envoyée.");
+  } catch (e) {
+    Logger.log("Erreur CallMeBot: " + e.message);
+  }
+}
+
+/**
+ * Récupère une valeur de configuration depuis la feuille 'Configuration'.
+ */
+function getConfigValue(key) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const configSheet = ss.getSheetByName('Configuration');
+  if (!configSheet) return null;
+
+  const data = configSheet.getDataRange().getValues();
+  // On suppose que la clé est en colonne A (index 0) et la valeur en colonne B (index 1)
+  // On saute la ligne d'en-tête
+  const row = data.find(r => r[0] === key);
+  return row ? row[1] : null;
+}
+
+/**
+ * Fonction de test pour CallMeBot, exécutable depuis l'éditeur ou le menu.
+ */
+function testCallMeBot() {
+  const phone = getConfigValue('CALLMEBOT_PHONE');
+  const apiKey = getConfigValue('CALLMEBOT_API_KEY');
+
+  if (!phone || !apiKey || phone === '+1234567890' || apiKey === '123456') {
+    SpreadsheetApp.getUi().alert("Configuration CallMeBot incomplète", "Veuillez renseigner les valeurs réelles pour CALLMEBOT_PHONE et CALLMEBOT_API_KEY dans la feuille 'Configuration'.", SpreadsheetApp.getUi().ButtonSet.OK);
+    return;
+  }
+
+  const message = "✅ Ceci est un message de test depuis votre application Mahu. La configuration CallMeBot fonctionne !";
+  sendCallMeBotMessage(message);
+  SpreadsheetApp.getUi().alert("Test CallMeBot", "Un message de test a été envoyé à votre numéro. Veuillez vérifier WhatsApp.", SpreadsheetApp.getUi().ButtonSet.OK);
+}
+
+/**
+ * Fonction utilitaire pour envoyer des emails.
+ */
+function sendEmail(recipient, subject, htmlBody, textBody) {
+  const mailOptions = {
+    htmlBody: htmlBody,
+    name: CONFIG.SENDER_NAME
+  };
+
+  // Ajout de la signature
+  const signature = getConfigValue('EMAIL_SIGNATURE') || `<p>Cordialement,<br>L'équipe Mahu</p>`;
+  
+  // On s'assure que le corps HTML est bien fermé avant d'ajouter la signature, 
+  // ou on l'ajoute simplement à la fin si c'est un fragment.
+  // Pour faire simple, on l'ajoute à la fin du contenu HTML.
+  mailOptions.htmlBody = htmlBody + signature;
+
+  if (CONFIG.SENDER_EMAIL_ALIAS) {
+    mailOptions.from = CONFIG.SENDER_EMAIL_ALIAS;
+  }
+
+  if (!textBody) {
+    textBody = "Veuillez activer l'affichage HTML pour voir ce message.";
+  }
+
+  GmailApp.sendEmail(recipient, subject, textBody, mailOptions);
+}
+
+/**
+ * Sauvegarde un document dans le coffre-fort.
+ */
+function saveDocument(payload, user) {
+  if (!payload || !payload.url || !payload.type) throw new Error("Données de document invalides.");
+  
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let docSheet = ss.getSheetByName('Documents');
+  if (!docSheet) {
+    // Création de secours si la feuille n'existe pas
+    docSheet = ss.insertSheet('Documents');
+    docSheet.appendRow(['ID_Document', 'ID_Utilisateur', 'Type', 'Nom', 'URL', 'Date_Ajout']);
+  }
+  
+  // Si c'est une carte d'identité (recto ou verso), on supprime l'ancienne version pour cet utilisateur
+  if (payload.type === 'card_front' || payload.type === 'card_back') {
+     const data = docSheet.getDataRange().getValues();
+     // On parcourt à l'envers pour supprimer sans casser les index
+     for (let i = data.length - 1; i >= 1; i--) {
+       if (data[i][1] === user.ID_Unique && data[i][2] === payload.type) {
+         docSheet.deleteRow(i + 1);
+       }
+     }
+  }
+
+  const docId = 'doc_' + Utilities.getUuid();
+  docSheet.appendRow([
+    docId,
+    user.ID_Unique,
+    payload.type,
+    payload.name || payload.type,
+    payload.url,
+    new Date()
+  ]);
+  
+  return { success: true };
+}
+
+/**
+ * Supprime un document du coffre-fort.
+ */
+function deleteDocument(docId, user) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const docSheet = ss.getSheetByName('Documents');
+  const data = docSheet.getDataRange().getValues();
+  
+  // On cherche le document qui correspond à l'ID et à l'utilisateur (sécurité)
+  const rowIndex = data.findIndex(row => row[0] === docId && row[1] === user.ID_Unique);
+  
+  if (rowIndex !== -1) {
+    docSheet.deleteRow(rowIndex + 1); // +1 car les index de feuille commencent à 1
+    return { success: true };
+  }
+  return { success: false, error: "Document non trouvé ou accès refusé." };
+}
+
+/**
  * Associe un nouvel ID de carte NFC à l'utilisateur connecté.
  * @param {string} nfcId - L'identifiant unique de la carte NFC.
  */
-function linkNfcCard(nfcId) {
-  const user = authenticateUser();
-  const userSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Utilisateurs');
-  // Logique à implémenter...
-  Logger.log(`Liaison de la carte NFC ${nfcId} à l'utilisateur ${user.ID_Unique}`);
+function linkNfcCard(nfcId, user) {
+  // Implémentation basique : ajoute l'ID à la liste des cartes de l'utilisateur
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const userSheet = ss.getSheetByName('Utilisateurs');
+  const usersData = userSheet.getDataRange().getValues();
+  const headers = usersData[0];
+  const idCol = headers.indexOf('ID_Unique');
+  const nfcCol = headers.indexOf('ID_Cartes_NFC');
+
+  const rowIndex = usersData.findIndex(row => row[idCol] === user.ID_Unique);
+  if (rowIndex === -1) return { success: false, error: "Utilisateur introuvable." };
+
+  let currentCards = [];
+  try {
+    currentCards = JSON.parse(usersData[rowIndex][nfcCol] || '[]');
+  } catch (e) { currentCards = []; }
+
+  if (!currentCards.includes(nfcId)) {
+    currentCards.push(nfcId);
+    userSheet.getRange(rowIndex + 1, nfcCol + 1).setValue(JSON.stringify(currentCards));
+    return { success: true, message: "Carte NFC liée avec succès." };
+  }
+  
+  return { success: true, message: "Cette carte est déjà liée." };
 }
 
 /**
