@@ -43,7 +43,7 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             margin: 0;
-            background: var(--bg-main);
+            background: radial-gradient(circle at top, #2c2c2c, #000000); /* Fond gris-noir dégradé */
             background-attachment: fixed;
             color: var(--text-primary);
         }
@@ -981,16 +981,6 @@
                    </div>
                </div>
                <div class="card">
-                   <h3>Mes Cartes NFC</h3>
-                   <ul id="nfc-card-list">
-                       <li>Chargement des cartes...</li>
-                   </ul>
-                   <button class="btn btn-primary btn-with-icon" onclick="linkNewNFC()" style="margin-top: 15px;">
-                       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                       <span>Lier une nouvelle carte</span>
-                   </button>
-               </div>
-               <div class="card">
                    <h3>Demande de Carte</h3>
                    <p><strong>Statut de la dernière commande :</strong> <span id="order-status">Aucune commande récente.</span></p>
                    <button class="btn btn-primary btn-with-icon" onclick="window.location.href='Boutique.html'" style="margin-top: 15px;">
@@ -1532,6 +1522,24 @@
         }
 
         /**
+         * Anime un nombre de start à end sur une durée donnée.
+         */
+        function animateValue(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            if (!obj) return;
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.textContent = Math.floor(progress * (end - start) + start);
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        /**
          * Cache les squelettes de chargement à l'intérieur d'un conteneur spécifique.
          * @param {string} containerSelector - Le sélecteur CSS du conteneur (ex: '#profil-content').
          */
@@ -1643,18 +1651,6 @@
                 addSocialLink(link.type, link.url);
             });
 
-            // Remplir la liste des cartes NFC
-            const nfcList = document.getElementById('nfc-card-list');
-            const nfcCards = JSON.parse(user.ID_Cartes_NFC || '[]');
-            nfcList.innerHTML = '';
-            if (nfcCards.length > 0) {
-                nfcCards.forEach(cardId => {
-                    nfcList.innerHTML += `<li>Carte NFC #${cardId}</li>`;
-                });
-            } else {
-                nfcList.innerHTML = '<li>Aucune carte NFC liée.</li>';
-            }
-
             // Remplir la liste de l'équipe (si Entreprise)
             if (user.Role === 'Entreprise' && data.team) {
                 const teamBody = document.getElementById('team-table-body');
@@ -1727,8 +1723,8 @@
             } else {
                 onChartError({ message: "Données de statistiques non trouvées." });
             }
-            document.getElementById('stats-total-views').textContent = data.totalViews ?? 0;
-            document.getElementById('stats-total-prospects').textContent = data.totalProspects ?? 0;
+            animateValue('stats-total-views', 0, data.totalViews ?? 0, 2000);
+            animateValue('stats-total-prospects', 0, data.totalProspects ?? 0, 2000);
         }
 
         function getSocialLinksData() {
@@ -1759,9 +1755,9 @@
             const nfcIndex = stats.labels.indexOf('NFC');
             const qrIndex = stats.labels.indexOf('QR Code');
             const linkIndex = stats.labels.indexOf('Lien');
-            document.getElementById('stats-nfc-views').textContent = nfcIndex !== -1 ? stats.data[nfcIndex] : 0;
-            document.getElementById('stats-qr-views').textContent = qrIndex !== -1 ? stats.data[qrIndex] : 0;
-            document.getElementById('stats-link-views').textContent = linkIndex !== -1 ? stats.data[linkIndex] : 0;
+            animateValue('stats-nfc-views', 0, nfcIndex !== -1 ? stats.data[nfcIndex] : 0, 1500);
+            animateValue('stats-qr-views', 0, qrIndex !== -1 ? stats.data[qrIndex] : 0, 1500);
+            animateValue('stats-link-views', 0, linkIndex !== -1 ? stats.data[linkIndex] : 0, 1500);
 
             const ctx = document.getElementById('viewsChart').getContext('2d');
             

@@ -49,6 +49,7 @@ function doPost(e) {
       case 'trackView': result = trackView(payload.profileUrl, payload.source); break;
       case 'handleLeadCapture': result = handleLeadCapture(payload); break;
       case 'getProfileData': result = getProfileData(e.parameter.user); break;
+      case 'saveCustomCardOrder': result = saveCustomCardOrder(payload); break;
       case 'exportLeadsAsCSV':
         if (!user) throw new Error("Token d'authentification invalide ou manquant pour l'export.");
         // Cas spécial : renvoie du texte brut, pas du JSON.
@@ -202,6 +203,7 @@ function setupSpreadsheet() {
     { name: 'Documents', headers: ['ID_Document', 'ID_Utilisateur', 'Type', 'Nom', 'URL', 'Date_Ajout'] },
     { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut', 'Telephone'] },
     { name: 'Configuration', headers: ['Clé', 'Valeur', 'Description'] },
+    { name: 'Commandes_Custom', headers: ['Date', 'Matériau', 'Finition', 'Prix', 'Nom Titulaire', 'Entreprise', 'Poste'] },
     // L'onglet Commandes n'était pas dans la nouvelle spec, mais on peut le garder si besoin.
     // { name: 'Commandes NFC', headers: ['ID_Commande', 'ID_Utilisateur', 'Type_Carte', 'Quantite', 'Date_Commande', 'Statut'] },
   ];
@@ -228,9 +230,9 @@ function setupSpreadsheet() {
       
       // Initialisation de la configuration
       if (sheetInfo.name === 'Configuration') {
-        sheet.appendRow(['CALLMEBOT_PHONE', '+1234567890', 'Votre numéro (avec code pays) pour CallMeBot']);
-        sheet.appendRow(['CALLMEBOT_API_KEY', '123456', 'Votre clé API CallMeBot']);
-        sheet.appendRow(['EMAIL_SIGNATURE', '<p>Cordialement,<br><strong>L\'équipe Mahu</strong><br><a href="https://mahu.cards">mahu.cards</a></p>', 'Signature HTML des emails']);
+        sheet.appendRow(['CALLMEBOT_PHONE', '', 'Votre numéro (avec code pays) pour CallMeBot']);
+        sheet.appendRow(['CALLMEBOT_API_KEY', '', 'Votre clé API CallMeBot']);
+        sheet.appendRow(['EMAIL_SIGNATURE', '', 'Signature HTML des emails']);
       }
     } else {
       Logger.log(`La feuille "${sheetInfo.name}" existe déjà.`);
@@ -348,7 +350,18 @@ function registerUser(email, password, enterpriseId = '') {
 
   // Créer un profil de base associé
   const profileSheet = ss.getSheetByName('Profils');
-  profileSheet.appendRow([newId, email, email.split('@')[0], '', '', '', '', '', '', '[]', 'NON', 'NON', '']); // Ligne de profil initial, avec une colonne vide pour le téléphone
+  // On récupère les en-têtes pour s'assurer de créer une ligne avec le bon nombre de colonnes
+  const headers = profileSheet.getRange(1, 1, 1, profileSheet.getLastColumn()).getValues()[0];
+  const newProfileRow = headers.map(header => {
+    if (header === 'ID_Utilisateur') return newId;
+    if (header === 'Email') return email;
+    if (header === 'Nom_Complet') return email.split('@')[0];
+    if (header === 'Liens_Sociaux_JSON') return '[]';
+    if (header === 'Lead_Capture_Actif') return 'NON';
+    if (header === 'CV_Actif') return 'NON';
+    return ''; // Valeur vide par défaut pour les autres colonnes
+  });
+  profileSheet.appendRow(newProfileRow);
 
   // --- ENVOI EMAIL DE BIENVENUE ---
   try {
@@ -772,6 +785,65 @@ function getPublicProfileUrl(user) {
     return { success: true, profileUrl: user.URL_Profil };
   } catch (e) {
     return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Enregistre une commande de carte personnalisée.
+ */
+function saveCustomCardOrder(payload) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName("Commandes_Custom");
+    
+    if (!sheet) {
+      // Si la feuille n'existe pas, on la crée (sécurité)
+      sheet = ss.insertSheet("Commandes_Custom");
+      sheet.appendRow(["Date", "Matériau", "Finition", "Prix Unitaire", "Quantité", "Total", "Nom Titulaire", "Entreprise", "Poste"]);
+    }
+    
+    const quantity = payload.quantity || 1;
+    const total = payload.total || payload.price;
+
+    sheet.appendRow([
+      new Date(),
+      payload.material,
+      payload.finish,
+      payload.price,
+      quantity,
+      total,
+      payload.card_holder,
+      payload.company_name,
+      payload.position
+    ]);
+    
+    // --- NOTIFICATION EMAIL ADMINISTRATEUR ---
+    try {
+      const adminEmail = Session.getEffectiveUser().getEmail(); // Envoie à l'email du propriétaire du script
+      const subject = "Nouvelle Commande Personnalisée Mahu";
+      const body = `
+        Nouvelle commande reçue !
+        
+        Détails de la commande :
+        - Client : ${payload.card_holder}
+        - Entreprise : ${payload.company_name}
+        - Poste : ${payload.position}
+        - Matériau : ${payload.material} (${payload.finish})
+        - Quantité : ${quantity}
+        - Total : ${total} FCFA
+      `;
+      GmailApp.sendEmail(adminEmail, subject, body);
+
+      // --- NOTIFICATION CALLMEBOT ---
+      const botMessage = `🛒 *Nouvelle Commande Custom*\n\n👤 ${payload.card_holder}\n🏢 ${payload.company_name}\n📦 ${quantity}x ${payload.material} (${payload.finish})\n💰 Total: ${total} FCFA`;
+      sendCallMeBotMessage(botMessage);
+    } catch (e) {
+      Logger.log("Erreur lors de l'envoi des notifications : " + e.toString());
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.toString() };
   }
 }
 

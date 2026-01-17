@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="fr" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carte NFC Designer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    
+    * {
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    .card-container {
+      perspective: 1500px;
+    }
+    
+    .card-3d {
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease-out;
+    }
+    
+    .card-face {
+      backface-visibility: hidden;
+    }
+    
+    .card-shine {
+      background: linear-gradient(
+        135deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.1) 40%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0.1) 60%,
+        transparent 100%
+      );
+      transform: translateX(-100%);
+      transition: transform 0.5s ease;
+    }
+    
+    .card-3d:hover .card-shine {
+      transform: translateX(100%);
+    }
+    
+    .nfc-pulse {
+      animation: nfcPulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes nfcPulse {
+      0%, 100% { opacity: 0.6; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.05); }
+    }
+    
+    .qr-animate {
+      animation: qrFloat 3s ease-in-out infinite, qrGlow 2s ease-in-out infinite;
+    }
+    
+    @keyframes qrFloat {
+      0%, 100% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-8px) scale(1.02); }
+    }
+    
+    @keyframes qrGlow {
+      0%, 100% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.3), 0 0 40px rgba(255, 255, 255, 0.1); }
+      50% { box-shadow: 0 0 30px rgba(255, 255, 255, 0.5), 0 0 60px rgba(255, 255, 255, 0.2); }
+    }
+    
+    .floating {
+      animation: floating 6s ease-in-out infinite;
+    }
+    
+    @keyframes floating {
+      0%, 100% { transform: translateY(0px) rotateX(10deg) rotateY(-15deg); }
+      50% { transform: translateY(-15px) rotateX(10deg) rotateY(-15deg); }
+    }
+    
+    .input-glow:focus {
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+    }
+    
+    .gradient-border {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      padding: 2px;
+      border-radius: 20px;
+    }
+    
+
+    
+    .grain-overlay {
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      opacity: 0.15;
+      mix-blend-mode: overlay;
+    }
+
+    /* Textures spécifiques */
+    .texture-metal-silver {
+        background: linear-gradient(135deg, #e0e0e0 0%, #ffffff 50%, #a0a0a0 100%);
+    }
+    .texture-metal-gold {
+        background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 50%, #b38728 100%);
+    }
+    .texture-metal-black {
+        background: linear-gradient(135deg, #2b2b2b 0%, #4a4a4a 50%, #1a1a1a 100%);
+    }
+    .texture-wood {
+        background-color: #8b5a2b;
+        background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.1'/%3E%3C/svg%3E");
+    }
+    
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full w-full bg-gradient-to-br from-gray-900 via-black to-gray-900 overflow-auto text-white">
+  <!-- Header du site -->
+  <header id="site-header" class="fixed top-0 left-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-white/10 transition-all duration-300">
+    <nav class="container mx-auto px-6 h-20 flex justify-between items-center">
+        <a href="index.html" class="flex items-center">
+            <img src="r/logo.png" alt="Logo Mahu" class="h-10">
+        </a>
+        <ul class="hidden md:flex gap-8">
+            <li><a href="index.html#features" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">Technologie</a></li>
+            <li><a href="index.html#about" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">À Propos</a></li>
+            <li><a href="Boutique.html" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">Boutique</a></li>
+        </ul>
+        <div class="flex items-center gap-4">
+             <a href="Connexion.html" class="text-gray-300 hover:text-white">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </a>
+        </div>
+    </nav>
+  </header>
+
+  <div class="min-h-full w-full flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-16 p-6 lg:p-12 pt-24 lg:pt-32"><!-- Carte 3D à gauche -->
+   <div class="card-container flex-shrink-0 mt-16 lg:mt-0">
+    <div class="card-3d floating cursor-pointer relative" id="card3d" style="width: 380px; height: 240px;"><!-- Face avant de la carte -->
+     <div class="card-face absolute inset-0 rounded-2xl overflow-hidden shadow-2xl"><!-- Fond noir avec texture subtile -->
+      <div id="card-bg-layer" class="absolute inset-0 bg-black transition-all duration-500"></div>
+      <div id="card-texture-layer" class="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800 rounded-2xl transition-all duration-500"></div><!-- Bordure grise subtile -->
+      <div class="absolute inset-0 rounded-2xl border-2 border-gray-700"></div><!-- Effet de brillance -->
+      <div class="card-shine absolute inset-0 rounded-2xl pointer-events-none"></div><!-- Contenu de la carte -->
+      <div class="relative h-full p-6 flex flex-col justify-between"><!-- Logo entreprise en haut à gauche -->
+       <div class="flex items-start justify-start">
+        <div class="flex items-center gap-3"><!-- Logo de l'entreprise --> <img src="r/logo.png" alt="Logo Entreprise" loading="lazy" class="w-16 h-16 object-contain drop-shadow-xl" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"> <!-- Fallback si l'image ne charge pas -->
+         <div class="w-16 h-16 rounded-xl bg-white items-center justify-center shadow-lg hidden">
+          <svg class="w-8 h-8 text-black" viewbox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+          </svg>
+         </div>
+        </div>
+       </div><!-- Nom et poste au centre -->
+       <div class="flex-1 flex flex-row items-center justify-between gap-6 px-4"><!-- QR Code à gauche avec espacement -->
+        <div class="flex items-center justify-center pl-2">
+         <div class="qr-animate flex items-center gap-2 bg-white border-4 border-white p-4 rounded-2xl shadow-2xl"><!-- QR Code SVG plus grand -->
+          <svg class="w-24 h-24" viewbox="0 0 100 100" fill="none"><!-- QR Code simplifié --> <rect x="5" y="5" width="35" height="35" rx="3" stroke="#000000" stroke-width="4" fill="none" /> <rect x="12" y="12" width="21" height="21" rx="2" fill="#000000" /> <rect x="60" y="5" width="35" height="35" rx="3" stroke="#000000" stroke-width="4" fill="none" /> <rect x="67" y="12" width="21" height="21" rx="2" fill="#000000" /> <rect x="5" y="60" width="35" height="35" rx="3" stroke="#000000" stroke-width="4" fill="none" /> <rect x="12" y="67" width="21" height="21" rx="2" fill="#000000" /> <rect x="48" y="48" width="8" height="8" rx="1" fill="#000000" />
+          </svg>
+         </div>
+        </div><!-- Informations à droite -->
+        <div class="flex flex-col items-end justify-center gap-1 text-right pr-2">
+         <p id="holderDisplay" class="text-white text-2xl font-bold tracking-tight drop-shadow-lg transition-colors duration-300">VOTRE NOM</p>
+         <p id="companyDisplay" class="text-gray-300 text-sm font-medium tracking-wide drop-shadow-lg transition-colors duration-300">MON ENTREPRISE</p>
+         <p id="positionDisplay" class="text-gray-400 text-xs tracking-wide drop-shadow-lg transition-colors duration-300">Poste</p>
+        </div>
+       </div><!-- Logo NFC en bas à droite -->
+      </div><!-- Effet de profondeur 3D -->
+      <div class="absolute -bottom-2 left-4 right-4 h-4 bg-gradient-to-b from-amber-950 to-black rounded-b-2xl blur-sm -z-10 opacity-50"></div>
+     </div>
+    </div>
+   </div><!-- Zone de personnalisation à droite -->
+   <div class="w-full max-w-md">
+    <div class="gradient-border">
+     <div class="bg-slate-900/95 backdrop-blur-xl rounded-[18px] p-8"><!-- Header -->
+      <div class="text-center mb-8">
+       <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-amber-400 bg-clip-text text-transparent">✨ Personnalisez</h1>
+       <p class="text-slate-400 mt-2 text-sm">Créez votre carte NFC unique</p>
+      </div>
+      
+      <!-- Sélection du Matériau -->
+      <div class="mb-6">
+        <label class="block text-slate-300 text-sm font-medium mb-2">Matériau & Style</label>
+        <div class="grid grid-cols-3 gap-2">
+            <button onclick="changeMaterial('pvc')" id="btn-pvc" class="px-3 py-2 rounded-lg bg-slate-800 border border-purple-500 text-white text-xs font-bold hover:bg-slate-700 transition-all">PVC</button>
+            <button onclick="changeMaterial('metal')" id="btn-metal" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-300 text-xs font-bold hover:bg-slate-700 transition-all">MÉTAL</button>
+            <button onclick="changeMaterial('wood')" id="btn-wood" class="px-3 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-300 text-xs font-bold hover:bg-slate-700 transition-all">BOIS</button>
+        </div>
+      </div>
+
+      <!-- Sélection de la Finition/Couleur -->
+      <div class="mb-6">
+        <label class="block text-slate-300 text-sm font-medium mb-2" id="finish-label">Finition</label>
+        <div id="finish-options" class="flex flex-wrap gap-2"></div>
+      </div>
+
+      <!-- Quantité -->
+      <div class="mb-6">
+        <label class="block text-slate-300 text-sm font-medium mb-2">Quantité</label>
+        <div class="flex items-center gap-4">
+            <button onclick="updateQuantity(-1)" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 flex items-center justify-center transition-colors">-</button>
+            <span id="quantityDisplay" class="text-white font-bold text-lg">1</span>
+            <button onclick="updateQuantity(1)" class="w-8 h-8 rounded-full bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 flex items-center justify-center transition-colors">+</button>
+        </div>
+      </div>
+
+      <!-- Formulaire -->
+      <div class="space-y-4"><!-- Nom de l'entreprise -->
+       <div class="group"><label class="block text-slate-300 text-sm font-medium mb-2 flex items-center gap-2"> Nom de l'entreprise </label> <input type="text" id="companyInput" placeholder="Ex: Mon Entreprise" class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 input-glow transition-all duration-300">
+       </div><!-- Nom du titulaire -->
+       <div class="group"><label class="block text-slate-300 text-sm font-medium mb-2 flex items-center gap-2"> Nom du titulaire </label> <input type="text" id="holderInput" placeholder="Ex: Jean Dupont" class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-pink-500 input-glow transition-all duration-300">
+       </div><!-- Poste -->
+       <div class="group"><label class="block text-slate-300 text-sm font-medium mb-2 flex items-center gap-2"> Poste </label> <input type="text" id="positionInput" placeholder="Ex: Directeur Commercial" class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 input-glow transition-all duration-300">
+       </div>
+      </div><!-- Footer info -->
+      <div class="mt-8 pt-6 border-t border-slate-700/50 flex flex-col gap-4">
+       <div class="flex justify-between items-center">
+           <span class="text-slate-400 text-sm">Prix estimé:</span>
+           <span id="priceDisplay" class="text-2xl font-bold text-white">20 000 FCFA</span>
+       </div>
+       <button onclick="launchOrder()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl text-white font-bold text-lg shadow-lg hover:shadow-purple-500/30 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2">
+           <span>🚀 Commander maintenant</span>
+       </button>
+       <div class="text-center text-xs text-slate-500">
+           Design professionnel • Technologie NFC • Garantie à vie
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script src="config.js"></script>
+  <script>
+    // Configuration par défaut
+    const defaultConfig = {
+      company_name: 'MON ENTREPRISE',
+      card_holder: 'VOTRE NOM',
+      position: 'Poste',
+      material: 'pvc',
+      finish: 'noir_mat',
+      quantity: 1,
+      totalPrice: 20000
+    };
+    
+    let config = { ...defaultConfig };
+
+    const materials = {
+        pvc: { name: 'PVC Premium', price: 20000, finishes: [
+            { id: 'noir_mat', name: 'Noir Mat', class: 'bg-neutral-900' },
+            { id: 'blanc', name: 'Blanc Pur', class: 'bg-white' },
+            { id: 'bleu', name: 'Bleu Roi', class: 'bg-blue-900' }
+        ]},
+        metal: { name: 'Métal Prestige', price: 50000, finishes: [{ id: 'noir_metal', name: 'Noir Gunmetal', class: 'texture-metal-black' }, { id: 'argent', name: 'Argent Brossé', class: 'texture-metal-silver' }, { id: 'or', name: 'Or 24k', class: 'texture-metal-gold' }] },
+        wood: { name: 'Bois Éco', price: 30000, finishes: [{ id: 'bambou', name: 'Bambou', class: 'bg-amber-200' }, { id: 'noyer', name: 'Noyer', class: 'texture-wood' }] }
+    };
+    
+    // Éléments DOM
+    const card3d = document.getElementById('card3d');
+    const companyInput = document.getElementById('companyInput');
+    const holderInput = document.getElementById('holderInput');
+    const positionInput = document.getElementById('positionInput');
+    const companyDisplay = document.getElementById('companyDisplay');
+    const holderDisplay = document.getElementById('holderDisplay');
+    const positionDisplay = document.getElementById('positionDisplay');
+    const cardBgLayer = document.getElementById('card-bg-layer');
+    const cardTextureLayer = document.getElementById('card-texture-layer');
+    const priceDisplay = document.getElementById('priceDisplay');
+    
+    // Effet 3D au mouvement de la souris
+    card3d.addEventListener('mousemove', (e) => {
+      const rect = card3d.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      
+      const rotateX = (y - centerY) / 10;
+      const rotateY = (centerX - x) / 10;
+      
+      card3d.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+      card3d.style.animation = 'none';
+    });
+    
+    card3d.addEventListener('mouseleave', () => {
+      card3d.style.animation = 'floating 6s ease-in-out infinite';
+    });
+    
+    // Mise à jour en temps réel
+    companyInput.addEventListener('input', (e) => {
+      const value = e.target.value.toUpperCase() || defaultConfig.company_name;
+      companyDisplay.textContent = value;
+      config.company_name = value;
+    });
+    
+    holderInput.addEventListener('input', (e) => {
+      const value = e.target.value.toUpperCase() || defaultConfig.card_holder;
+      holderDisplay.textContent = value;
+      config.card_holder = value;
+    });
+    
+    positionInput.addEventListener('input', (e) => {
+      const value = e.target.value || defaultConfig.position;
+      positionDisplay.textContent = value;
+      config.position = value;
+    });
+
+    // Gestion de la quantité
+    function updateQuantity(change) {
+        let newQty = config.quantity + change;
+        if (newQty < 1) newQty = 1;
+        config.quantity = newQty;
+        document.getElementById('quantityDisplay').textContent = newQty;
+        updatePriceDisplay();
+    }
+
+    // Gestion des matériaux
+    function changeMaterial(type) {
+        config.material = type;
+        config.unitPrice = materials[type].price;
+        // Update buttons UI
+        ['pvc', 'metal', 'wood'].forEach(m => {
+            const btn = document.getElementById(`btn-${m}`);
+            if (m === type) {
+                btn.classList.remove('border-slate-600', 'text-slate-300');
+                btn.classList.add('border-purple-500', 'text-white');
+            } else {
+                btn.classList.add('border-slate-600', 'text-slate-300');
+                btn.classList.remove('border-purple-500', 'text-white');
+            }
+        });
+
+        // Update finishes
+        const finishContainer = document.getElementById('finish-options');
+        finishContainer.innerHTML = '';
+        materials[type].finishes.forEach((finish, index) => {
+            const btn = document.createElement('button');
+            btn.className = `px-3 py-1 rounded-full text-xs border transition-all ${index === 0 ? 'bg-white text-black border-white' : 'bg-transparent text-slate-400 border-slate-600'}`;
+            btn.textContent = finish.name;
+            btn.onclick = () => applyFinish(finish, btn);
+            finishContainer.appendChild(btn);
+            
+            if (index === 0) applyFinish(finish, btn); // Select first by default
+        });
+
+        updatePriceDisplay();
+    }
+    function updatePriceDisplay() {
+        config.totalPrice = config.unitPrice * config.quantity;
+        priceDisplay.textContent = config.totalPrice.toLocaleString('fr-FR') + ' FCFA';
+    }
+
+    function applyFinish(finish, btnElement) {
+        config.finish = finish.name;
+        
+        // Update UI buttons
+        const buttons = document.getElementById('finish-options').children;
+        for (let btn of buttons) {
+            btn.classList.remove('bg-white', 'text-black', 'border-white');
+            btn.classList.add('bg-transparent', 'text-slate-400', 'border-slate-600');
+        }
+        btnElement.classList.remove('bg-transparent', 'text-slate-400', 'border-slate-600');
+        btnElement.classList.add('bg-white', 'text-black', 'border-white');
+
+        // Update Card Visuals
+        cardBgLayer.className = `absolute inset-0 transition-all duration-500 ${finish.class.startsWith('bg-') ? finish.class : ''}`;
+        cardTextureLayer.className = `absolute inset-0 rounded-2xl transition-all duration-500 ${finish.class.startsWith('texture-') ? finish.class : ''}`;
+        
+        // Text Color Adjustment
+        const isLightBackground = (config.material === 'metal' && finish.id === 'argent') || (config.material === 'pvc' && finish.id === 'blanc') || (config.material === 'wood' && finish.id === 'bambou');
+
+        if (isLightBackground) {
+            holderDisplay.classList.remove('text-white'); holderDisplay.classList.add('text-black');
+            companyDisplay.classList.remove('text-gray-300'); companyDisplay.classList.add('text-gray-800');
+            positionDisplay.classList.remove('text-gray-400'); positionDisplay.classList.add('text-gray-700');
+        } else {
+            holderDisplay.classList.add('text-white'); holderDisplay.classList.remove('text-black');
+            companyDisplay.classList.add('text-gray-300'); companyDisplay.classList.remove('text-gray-800');
+            positionDisplay.classList.add('text-gray-400'); positionDisplay.classList.remove('text-gray-700');
+        }
+    }
+    
+    function launchOrder() {
+        const message = `*NOUVELLE COMMANDE PERSONNALISÉE*\n\n` +
+            `📋 *Détails de la carte:*\n` +
+            `- Type: ${materials[config.material].name}\n` +
+            `- Finition: ${config.finish}\n` +
+            `- Quantité: ${config.quantity}\n` +
+            `- Total: ${config.totalPrice} FCFA\n\n` +
+            `👤 *Informations:*\n` +
+            `- Nom: ${config.card_holder}\n` +
+            `- Entreprise: ${config.company_name}\n` +
+            `- Poste: ${config.position}\n\n` +
+            `Merci de confirmer ma commande !`;
+
+        // Préparer les données pour l'envoi à la base de données
+        const orderData = {
+            material: config.material,
+            finish: config.finish,
+            price: config.unitPrice,
+            quantity: config.quantity,
+            total: config.totalPrice,
+            card_holder: config.card_holder,
+            company_name: config.company_name,
+            position: config.position
+        };
+
+        // Utilisation de callApi pour enregistrer la commande
+        callApi('saveCustomCardOrder', { payload: orderData })
+            .then(response => {
+                if (response.success) {
+                    alert('Commande enregistrée !');
+                    const whatsappUrl = `https://wa.me/2250707070707?text=${encodeURIComponent(message)}`;
+                    window.open(whatsappUrl, '_blank');
+                } else {
+                    alert('Erreur lors de l\'enregistrement de la commande: ' + (response.error || 'Erreur inconnue'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Erreur de communication avec le serveur.');
+            });
+    }
+
+    function callApi(action, data = {}) {
+        const formData = new FormData();
+        formData.append('action', action);
+        if (data.payload) {
+             formData.append('payload', JSON.stringify(data.payload));
+        } else {
+             for (const key in data) {
+                const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
+                formData.append(key, value);
+            }
+        }
+        return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
+    }
+
+    // Init
+    changeMaterial('pvc');
+
+    // Cacher le header si intégré dans une iframe (modale)
+    if (window.self !== window.top) {
+        const header = document.getElementById('site-header');
+        if(header) header.style.display = 'none';
+    }
+  </script>
+ </body>
+</html>

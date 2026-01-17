@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /Dashboard.html
+Disallow: /Onboarding.html
+Disallow: /Panier.html
+Disallow: /ResetPassword.html
+Disallow: /Connexion.html
+Sitemap: https://mahu.cards/sitemap.xml
