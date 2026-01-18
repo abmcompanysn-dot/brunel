@@ -3,4 +3,4 @@
 
 // URL de déploiement de votre script Google Apps Script en tant qu'API web.
 // IMPORTANT : Chaque fois que vous redéployez votre script, vous devez mettre à jour cette URL.
-const API_URL = "https://script.google.com/macros/s/AKfycbwVtuJK42tHQ5t5iPlsOf3OXY31BCyH3xPJ4I8T9rT5NGD8Cqcx2UuEZcny_iWRNKSj_A/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycby9FmSuJM_hucLnt6RmoZcR4P9pqrWj8oMrqHxyBuSynlA1wjeJ-WeAh7jhLvqviD4ycQ/exec";

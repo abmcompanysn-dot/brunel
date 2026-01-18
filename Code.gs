@@ -644,16 +644,48 @@ function getDashboardData(user) {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     
-    // Récupérer les données du profil
+    // --- Récupérer les données du profil (Optimisé avec TextFinder et Auto-réparation) ---
     const profilesSheet = ss.getSheetByName('Profils');
-    const profilesData = profilesSheet.getDataRange().getValues();
-    const profilesHeaders = profilesData.shift();
-    const profileUserIdCol = profilesHeaders.indexOf('ID_Utilisateur');
-    const profileRow = profilesData.find(row => row[profileUserIdCol] === user.ID_Unique);
-    const profile = profilesHeaders.reduce((obj, header, index) => {
-      obj[header] = profileRow ? profileRow[index] : '';
-      return obj;
-    }, {});
+    const profilesHeaders = profilesSheet.getRange(1, 1, 1, profilesSheet.getLastColumn()).getValues()[0];
+    const profileUserIdColIdx = profilesHeaders.indexOf('ID_Utilisateur') + 1;
+    
+    let profile = {};
+    
+    // Recherche ciblée du profil
+    let foundRow = null;
+    if (profilesSheet.getLastRow() > 1) {
+      const finder = profilesSheet.getRange(2, profileUserIdColIdx, profilesSheet.getLastRow() - 1, 1)
+        .createTextFinder(user.ID_Unique)
+        .matchEntireCell(true);
+      foundRow = finder.findNext();
+    }
+
+    if (foundRow) {
+      const profileData = profilesSheet.getRange(foundRow.getRow(), 1, 1, profilesSheet.getLastColumn()).getValues()[0];
+      profile = profilesHeaders.reduce((obj, header, index) => {
+        obj[header] = profileData[index];
+        return obj;
+      }, {});
+    } else {
+      // --- AUTO-RÉPARATION : Créer le profil s'il manque ---
+      Logger.log(`Profil manquant pour ${user.Email} dans getDashboardData, création automatique.`);
+      const newProfileRow = profilesHeaders.map(header => {
+        if (header === 'ID_Utilisateur') return user.ID_Unique;
+        if (header === 'Email') return user.Email;
+        if (header === 'Nom_Complet') return user.Email.split('@')[0];
+        if (header === 'Liens_Sociaux_JSON') return '[]';
+        if (header === 'Lead_Capture_Actif') return 'NON';
+        if (header === 'CV_Actif') return 'NON';
+        return '';
+      });
+      profilesSheet.appendRow(newProfileRow);
+      
+      // Construire l'objet profil à partir des nouvelles données
+      profile = profilesHeaders.reduce((obj, header, index) => {
+        obj[header] = newProfileRow[index];
+        return obj;
+      }, {});
+    }
 
     // --- Récupérer les statistiques de vues (pour le graphique) ---
     const statsSheet = ss.getSheetByName('Statistiques');
@@ -728,8 +760,9 @@ function getDashboardData(user) {
     // --- Données d'équipe (Si Entreprise) ---
     let teamData = [];
     if (user.Role === 'Entreprise') {
-      const usersData = ss.getSheetByName('Utilisateurs').getDataRange().getValues();
-      const uHeaders = usersData[0];
+      const usersSheet = ss.getSheetByName('Utilisateurs');
+      const usersData = usersSheet.getDataRange().getValues(); // On garde getDataRange ici car on filtre ensuite
+      const uHeaders = usersData[0]; // Headers sont la première ligne
       const uIdCol = uHeaders.indexOf('ID_Unique');
       const uEntCol = uHeaders.indexOf('ID_Entreprise');
       const uEmailCol = uHeaders.indexOf('Email');
@@ -740,9 +773,9 @@ function getDashboardData(user) {
       
       teamData = employees.map(emp => {
         const empId = emp[uIdCol];
-        // Trouver le nom dans les profils
-        const pRow = profilesData.find(p => p[profileUserIdCol] === empId);
-        const empName = pRow ? pRow[profilesHeaders.indexOf('Nom_Complet')] : 'Sans nom';
+        // Pour l'équipe, on fait une recherche simplifiée ou on pourrait optimiser plus tard
+        // Ici on met un nom par défaut car charger tous les profils serait lourd
+        const empName = emp[uEmailCol].split('@')[0]; 
         // Compter les prospects de cet employé
         const empLeads = allProspects.filter(lead => lead[0] === empId).length;
         
@@ -854,15 +887,23 @@ function saveCustomCardOrder(payload) {
  */
 function getProfileData(profileUrl) {
   if (!profileUrl) return { error: "URL de profil manquante." };
+  
+  // Nettoyage de l'URL
+  profileUrl = String(profileUrl).trim();
 
   // --- OPTIMISATION RADICALE AVEC CACHE ---
   const cache = CacheService.getScriptCache();
   const cacheKey = `profile_${profileUrl}`;
-  const cachedData = cache.get(cacheKey);
-
-  if (cachedData) {
-    Logger.log(`Profil '${profileUrl}' servi depuis le cache.`);
-    return JSON.parse(cachedData);
+  
+  try {
+    const cachedData = cache.get(cacheKey);
+    if (cachedData) {
+      Logger.log(`Profil '${profileUrl}' servi depuis le cache.`);
+      return JSON.parse(cachedData);
+    }
+  } catch (e) {
+    Logger.log(`Cache corrompu pour ${profileUrl}, suppression.`);
+    cache.remove(cacheKey);
   }
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
