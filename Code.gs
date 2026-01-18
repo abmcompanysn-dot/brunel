@@ -653,7 +653,7 @@ function getDashboardData(user) {
     
     // Recherche ciblée du profil
     let foundRow = null;
-    if (profilesSheet.getLastRow() > 1) {
+    if (profilesSheet.getLastRow() > 1 && user.ID_Unique) { // Vérification que l'ID existe
       const finder = profilesSheet.getRange(2, profileUserIdColIdx, profilesSheet.getLastRow() - 1, 1)
         .createTextFinder(user.ID_Unique)
         .matchEntireCell(true);
@@ -666,7 +666,7 @@ function getDashboardData(user) {
         obj[header] = profileData[index];
         return obj;
       }, {});
-    } else {
+    } else if (user.ID_Unique) { // On ne crée le profil que si on a un ID valide
       // --- AUTO-RÉPARATION : Créer le profil s'il manque ---
       Logger.log(`Profil manquant pour ${user.Email} dans getDashboardData, création automatique.`);
       const newProfileRow = profilesHeaders.map(header => {
@@ -685,6 +685,9 @@ function getDashboardData(user) {
         obj[header] = newProfileRow[index];
         return obj;
       }, {});
+    } else {
+      Logger.log(`ID_Unique manquant pour l'utilisateur ${user.Email}. Impossible de charger le profil.`);
+      // On laisse l'objet profile vide pour éviter le crash, mais l'utilisateur verra un dashboard incomplet
     }
 
     // --- Récupérer les statistiques de vues (pour le graphique) ---
@@ -934,6 +937,8 @@ function getProfileData(profileUrl) {
     const userId = userRowData[usersHeaders.indexOf('ID_Unique')];
     const userEmail = userRowData[usersHeaders.indexOf('Email')];
     const enterpriseId = userRowData[usersHeaders.indexOf('ID_Entreprise')]; // Récupérer l'ID entreprise
+
+    if (!userId) return { error: "ID utilisateur introuvable pour ce profil." };
 
     // 4. Chercher le profil correspondant dans la feuille Profils
     const profilesHeaders = profilesSheet.getRange(1, 1, 1, profilesSheet.getLastColumn()).getValues()[0];
