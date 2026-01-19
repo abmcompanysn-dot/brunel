@@ -19,6 +19,10 @@ const CONFIG = {
  * Toutes les actions sont maintenant gérées par doPost pour simplifier.
  */
 function doGet(e) {
+  // Optimisation : Permettre la récupération du profil via GET pour une meilleure performance
+  if (e.parameter.action === 'getProfileData') {
+    return corsify(getProfileData(e.parameter.user));
+  }
   return corsify({ status: 'API en ligne', message: 'Veuillez utiliser des requêtes POST.' });
 }
 
@@ -43,13 +47,13 @@ function doPost(e) {
     switch (action) {
       case 'registerUser': result = registerUser(payload.email, payload.password, payload.enterpriseId); break;
       case 'loginUser': result = loginUser(payload.email, payload.password); break;
-      case 'createCheckoutSession': result = createCheckoutSession(payload); break;
       case 'forgotPassword': result = forgotPassword(payload.email); break;
       case 'resetPassword': result = resetPassword(payload.token, payload.newPassword); break;
       case 'trackView': result = trackView(payload.profileUrl, payload.source); break;
       case 'handleLeadCapture': result = handleLeadCapture(payload); break;
       case 'getProfileData': result = getProfileData(e.parameter.user); break;
       case 'saveCustomCardOrder': result = saveCustomCardOrder(payload); break;
+      case 'contactSupport': result = handleSupportMessage(payload, user); break;
       case 'exportLeadsAsCSV':
         if (!user) throw new Error("Token d'authentification invalide ou manquant pour l'export.");
         // Cas spécial : renvoie du texte brut, pas du JSON.
@@ -86,13 +90,6 @@ function doPost(e) {
           case 'getPublicProfileUrl':
             result = getPublicProfileUrl(user);
             break;
-          case 'generateGoogleWalletPass':
-            result = generateGoogleWalletPass(user);
-            break;
-          case 'saveProduct':
-          case 'deleteProduct':
-            result = handleProductActions(action, payload, user);
-            break;
           case 'logout':
             result = { success: true }; // Simple success for logout
             break;
@@ -102,9 +99,6 @@ function doPost(e) {
             break;
           case 'linkNfcCard':
             result = linkNfcCard(payload.nfcId, user);
-            break;
-          case 'contactSupport':
-            result = handleSupportMessage(payload, user);
             break;
           case 'createEmployee':
             result = createEmployee(payload, user);
@@ -194,12 +188,10 @@ function setupSpreadsheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheetsToCreate = [
     { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'Mot_De_Passe', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration', 'Reset_Token', 'Reset_Token_Expiration'] },
-    { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Telephone', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
+    { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Telephone', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'Services_JSON', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
-    { name: 'Produits', headers: ['ID_Produit', 'ID_Utilisateur', 'Nom', 'Description', 'Prix', 'Images_JSON', 'Date_Creation', 'Actif'] },
-    { name: 'Categories', headers: ['ID_Categorie', 'ID_Utilisateur', 'Nom_Categorie'] },
     { name: 'Documents', headers: ['ID_Document', 'ID_Utilisateur', 'Type', 'Nom', 'URL', 'Date_Ajout'] },
     { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut', 'Telephone'] },
     { name: 'Configuration', headers: ['Clé', 'Valeur', 'Description'] },
@@ -230,6 +222,7 @@ function setupSpreadsheet() {
       
       // Initialisation de la configuration
       if (sheetInfo.name === 'Configuration') {
+        sheet.getRange("B:B").setNumberFormat("@"); // Force le format texte pour éviter les erreurs avec "+"
         sheet.appendRow(['CALLMEBOT_PHONE', '', 'Votre numéro (avec code pays) pour CallMeBot']);
         sheet.appendRow(['CALLMEBOT_API_KEY', '', 'Votre clé API CallMeBot']);
         sheet.appendRow(['EMAIL_SIGNATURE', '', 'Signature HTML des emails']);
@@ -253,12 +246,10 @@ function verifyAndFixSheetStructure() {
 
   const requiredSheets = [
     { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'Mot_De_Passe', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration', 'Reset_Token', 'Reset_Token_Expiration'] },
-    { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Telephone', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'CV_Actif', 'CV_Data', 'WALLET_ISSUER_ID', 'WALLET_CLASS_ID', 'WALLET_SERVICE_EMAIL', 'WALLET_PRIVATE_KEY', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
+    { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Telephone', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'Services_JSON', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
-    { name: 'Produits', headers: ['ID_Produit', 'ID_Utilisateur', 'Nom', 'Description', 'Prix', 'Images_JSON', 'Date_Creation', 'Actif'] },
-    { name: 'Categories', headers: ['ID_Categorie', 'ID_Utilisateur', 'Nom_Categorie'] },
     { name: 'Documents', headers: ['ID_Document', 'ID_Utilisateur', 'Type', 'Nom', 'URL', 'Date_Ajout'] },
     { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut', 'Telephone'] },
     { name: 'Configuration', headers: ['Clé', 'Valeur', 'Description'] },
@@ -283,6 +274,12 @@ function verifyAndFixSheetStructure() {
       });
     }
   });
+
+  // Correction spécifique : Forcer le format texte pour la colonne Valeur de Configuration
+  const configSheet = ss.getSheetByName('Configuration');
+  if (configSheet) {
+    configSheet.getRange("B2:B").setNumberFormat("@"); 
+  }
 
   if (corrections.length > 0) {
     ui.alert('Vérification terminée', 'Les corrections suivantes ont été apportées :\n- ' + corrections.join('\n- '), ui.ButtonSet.OK);
@@ -358,7 +355,7 @@ function registerUser(email, password, enterpriseId = '') {
     if (header === 'Nom_Complet') return email.split('@')[0];
     if (header === 'Liens_Sociaux_JSON') return '[]';
     if (header === 'Lead_Capture_Actif') return 'NON';
-    if (header === 'CV_Actif') return 'NON';
+    if (header === 'Services_JSON') return '[]';
     return ''; // Valeur vide par défaut pour les autres colonnes
   });
   profileSheet.appendRow(newProfileRow);
@@ -613,16 +610,48 @@ function createEmployee(data, adminUser) {
   const password = data.password;
   const name = data.name;
 
-  // Utilise la fonction d'inscription existante en passant l'ID de l'admin comme entreprise
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const userSheet = ss.getSheetByName('Utilisateurs');
+  const usersData = userSheet.getDataRange().getValues();
+  const headers = usersData[0];
+  const emailCol = headers.indexOf('Email');
+  const idEntCol = headers.indexOf('ID_Entreprise');
+  const roleCol = headers.indexOf('Role');
+  const idUniqueCol = headers.indexOf('ID_Unique');
+
+  // Vérifier si l'utilisateur existe déjà
+  const userRowIndex = usersData.findIndex((row, i) => i > 0 && row[emailCol] === email);
+
+  if (userRowIndex !== -1) {
+    // L'utilisateur existe
+    const userRow = usersData[userRowIndex];
+    const currentEntId = userRow[idEntCol];
+
+    if (currentEntId) {
+      // Déjà lié à une entreprise
+      if (currentEntId === adminUser.ID_Unique) {
+        return { success: false, error: "Cet utilisateur fait déjà partie de votre équipe." };
+      } else {
+        return { success: false, error: "Cet email est déjà associé à une autre entreprise." };
+      }
+    } else {
+      // Utilisateur existant mais libre (Compte perso) -> On le lie à l'entreprise
+      const sheetRow = userRowIndex + 1; // +1 car les index de feuille commencent à 1
+      userSheet.getRange(sheetRow, idEntCol + 1).setValue(adminUser.ID_Unique);
+      userSheet.getRange(sheetRow, roleCol + 1).setValue('Employe');
+      
+      return { success: true, message: "Utilisateur existant ajouté à votre équipe avec succès." };
+    }
+  }
+
+  // L'utilisateur n'existe pas, on le crée normalement
   const registerResult = registerUser(email, password, adminUser.ID_Unique);
 
   if (!registerResult.success) {
     return registerResult;
   }
 
-  // Si succès, on met à jour le nom immédiatement
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const userSheet = ss.getSheetByName('Utilisateurs');
+  // Si succès, on met à jour le nom immédiatement dans le profil
   const profileSheet = ss.getSheetByName('Profils');
   
   // Trouver le nouvel utilisateur (c'est le dernier ajouté)
@@ -660,7 +689,7 @@ function getDashboardData(user) {
       foundRow = finder.findNext();
     }
 
-    if (foundRow) {
+    if (foundRow && user.ID_Unique) {
       const profileData = profilesSheet.getRange(foundRow.getRow(), 1, 1, profilesSheet.getLastColumn()).getValues()[0];
       profile = profilesHeaders.reduce((obj, header, index) => {
         obj[header] = profileData[index];
@@ -675,7 +704,7 @@ function getDashboardData(user) {
         if (header === 'Nom_Complet') return user.Email.split('@')[0];
         if (header === 'Liens_Sociaux_JSON') return '[]';
         if (header === 'Lead_Capture_Actif') return 'NON';
-        if (header === 'CV_Actif') return 'NON';
+        if (header === 'Services_JSON') return '[]';
         return '';
       });
       profilesSheet.appendRow(newProfileRow);
@@ -687,7 +716,12 @@ function getDashboardData(user) {
       }, {});
     } else {
       Logger.log(`ID_Unique manquant pour l'utilisateur ${user.Email}. Impossible de charger le profil.`);
-      // On laisse l'objet profile vide pour éviter le crash, mais l'utilisateur verra un dashboard incomplet
+      // On renvoie un profil minimal pour éviter que le dashboard ne plante
+      profile = {
+        Nom_Complet: user.Email ? user.Email.split('@')[0] : 'Utilisateur',
+        Email: user.Email,
+        ID_Utilisateur: user.ID_Unique
+      };
     }
 
     // --- Récupérer les statistiques de vues (pour le graphique) ---
@@ -728,20 +762,6 @@ function getDashboardData(user) {
       // Formater pour le frontend (les indices sont pour les colonnes 0=ID_Profil_Source, 1=Date_Capture, 2=Nom_Prospect, 3=Contact_Prospect, 4=Message_Note)
       .map(row => ({ id: row[0], date: row[1], nom: row[2], contact: row[3], note: row[4] })) 
       .slice(0, 10); // Limiter aux 10 derniers pour l'aperçu
-
-    // --- Récupérer les produits de la boutique ---
-    const productsSheet = ss.getSheetByName('Produits');
-    const allProducts = productsSheet.getLastRow() > 1
-      ? productsSheet.getRange('A2:H' + productsSheet.getLastRow()).getValues()
-      : [];
-    const productsHeaders = productsSheet.getRange(1, 1, 1, productsSheet.getLastColumn()).getValues()[0];
-    const userProducts = allProducts
-      .filter(row => row[1] === user.ID_Unique) // Filtrer par ID_Utilisateur (colonne B)
-      .map(row => {
-        const productObj = {};
-        productsHeaders.forEach((header, index) => productObj[header] = row[index]);
-        return productObj;
-      });
 
     // --- Récupérer les documents (Coffre-fort) ---
     const docsSheet = ss.getSheetByName('Documents');
@@ -796,7 +816,6 @@ function getDashboardData(user) {
       profile: profile,
       prospects: userProspects,
       documents: userDocs, // Ajout des documents
-      products: userProducts, // Ajout des produits
       appUrl: appUrl,
       stats: stats, // Nouvelles données pour le graphique
       totalViews: totalUserViews, // Nouvelle donnée
@@ -976,7 +995,7 @@ function getProfileData(profileUrl) {
         const entData = profilesSheet.getRange(entRowIndex, 1, 1, profilesSheet.getLastColumn()).getValues()[0];
         
         // Champs à hériter de l'entreprise
-        const inheritedFields = ['Compagnie', 'Location', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque'];
+        const inheritedFields = ['Compagnie', 'Location', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Services_JSON'];
         
         inheritedFields.forEach(field => {
           const idx = profilesHeaders.indexOf(field);
@@ -1533,142 +1552,6 @@ function updateOnboardingData(request, user) {
     return { success: true };
   } catch (e) {
     Logger.log(`Erreur dans updateOnboardingData: ${e.message}`);
-    return { success: false, error: e.message };
-  }
-}
-
-/**
- * ==================================================================
- * LOGIQUE POUR LA GESTION DE LA BOUTIQUE
- * ==================================================================
- */
-
-/**
- * Gère la création, la mise à jour et la suppression de produits.
- * @param {string} action - 'saveProduct' ou 'deleteProduct'.
- * @param {Object} payload - Les données du produit.
- * @param {Object} user - L'utilisateur authentifié.
- */
-function handleProductActions(action, payload, user) {
-  const productsSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Produits');
-  const headers = productsSheet.getRange(1, 1, 1, productsSheet.getLastColumn()).getValues()[0];
-  const productIdCol = headers.indexOf('ID_Produit');
-  const userIdCol = headers.indexOf('ID_Utilisateur');
-
-  if (action === 'saveProduct') {
-    const productData = payload;
-    const productId = productData.ID_Produit || 'prod_' + Utilities.getUuid();
-    
-    const data = productsSheet.getDataRange().getValues();
-    const rowIndex = data.findIndex(row => row[productIdCol] === productId && row[userIdCol] === user.ID_Unique);
-
-    const newRowData = [
-      productId,
-      user.ID_Unique,
-      productData.Nom,
-      productData.Description,
-      productData.Prix,
-      JSON.stringify(productData.Images_JSON || []),
-      new Date(),
-      'OUI' // Actif par défaut
-    ];
-
-    if (rowIndex !== -1) {
-      // Mise à jour d'un produit existant
-      productsSheet.getRange(rowIndex + 1, 1, 1, newRowData.length).setValues([newRowData]);
-      logAction('saveProduct', 'SUCCESS', `Produit ${productId} mis à jour.`, user.Email);
-    } else {
-      // Création d'un nouveau produit
-      productsSheet.appendRow(newRowData);
-      logAction('saveProduct', 'SUCCESS', `Nouveau produit ${productId} créé.`, user.Email);
-    }
-    return { success: true, message: 'Produit sauvegardé.' };
-
-  } else if (action === 'deleteProduct') {
-    const productId = payload.ID_Produit;
-    const data = productsSheet.getDataRange().getValues();
-    const rowIndex = data.findIndex(row => row[productIdCol] === productId && row[userIdCol] === user.ID_Unique);
-
-    if (rowIndex !== -1) {
-      productsSheet.deleteRow(rowIndex + 1);
-      logAction('deleteProduct', 'SUCCESS', `Produit ${productId} supprimé.`, user.Email);
-      return { success: true, message: 'Produit supprimé.' };
-    }
-    return { success: false, error: 'Produit non trouvé ou non autorisé.' };
-  }
-}
-/**
- * ==================================================================
- * LOGIQUE POUR GOOGLE WALLET
- * ==================================================================
- * Prérequis :
- * 1. Créez une "Classe de carte" dans la Google Pay & Wallet Console (https://pay.google.com/business/console).
- * - Choisissez "Carte générique".
- * - Notez l'ID de la classe (ex: "123456789.MyPassClass").
- * 2. Créez un compte de service dans Google Cloud avec le rôle "Éditeur de l'API Wallet".
- * - Téléchargez la clé JSON.
- * 3. Dans l'éditeur Apps Script, allez dans "Paramètres du projet" > "Propriétés du script".
- * - Ajoutez 3 propriétés :
- * - GOOGLE_WALLET_ISSUER_ID : (ID de l'émetteur, trouvé dans la console Wallet)
- * - GOOGLE_WALLET_CLASS_ID  : (ID de la classe de carte que vous avez créée)
- * - SERVICE_ACCOUNT_PRIVATE_KEY : (La clé privée de votre fichier JSON, commençant par "-----BEGIN PRIVATE KEY-----...")
- * - SERVICE_ACCOUNT_EMAIL : (L'email de votre compte de service)
- */
-function generateGoogleWalletPass(user) {
-  try { // La vérification du user est faite dans doPost
-    const profile = getDashboardData(user).profile; // Récupère les données du profil
-
-    const issuerId = profile.WALLET_ISSUER_ID;
-    const classId = profile.WALLET_CLASS_ID;
-    const serviceAccountEmail = profile.WALLET_SERVICE_EMAIL;
-    const privateKey = profile.WALLET_PRIVATE_KEY;
-
-    if (!issuerId || !classId || !serviceAccountEmail || !privateKey) {
-      throw new Error("Les informations pour Google Wallet ne sont pas configurées dans l'onglet Intégrations.");
-    }
-
-    const objectId = `${issuerId}.${user.ID_Unique.replace(/[^a-zA-Z0-9_.-]/g, '_')}`;
-
-    const passObject = {
-      'id': objectId,
-      'classId': classId, 
-      'genericType': 'GENERIC_TYPE_UNSPECIFIED',
-      'hexBackgroundColor': profile.Couleur_Theme || '#007BFF',
-      'logo': {
-        'sourceUri': { 'uri': 'https://i.ibb.co/L6fKz3C/logo.png' } // URL de votre logo
-      },
-      'cardTitle': { 'defaultValue': { 'language': 'fr-FR', 'value': profile.Nom_Complet || 'Carte Mahu' } },
-      'header': { 'defaultValue': { 'language': 'fr-FR', 'value': profile.Nom_Complet || user.Email } },
-      'textModulesData': [
-        { 'header': 'Email', 'body': user.Email, 'id': 'email' },
-        { 'header': 'Profession', 'body': profile.Profession || 'Non spécifié', 'id': 'profession' }, // Ajouté
-        { 'header': 'Compagnie', 'body': profile.Compagnie || 'Non spécifié', 'id': 'company' }, // Ajouté
-        { 'header': 'Profil Public', 'body': `${ScriptApp.getService().getUrl()}?user=${user.URL_Profil}`, 'id': 'profile_url' } // Ajouté
-      ],
-      'linksModuleData': {
-        'uris': [
-          { 'uri': `${ScriptApp.getService().getUrl()}?user=${user.URL_Profil}`, 'description': 'Voir le profil complet', 'id': 'main_link' }
-        ]
-      }
-    };
-
-    const claims = {
-      'iss': serviceAccountEmail,
-      'aud': 'google',
-      'typ': 'savetowallet',
-      'origins': [],
-      'payload': {
-        'genericObjects': [passObject]
-      }
-    };
-
-    const header = { 'alg': 'RS256', 'typ': 'JWT' };
-    const toSign = `${Utilities.base64EncodeWebSafe(JSON.stringify(header))}.${Utilities.base64EncodeWebSafe(JSON.stringify(claims))}`;
-    const signature = Utilities.computeRsaSha256Signature(toSign, privateKey);
-    const signedJwt = `${toSign}.${Utilities.base64EncodeWebSafe(signature)}`;
-    return { success: true, jwt: signedJwt };
-  } catch (e) {
-    Logger.log(e);
     return { success: false, error: e.message };
   }
 }

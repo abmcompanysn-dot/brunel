@@ -662,10 +662,6 @@
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                     <span>Statistiques</span>
                 </a>
-                <a href="#" onclick="showPane(event, 'integration-content', this)" title="Intégrations">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>
-                    <span>Intégrations</span>
-                </a>
                 <a href="#" onclick="showPane(event, 'documents-content', this)" title="Mes Documents">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                     <span>Mes Documents</span>
@@ -891,18 +887,6 @@
                 </div>
             </div>
 
-            <!-- Panneau Intégrations -->
-            <div id="integration-content" class="content-pane">
-                <h1>Intégrations</h1>
-                <p style="max-width: 100%; text-align: left; margin-bottom: 20px; color: var(--text-secondary);">Connectez Mahu à d'autres services. Les clés API sont stockées de manière sécurisée et ne sont jamais partagées publiquement.</p>
-                <div class="card">
-                    <h3>Intégrations disponibles</h3>
-                    <p>La possibilité d'ajouter votre carte à <strong>Google Wallet</strong> et <strong>Apple Wallet</strong> est disponible directement dans l'onglet "Paramètres".</p>
-                    <p>Nous travaillons à l'ajout de nouvelles intégrations pour enrichir votre expérience. Revenez bientôt !</p>
-                    <!-- Le formulaire de configuration a été retiré pour simplifier l'interface. La configuration se fait côté serveur. -->
-                </div>
-            </div>
-
             <!-- Panneau Documents (Mode Disque) -->
             <div id="documents-content" class="content-pane">
                 <h1>Mes Documents (Coffre-fort)</h1>
@@ -966,20 +950,6 @@
                         <input type="checkbox" id="toggle-lead" onchange="toggleModule('Lead_Capture_Actif', this.checked)">
                     </div>
                 </div>
-                <div class="card">
-                   <h3>Votre Carte Numérique (Wallet)</h3>
-                   <p>Ajoutez votre carte de visite Mahu à votre portefeuille numérique pour un accès rapide et facile.</p>
-                   <div style="display: flex; gap: 15px; margin-top: 20px;">
-                       <button id="apple-wallet-btn" class="btn btn-with-icon" onclick="addToAppleWallet()" style="flex: 1;">
-                           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"></path><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"></path></svg>
-                           <span>Apple Wallet</span>
-                       </button>
-                       <button id="google-wallet-btn" class="btn btn-with-icon" onclick="addToGoogleWallet()" style="flex: 1;">
-                           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"></path><path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"></path></svg>
-                           <span>Google Wallet</span>
-                       </button>
-                   </div>
-               </div>
                <div class="card">
                    <h3>Demande de Carte</h3>
                    <p><strong>Statut de la dernière commande :</strong> <span id="order-status">Aucune commande récente.</span></p>
@@ -1000,6 +970,7 @@
             <h1>Modifier le Profil</h1>
             <div class="editor-nav">
                 <button class="editor-nav-btn active" onclick="showEditPane('edit-pane-about', this)">Informations</button>
+                <button class="editor-nav-btn" onclick="showEditPane('edit-pane-services', this)">Services (Entreprise)</button>
                 <button class="editor-nav-btn admin-only" onclick="showEditPane('edit-pane-appearance', this)">Apparence & Liens</button>
                 <!-- L'onglet "Liens" a été fusionné avec "À propos" -->
             </div>
@@ -1015,6 +986,12 @@
                         <div class="form-group admin-only"><label for="Compagnie">Compagnie</label><input type="text" id="Compagnie" name="Compagnie" class="form-control" placeholder="Ex: Mahu Inc."></div>
                         <div class="form-group admin-only"><label for="Location">Location</label><input type="text" id="Location" name="Location" class="form-control" placeholder="Ex: Paris, France"></div>
                         
+                    </div>
+                    <!-- Panneau d'édition "Services" -->
+                    <div id="edit-pane-services" class="edit-pane">
+                        <h3>Nos Services</h3>
+                        <div id="services-container"></div>
+                        <button type="button" class="btn btn-secondary" onclick="addServiceField()" style="width: auto; margin-top: 10px;">Ajouter un service</button>
                     </div>
                     <!-- Panneau d'édition "Apparence" -->
                     <div id="edit-pane-appearance" class="edit-pane admin-only">
@@ -1231,13 +1208,13 @@
                     } else {
                         alert('Erreur : ' + (response.error || 'Impossible de sauvegarder le paramètre.'));
                         // En cas d'erreur, on remet l'interrupteur à son état précédent
-                        const checkbox = document.getElementById(moduleName === 'CV_Actif' ? 'toggle-cv' : 'toggle-lead');
+                        const checkbox = document.getElementById('toggle-lead');
                         checkbox.checked = !isEnabled;
                     }
                 })
                 .catch(err => {
                     alert('Erreur de communication avec le serveur.');
-                    const checkbox = document.getElementById(moduleName === 'CV_Actif' ? 'toggle-cv' : 'toggle-lead');
+                    const checkbox = document.getElementById('toggle-lead');
                     checkbox.checked = !isEnabled;
                 });
         }
@@ -1274,6 +1251,22 @@
             container.appendChild(newLinkEntry);
         }
 
+        function addServiceField(title = '', desc = '') {
+            const container = document.getElementById('services-container');
+            const newServiceEntry = document.createElement('div');
+            newServiceEntry.className = 'service-entry';
+            newServiceEntry.style.marginBottom = '15px';
+            newServiceEntry.style.border = '1px solid var(--border-color)';
+            newServiceEntry.style.padding = '10px';
+            newServiceEntry.style.borderRadius = '5px';
+            newServiceEntry.innerHTML = `
+                <div class="form-group"><label>Titre du service</label><input type="text" class="form-control service-title" value="${title}" placeholder="Ex: Développement Web"></div>
+                <div class="form-group"><label>Description</label><textarea class="form-control service-desc" placeholder="Ex: Création de sites vitrines...">${desc}</textarea></div>
+                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">Supprimer ce service</button>
+            `;
+            container.appendChild(newServiceEntry);
+        }
+
         function handleSave(event) {
             event.preventDefault();
             const button = document.getElementById('save-button');
@@ -1298,7 +1291,8 @@
                 Langue: profileForm.Langue.value,
 
                 // Panneau "Liens"
-                Liens_Sociaux_JSON: getSocialLinksData()
+                Liens_Sociaux_JSON: getSocialLinksData(),
+                Services_JSON: getServicesData()
 
                 // La configuration du Wallet est maintenant gérée côté serveur, plus besoin de l'envoyer depuis le client.
             };
@@ -1471,31 +1465,6 @@
         }
     </script>
 
-    <script>
-        // --- Logique pour les Wallets ---
-        function addToAppleWallet() {
-            alert("L'intégration avec Apple Wallet nécessite un service serveur dédié. Cette fonctionnalité est en cours de développement.");
-        }
-
-        function addToGoogleWallet() {
-            const button = document.getElementById('google-wallet-btn');
-            button.textContent = 'Génération...';
-            button.disabled = true;
-
-            callApi('generateGoogleWalletPass')
-                .then(response => {
-                    if (response.success) {
-                        window.open(`https://pay.google.com/gp/v/save/${response.jwt}`, '_blank');
-                    } else {
-                        alert("Erreur lors de la génération de la carte Google Wallet : " + response.error);
-                    }
-                    button.textContent = 'Add to Google Wallet';
-                    button.disabled = false;
-                })
-                .catch(err => alert('Erreur de communication avec le serveur.'));
-        } 
-    </script>
-    
     <!-- Intégration de Chart.js et appel à Apps Script -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
@@ -1575,6 +1544,7 @@
             document.getElementById('profile-picture-preview').src = profile.URL_Photo || 'https://placehold.co/150x150/333/ccc?text=Profil';
             document.getElementById('profile-cover-preview').style.backgroundImage = `url('${profile.URL_Couverture || 'https://placehold.co/800x300/333/ccc?text=Couverture'}')`;
             document.getElementById('profile-name-preview').textContent = profile.Nom_Complet || 'Nom non défini';
+            document.getElementById('profile-name-preview').textContent = profile.Nom_Complet || user.Email || 'Utilisateur';
             const subtitleParts = [profile.Profession, profile.Compagnie, profile.Location].filter(Boolean);
             document.getElementById('profile-details-preview').textContent = subtitleParts.join(' | ') || 'Informations non disponibles';
 
@@ -1638,6 +1608,7 @@
             document.getElementById('phone-picture-preview').src = profile.URL_Photo || 'https://placehold.co/150x150/333/ccc?text=Profil';
             document.getElementById('phone-cover-preview').style.backgroundImage = `url('${profile.URL_Couverture || 'https://placehold.co/800x300/333/ccc?text=Couverture'}')`;
             document.getElementById('phone-name-preview').textContent = profile.Nom_Complet || 'Nom non défini';
+            document.getElementById('phone-name-preview').textContent = profile.Nom_Complet || user.Email || 'Utilisateur';
             const phoneSubtitleParts = [profile.Profession, profile.Compagnie, profile.Location].filter(Boolean);
             document.getElementById('phone-details-preview').textContent = phoneSubtitleParts.join(' | ') || 'Informations non disponibles';
             document.querySelector('.phone-header img').style.borderColor = profile.Couleur_Theme || 'var(--accent-color)'; // Utilise la couleur du thème
@@ -1649,6 +1620,13 @@
             const socialLinks = JSON.parse(profile.Liens_Sociaux_JSON || '[]');
             socialLinks.forEach(link => {
                 addSocialLink(link.type, link.url);
+            });
+
+            // Remplir les services
+            document.getElementById('services-container').innerHTML = '';
+            const services = JSON.parse(profile.Services_JSON || '[]');
+            services.forEach(svc => {
+                addServiceField(svc.title, svc.description);
             });
 
             // Remplir la liste de l'équipe (si Entreprise)
@@ -1714,7 +1692,6 @@
             hideSkeletons('#contact-content');
             hideSkeletons('#statistique-content');
             hideSkeletons('#documents-content');
-            hideSkeletons('#integration-content');
             hideSkeletons('#parametre-content');
 
             // --- Remplir les statistiques et dessiner le graphique ---
@@ -1739,6 +1716,18 @@
                 }
             });
             return JSON.stringify(links);
+        }
+
+        function getServicesData() {
+            const container = document.getElementById('services-container');
+            const entries = container.querySelectorAll('.service-entry');
+            const services = [];
+            entries.forEach(entry => {
+                const title = entry.querySelector('.service-title').value;
+                const description = entry.querySelector('.service-desc').value;
+                if (title) services.push({ title, description });
+            });
+            return JSON.stringify(services);
         }
 
         /**
