@@ -406,9 +406,15 @@
         callApi('saveCustomCardOrder', { payload: orderData })
             .then(response => {
                 if (response.success) {
-                    alert('Commande enregistrée !');
-                    const whatsappUrl = `https://wa.me/2250707070707?text=${encodeURIComponent(message)}`;
-                    window.open(whatsappUrl, '_blank');
+                    alert('Commande enregistrée ! Vous allez être redirigé vers WhatsApp pour confirmer.');
+                    if (response.whatsappNumber) {
+                        // Nettoyer le numéro (enlever le '+' et autres caractères non numériques) pour le lien wa.me
+                        const cleanNumber = response.whatsappNumber.replace(/\D/g, '');
+                        const whatsappUrl = `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
+                        window.open(whatsappUrl, '_blank');
+                    } else {
+                        alert('Votre commande est enregistrée, mais le numéro de confirmation WhatsApp n\'est pas configuré. Veuillez contacter le support.');
+                    }
                 } else {
                     alert('Erreur lors de l\'enregistrement de la commande: ' + (response.error || 'Erreur inconnue'));
                 }

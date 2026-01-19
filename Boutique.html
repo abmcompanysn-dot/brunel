@@ -663,13 +663,42 @@
             }
             
             const product = products[currentProductIndex];
-            // Logique d'envoi vers Google Sheets ou WhatsApp
-            // Ici, on simule l'envoi ou on redirige vers WhatsApp
-            const message = `Nouvelle Commande !\n\nProduit : ${product.name}\nPrix : ${product.price} FCFA\n\nClient :\nNom : ${name}\nEmail : ${email}\nTéléphone : ${phone}`;
-            const whatsappUrl = `https://wa.me/2250707070707?text=${encodeURIComponent(message)}`; // Remplacez par votre numéro
             
-            window.open(whatsappUrl, '_blank');
-            // Si vous avez un script Google Apps Script, vous feriez un fetch() ici.
+            // Préparer les données pour le backend
+            const orderData = {
+                product_name: product.name,
+                price: product.price,
+                client_name: name,
+                client_email: email,
+                client_phone: phone
+            };
+
+            const btn = document.querySelector('.order-form button');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = "Traitement en cours...";
+
+            // Envoi au backend puis redirection WhatsApp
+            callApi('saveStoreOrder', { payload: orderData })
+                .then(response => {
+                    if (response.success) {
+                        const message = `Nouvelle Commande !\n\nProduit : ${product.name}\nPrix : ${product.price} FCFA\n\nClient :\nNom : ${name}\nEmail : ${email}\nTéléphone : ${phone}`;
+                        // Utiliser le numéro renvoyé par le serveur ou un fallback
+                        let whatsappNumber = response.whatsappNumber || '2250707070707';
+                        whatsappNumber = whatsappNumber.replace(/\D/g, ''); // Nettoyer le numéro
+                        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+                        
+                        window.open(whatsappUrl, '_blank');
+                        closeModal();
+                    } else {
+                        alert("Erreur lors de l'enregistrement de la commande : " + response.error);
+                    }
+                })
+                .catch(err => alert("Erreur de connexion : " + err))
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                });
         }
 
         // Fermer la modale en cliquant en dehors

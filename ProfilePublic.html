@@ -489,7 +489,7 @@
             // Concaténer Profession, Compagnie, Location
             const subtitleParts = [data.Profession, data.Compagnie, data.Location].filter(Boolean); // Filtre les valeurs vides
             const subtitleElement = card.querySelector('.profile-header p .real-text');
-            subtitleElement.textContent = subtitleParts.join(' | ') || 'Informations non disponibles';
+            subtitleElement.textContent = subtitleParts.join(' | ');
             subtitleElement.style.display = 'inline';
 
             // Remplir les champs copiables et les boutons d'action

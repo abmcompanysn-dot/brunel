@@ -53,6 +53,7 @@ function doPost(e) {
       case 'handleLeadCapture': result = handleLeadCapture(payload); break;
       case 'getProfileData': result = getProfileData(e.parameter.user); break;
       case 'saveCustomCardOrder': result = saveCustomCardOrder(payload); break;
+      case 'saveStoreOrder': result = saveStoreOrder(payload); break;
       case 'contactSupport': result = handleSupportMessage(payload, user); break;
       case 'exportLeadsAsCSV':
         if (!user) throw new Error("Token d'authentification invalide ou manquant pour l'export.");
@@ -196,6 +197,7 @@ function setupSpreadsheet() {
     { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut', 'Telephone'] },
     { name: 'Configuration', headers: ['Clé', 'Valeur', 'Description'] },
     { name: 'Commandes_Custom', headers: ['Date', 'Matériau', 'Finition', 'Prix', 'Nom Titulaire', 'Entreprise', 'Poste'] },
+    { name: 'Commandes', headers: ['Date', 'Produit', 'Prix', 'Client_Nom', 'Client_Email', 'Client_Telephone', 'Statut'] },
     // L'onglet Commandes n'était pas dans la nouvelle spec, mais on peut le garder si besoin.
     // { name: 'Commandes NFC', headers: ['ID_Commande', 'ID_Utilisateur', 'Type_Carte', 'Quantite', 'Date_Commande', 'Statut'] },
   ];
@@ -253,6 +255,7 @@ function verifyAndFixSheetStructure() {
     { name: 'Documents', headers: ['ID_Document', 'ID_Utilisateur', 'Type', 'Nom', 'URL', 'Date_Ajout'] },
     { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut', 'Telephone'] },
     { name: 'Configuration', headers: ['Clé', 'Valeur', 'Description'] },
+    { name: 'Commandes', headers: ['Date', 'Produit', 'Prix', 'Client_Nom', 'Client_Email', 'Client_Telephone', 'Statut'] },
   ];
 
   requiredSheets.forEach(sheetInfo => {
@@ -896,7 +899,54 @@ function saveCustomCardOrder(payload) {
       Logger.log("Erreur lors de l'envoi des notifications : " + e.toString());
     }
 
-    return { success: true };
+    // Renvoyer le numéro WhatsApp configuré pour que le client puisse ouvrir le lien
+    const whatsappNumber = getConfigValue('CALLMEBOT_PHONE');
+
+    return { success: true, whatsappNumber: whatsappNumber };
+  } catch (error) {
+    return { success: false, error: error.toString() };
+  }
+}
+
+/**
+ * Enregistre une commande standard depuis la boutique.
+ */
+function saveStoreOrder(payload) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName("Commandes");
+    
+    if (!sheet) {
+      sheet = ss.insertSheet("Commandes");
+      sheet.appendRow(['Date', 'Produit', 'Prix', 'Client_Nom', 'Client_Email', 'Client_Telephone', 'Statut']);
+    }
+    
+    sheet.appendRow([
+      new Date(),
+      payload.product_name,
+      payload.price,
+      payload.client_name,
+      payload.client_email,
+      payload.client_phone,
+      'NOUVEAU'
+    ]);
+    
+    // --- NOTIFICATIONS ---
+    try {
+      const adminEmail = Session.getEffectiveUser().getEmail();
+      const subject = "Nouvelle Commande Boutique Mahu";
+      const body = `Nouvelle commande boutique !\n\nProduit : ${payload.product_name}\nPrix : ${payload.price}\nClient : ${payload.client_name} (${payload.client_phone})`;
+      GmailApp.sendEmail(adminEmail, subject, body);
+
+      const botMessage = `🛍️ *Nouvelle Commande Boutique*\n\n📦 ${payload.product_name}\n💰 ${payload.price} FCFA\n👤 ${payload.client_name}\n📞 ${payload.client_phone}`;
+      sendCallMeBotMessage(botMessage);
+    } catch (e) {
+      Logger.log("Erreur notif boutique: " + e.toString());
+    }
+
+    const whatsappNumber = getConfigValue('CALLMEBOT_PHONE');
+    return { success: true, whatsappNumber: whatsappNumber };
+
   } catch (error) {
     return { success: false, error: error.toString() };
   }

@@ -1543,10 +1543,9 @@
             // Aperçu
             document.getElementById('profile-picture-preview').src = profile.URL_Photo || 'https://placehold.co/150x150/333/ccc?text=Profil';
             document.getElementById('profile-cover-preview').style.backgroundImage = `url('${profile.URL_Couverture || 'https://placehold.co/800x300/333/ccc?text=Couverture'}')`;
-            document.getElementById('profile-name-preview').textContent = profile.Nom_Complet || 'Nom non défini';
             document.getElementById('profile-name-preview').textContent = profile.Nom_Complet || user.Email || 'Utilisateur';
             const subtitleParts = [profile.Profession, profile.Compagnie, profile.Location].filter(Boolean);
-            document.getElementById('profile-details-preview').textContent = subtitleParts.join(' | ') || 'Informations non disponibles';
+            document.getElementById('profile-details-preview').textContent = subtitleParts.join(' | ');
 
             // Actions de partage
             // Utilisation de quickchart.io pour un QR code avec logo. On construit l'URL absolue du logo.
@@ -1610,7 +1609,7 @@
             document.getElementById('phone-name-preview').textContent = profile.Nom_Complet || 'Nom non défini';
             document.getElementById('phone-name-preview').textContent = profile.Nom_Complet || user.Email || 'Utilisateur';
             const phoneSubtitleParts = [profile.Profession, profile.Compagnie, profile.Location].filter(Boolean);
-            document.getElementById('phone-details-preview').textContent = phoneSubtitleParts.join(' | ') || 'Informations non disponibles';
+            document.getElementById('phone-details-preview').textContent = phoneSubtitleParts.join(' | ');
             document.querySelector('.phone-header img').style.borderColor = profile.Couleur_Theme || 'var(--accent-color)'; // Utilise la couleur du thème
             
             // Remplir les liens sociaux dans l'éditeur
