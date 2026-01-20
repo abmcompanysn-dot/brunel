@@ -104,6 +104,12 @@ function doPost(e) {
           case 'createEmployee':
             result = createEmployee(payload, user);
             break;
+          case 'saveEnterpriseInfo':
+            result = saveEnterpriseInfo(payload, user);
+            break;
+          case 'deleteEmployee':
+            result = deleteEmployee(payload, user);
+            break;
           default:
             result = { error: 'Action POST non reconnue.' };
             break;
@@ -668,6 +674,50 @@ function createEmployee(data, adminUser) {
 }
 
 /**
+ * Supprime un employé de l'équipe de l'entreprise.
+ * @param {Object} data - { email }
+ * @param {Object} adminUser - L'administrateur (Entreprise)
+ */
+function deleteEmployee(data, adminUser) {
+  if (adminUser.Role !== 'Entreprise') {
+    return { success: false, error: "Action réservée aux comptes Entreprise." };
+  }
+  
+  const targetEmail = data.email;
+  if (!targetEmail) return { success: false, error: "Email de l'employé requis." };
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const userSheet = ss.getSheetByName('Utilisateurs');
+  const usersData = userSheet.getDataRange().getValues();
+  const headers = usersData[0];
+  const emailCol = headers.indexOf('Email');
+  const idEntCol = headers.indexOf('ID_Entreprise');
+  const idUniqueCol = headers.indexOf('ID_Unique');
+
+  // Trouver l'utilisateur
+  const rowIndex = usersData.findIndex(row => row[emailCol] === targetEmail);
+  
+  if (rowIndex === -1) {
+    return { success: false, error: "Employé introuvable." };
+  }
+
+  const userRow = usersData[rowIndex];
+  
+  // Vérifier qu'il appartient bien à cette entreprise
+  if (userRow[idEntCol] !== adminUser.ID_Unique) {
+    return { success: false, error: "Cet utilisateur ne fait pas partie de votre équipe." };
+  }
+
+  // Supprimer la ligne (rowIndex correspond à l'index dans le tableau, +1 pour la ligne Sheet car 1-based)
+  userSheet.deleteRow(rowIndex + 1);
+
+  // Optionnel : On pourrait aussi supprimer le profil associé dans la feuille 'Profils' pour nettoyer,
+  // mais garder l'historique peut être utile. Ici, on supprime l'accès (Utilisateur).
+  
+  return { success: true, message: "Employé supprimé avec succès." };
+}
+
+/**
  * Fonction centrale pour charger toutes les données du tableau de bord en un seul appel.
  * @returns {Object} Un objet contenant toutes les données nécessaires pour le dashboard.
  */
@@ -785,6 +835,7 @@ function getDashboardData(user) {
 
     // --- Données d'équipe (Si Entreprise) ---
     let teamData = [];
+    let enterpriseData = {};
     if (user.Role === 'Entreprise') {
       const usersSheet = ss.getSheetByName('Utilisateurs');
       const usersData = usersSheet.getDataRange().getValues(); // On garde getDataRange ici car on filtre ensuite
@@ -809,6 +860,13 @@ function getDashboardData(user) {
           id: empId, name: empName, email: emp[uEmailCol], url: emp[uUrlCol], leads: empLeads
         };
       });
+
+      // Préparer les données de l'entreprise pour le dashboard
+      enterpriseData = {
+        Name: profile.Compagnie || '',
+        Phone: profile.Telephone || '',
+        Address: profile.Location || ''
+      };
     }
 
     // Construire l'URL de base de l'application web
@@ -824,7 +882,8 @@ function getDashboardData(user) {
       totalViews: totalUserViews, // Nouvelle donnée
       totalProspects: totalProspectsCount,
       team: teamData, // Données de l'équipe
-      onboardingStatus: user.Onboarding_Status // Ajout du statut d'onboarding
+      onboardingStatus: user.Onboarding_Status, // Ajout du statut d'onboarding
+      enterprise: enterpriseData // Ajout des infos entreprise
     };
   } catch (e) {
     Logger.log(`Erreur dans getDashboardData pour ${user.Email}: ${e.message} (Ligne: ${e.lineNumber})`);
@@ -1064,6 +1123,27 @@ function getProfileData(profileUrl) {
     Logger.log(`Erreur dans getProfileData: ${e.message}`);
     return { error: e.message };
   }
+}
+
+/**
+ * Sauvegarde les informations de l'entreprise (Nom, Téléphone, Adresse).
+ * @param {Object} data - { name, phone, address }
+ * @param {Object} user - L'utilisateur authentifié
+ */
+function saveEnterpriseInfo(data, user) {
+  if (user.Role !== 'Entreprise') {
+    return { success: false, error: "Action réservée aux comptes Entreprise." };
+  }
+
+  // On mappe les champs du formulaire frontend vers les colonnes de la feuille Profils
+  const profileData = {
+    Compagnie: data.name,
+    Telephone: data.phone,
+    Location: data.address
+  };
+
+  // On réutilise la fonction saveProfile qui gère déjà la mise à jour de la feuille et du cache
+  return saveProfile(profileData, user);
 }
 
 /**

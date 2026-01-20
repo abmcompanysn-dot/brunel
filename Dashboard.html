@@ -820,7 +820,21 @@
 
             <!-- Panneau Équipe (Entreprise uniquement) -->
             <div id="team-content" class="content-pane admin-only">
-                <h1>Mon Équipe</h1>
+                <h1>Mon Entreprise & Équipe</h1>
+                
+                <div class="card">
+                    <div class="card-header-flex">
+                        <h3>Informations de l'Entreprise</h3>
+                        <button class="btn btn-secondary btn-with-icon" onclick="openModal('enterprise-edit-modal')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            <span>Modifier</span>
+                        </button>
+                    </div>
+                    <p><strong>Nom :</strong> <span id="display-enterprise-name">Chargement...</span></p>
+                    <p><strong>Téléphone :</strong> <span id="display-enterprise-phone">...</span></p>
+                    <p><strong>Adresse :</strong> <span id="display-enterprise-address">...</span></p>
+                </div>
+
                 <div class="card">
                     <div class="card-header-flex">
                         <h3>Membres de l'équipe</h3>
@@ -1046,6 +1060,20 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modale Édition Entreprise -->
+    <div id="enterprise-edit-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-btn" onclick="closeModal('enterprise-edit-modal')">&times;</span>
+            <h2>Modifier les informations de l'entreprise</h2>
+            <form onsubmit="handleEnterpriseSave(event)">
+                <div class="form-group"><label>Nom de l'entreprise</label><input type="text" id="edit-enterprise-name" class="form-control" required></div>
+                <div class="form-group"><label>Téléphone</label><input type="tel" id="edit-enterprise-phone" class="form-control"></div>
+                <div class="form-group"><label>Adresse</label><input type="text" id="edit-enterprise-address" class="form-control"></div>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Sauvegarder</button>
+            </form>
         </div>
     </div>
 
@@ -1524,6 +1552,7 @@
             // Sécurisation des objets de données pour éviter les erreurs null/undefined
             const user = data.user || {};
             const profile = data.profile || {};
+            const enterprise = data.enterprise || {}; // Données entreprise
             const prospects = data.prospects || [];
             const documents = data.documents || []; // Nouveaux documents
 
@@ -1628,6 +1657,16 @@
                 addServiceField(svc.title, svc.description);
             });
 
+            // Remplir les infos entreprise (si dispo)
+            if (enterprise && user.Role === 'Entreprise') {
+                document.getElementById('display-enterprise-name').textContent = enterprise.Name || user.Compagnie || 'Non défini';
+                document.getElementById('display-enterprise-phone').textContent = enterprise.Phone || '';
+                document.getElementById('display-enterprise-address').textContent = enterprise.Address || '';
+                document.getElementById('edit-enterprise-name').value = enterprise.Name || user.Compagnie || '';
+                document.getElementById('edit-enterprise-phone').value = enterprise.Phone || '';
+                document.getElementById('edit-enterprise-address').value = enterprise.Address || '';
+            }
+
             // Remplir la liste de l'équipe (si Entreprise)
             if (user.Role === 'Entreprise' && data.team) {
                 const teamBody = document.getElementById('team-table-body');
@@ -1635,7 +1674,8 @@
                 data.team.forEach(member => {
                     teamBody.innerHTML += `
                         <tr><td>${member.name}</td><td>${member.email}</td><td>${member.leads}</td>
-                        <td><a href="ProfilePublic.html?user=${member.url}" target="_blank" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em;">Voir</a></td></tr>`;
+                        <td><a href="ProfilePublic.html?user=${member.url}" target="_blank" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em;">Voir</a>
+                        <button class="btn btn-danger" onclick="deleteEmployee('${member.email}')" style="padding: 5px 10px; font-size: 0.8em; margin-left: 5px;">Supprimer</button></td></tr>`;
                 });
             }
 

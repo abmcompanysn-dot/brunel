@@ -227,6 +227,26 @@
                             <input type="password" id="register-password" class="form-control" required>
                             <svg onclick="togglePasswordVisibility('register-password', this)" class="password-toggle" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                         </div>
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                                <input type="checkbox" id="is-enterprise" onchange="toggleEnterpriseFields()">
+                                Créer un compte Entreprise
+                            </label>
+                        </div>
+                        <div id="enterprise-fields" style="display: none; padding-left: 15px; border-left: 2px solid var(--border-color);">
+                            <div class="form-group">
+                                <label for="register-enterprise-name">Nom de l'entreprise</label>
+                                <input type="text" id="register-enterprise-name" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="register-enterprise-phone">Téléphone</label>
+                                <input type="tel" id="register-enterprise-phone" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="register-enterprise-address">Adresse</label>
+                                <input type="text" id="register-enterprise-address" class="form-control">
+                            </div>
+                        </div>
                         <button type="submit" class="btn btn-gradient">Créer un compte</button>
                         <p class="toggle-form">Déjà un compte ? <a onclick="toggleForms()">Connectez-vous</a></p>
                     </form>
@@ -303,6 +323,11 @@
             }
         }
 
+        function toggleEnterpriseFields() {
+            const isEnterprise = document.getElementById('is-enterprise').checked;
+            document.getElementById('enterprise-fields').style.display = isEnterprise ? 'block' : 'none';
+        }
+
         function showForgotPasswordForm() {
             document.getElementById('login-form').style.display = 'none';
             document.getElementById('register-form').style.display = 'none';
@@ -357,11 +382,20 @@
             const button = event.target.querySelector('button');
             button.disabled = true;
             button.textContent = 'Chargement...';
+            
+            const payload = { email, password, enterpriseId };
+            
+            if (isRegister && document.getElementById('is-enterprise').checked) {
+                payload.isEnterprise = true;
+                payload.enterpriseName = document.getElementById('register-enterprise-name').value;
+                payload.enterprisePhone = document.getElementById('register-enterprise-phone').value;
+                payload.enterpriseAddress = document.getElementById('register-enterprise-address').value;
+            }
 
             const action = isRegister ? 'registerUser' : 'loginUser';
 
             // Passer enterpriseId lors de l'inscription
-            callApi(action, { payload: { email, password, enterpriseId } })
+            callApi(action, { payload: payload })
                 .then(response => {
                     if (response.success) {
                         localStorage.setItem('authToken', response.token); // Sauvegarder le token !
