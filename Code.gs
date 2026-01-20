@@ -869,6 +869,26 @@ function getDashboardData(user) {
       };
     }
 
+    // --- Récupérer la dernière commande (Boutique) ---
+    let lastOrder = null;
+    try {
+      const ordersSheet = ss.getSheetByName('Commandes');
+      if (ordersSheet && ordersSheet.getLastRow() > 1) {
+        const ordersData = ordersSheet.getRange(2, 1, ordersSheet.getLastRow() - 1, ordersSheet.getLastColumn()).getValues();
+        // Headers: ['Date', 'Produit', 'Prix', 'Client_Nom', 'Client_Email', 'Client_Telephone', 'Statut']
+        // Email est à l'index 4
+        const userOrders = ordersData.filter(row => row[4] === user.Email);
+        if (userOrders.length > 0) {
+          const last = userOrders[userOrders.length - 1];
+          lastOrder = {
+            date: last[0],
+            product: last[1],
+            status: last[6] || 'En cours'
+          };
+        }
+      }
+    } catch (e) { Logger.log("Erreur commandes: " + e.message); }
+
     // Construire l'URL de base de l'application web
     const appUrl = "https://mahu.cards/ProfilePublic.html"; // URL générique
 
@@ -883,7 +903,8 @@ function getDashboardData(user) {
       totalProspects: totalProspectsCount,
       team: teamData, // Données de l'équipe
       onboardingStatus: user.Onboarding_Status, // Ajout du statut d'onboarding
-      enterprise: enterpriseData // Ajout des infos entreprise
+      enterprise: enterpriseData, // Ajout des infos entreprise
+      lastOrder: lastOrder // Ajout de la dernière commande
     };
   } catch (e) {
     Logger.log(`Erreur dans getDashboardData pour ${user.Email}: ${e.message} (Ligne: ${e.lineNumber})`);

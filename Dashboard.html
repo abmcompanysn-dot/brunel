@@ -1722,6 +1722,14 @@
             // Mettre à jour les toggles des modules
             if (document.getElementById('toggle-lead')) document.getElementById('toggle-lead').checked = profile.Lead_Capture_Actif === 'OUI';
 
+            // Remplir le statut de commande
+            const orderStatusEl = document.getElementById('order-status');
+            if (data.lastOrder) {
+                const dateStr = new Date(data.lastOrder.date).toLocaleDateString();
+                orderStatusEl.innerHTML = `<span style="color: var(--accent-color); font-weight: bold;">${data.lastOrder.status}</span> - ${data.lastOrder.product} <span style="font-size: 0.8em; color: var(--text-secondary);">(${dateStr})</span>`;
+            } else {
+                orderStatusEl.textContent = "Aucune commande récente.";
+            }
 
             // Remplir les paramètres
             document.getElementById('account-email').textContent = user.Email || 'Non disponible';
