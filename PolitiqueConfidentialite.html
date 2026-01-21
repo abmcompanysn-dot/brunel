@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Politique de Confidentialité - Mahu</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Styles identiques à MentionsLegales.html pour la cohérence */
+        header {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+            background-color: rgba(10, 10, 10, 0.85); backdrop-filter: blur(5px);
+            border-bottom: 1px solid var(--border-color);
+        }
+        #login-link .profile-icon { stroke: #f0f0f0; width: 28px; height: 28px; }
+        #login-link { background: transparent; border: none; stroke: #f0f0f0; }
+        
+        .legal-content {
+            max-width: 800px; margin: 120px auto 60px; padding: 20px; color: #f0f0f0;
+        }
+        .legal-content h1 { font-size: 2.5em; margin-bottom: 40px; text-align: center; }
+        .legal-content h2 { color: var(--blue); margin-top: 30px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .legal-content p { line-height: 1.6; color: #ccc; margin-bottom: 15px; }
+        
+        .more-menu-container { position: relative; }
+        .more-menu-icon { cursor: pointer; padding: 5px; }
+        .more-menu-icon svg { stroke: #f0f0f0; width: 28px; height: 28px; }
+        .more-menu-dropdown {
+            position: absolute; top: 100%; right: 0;
+            background-color: rgba(10, 10, 10, 0.95); backdrop-filter: blur(5px);
+            border-radius: 8px; padding: 10px; min-width: 160px; z-index: 1001;
+            border: 1px solid #333; transform: translateY(10px); opacity: 0; visibility: hidden;
+            transition: all 0.2s ease;
+        }
+        .more-menu-dropdown.visible { transform: translateY(0); opacity: 1; visibility: visible; }
+        .more-menu-dropdown a { display: block; color: white; padding: 10px 15px; text-decoration: none; }
+        .more-menu-dropdown a:hover { background-color: rgba(255, 255, 255, 0.1); }
+        .desktop-links { display: none; }
+    </style>
+</head>
+<body style="background-color: #000;">
+
+    <header>
+        <nav class="container">
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 50px;"></a>
+            <div class="nav-actions">
+                <a href="Connexion.html" class="primary" id="login-link">
+                    <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> 
+                </a> 
+                <div class="more-menu-container">
+                    <div class="more-menu-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg></div>
+                    <div class="more-menu-dropdown">
+                        <a href="index.html">Accueil</a>
+                        <a href="Boutique.html">Boutique</a>
+                        <a href="MentionsLegales.html">Mentions Légales</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="legal-content">
+        <h1>Politique de Confidentialité</h1>
+
+        <h2>1. Collecte de l'information</h2>
+        <p>Nous recueillons des informations lorsque vous vous inscrivez sur notre site, lorsque vous vous connectez à votre compte, faites un achat, participez à un concours, et / ou lorsque vous vous déconnectez. Les informations recueillies incluent votre nom, votre adresse e-mail, numéro de téléphone, et / ou carte de crédit.</p>
+
+        <h2>2. Utilisation des informations</h2>
+        <p>Toute les informations que nous recueillons auprès de vous peuvent être utilisées pour :</p>
+        <ul>
+            <li>Personnaliser votre expérience et répondre à vos besoins individuels</li>
+            <li>Fournir un contenu publicitaire personnalisé</li>
+            <li>Améliorer notre site Web</li>
+            <li>Améliorer le service client et vos besoins de prise en charge</li>
+            <li>Vous contacter par e-mail</li>
+            <li>Administrer un concours, une promotion, ou une enquête</li>
+        </ul>
+
+        <h2>3. Confidentialité du commerce en ligne</h2>
+        <p>Nous sommes les seuls propriétaires des informations recueillies sur ce site. Vos informations personnelles ne seront pas vendues, échangées, transférées, ou données à une autre société pour n'importe quelle raison, sans votre consentement, en dehors de ce qui est nécessaire pour répondre à une demande et / ou une transaction, comme par exemple pour expédier une commande.</p>
+
+        <h2>4. Divulgation à des tiers</h2>
+        <p>Nous ne vendons, n'échangeons et ne transférons pas vos informations personnelles identifiables à des tiers. Cela ne comprend pas les tierce parties de confiance qui nous aident à exploiter notre site Web ou à mener nos affaires, tant que ces parties conviennent de garder ces informations confidentielles.</p>
+    </div>
+
+    <footer style="background-color: #0a0a0a; padding: 40px 20px; border-top: 1px solid #333; text-align: center; color: #555;">
+        <div class="container">
+            <p>&copy; 2026 Mahu. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <script>
+        const moreMenuIcon = document.querySelector('.more-menu-icon');
+        if (moreMenuIcon) {
+            moreMenuIcon.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const dropdown = document.querySelector('.more-menu-dropdown');
+                dropdown.classList.toggle('visible');
+            });
+        }
+        document.addEventListener('click', function(event) {
+            const dropdown = document.querySelector('.more-menu-dropdown');
+            const menuContainer = document.querySelector('.more-menu-container');
+            if (dropdown && dropdown.classList.contains('visible') && !menuContainer.contains(event.target)) {
+                dropdown.classList.remove('visible');
+            }
+        });
+    </script>
+</body>
+</html>
