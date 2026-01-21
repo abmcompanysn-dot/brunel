@@ -562,6 +562,34 @@
             text-align: center;
         }
 
+        /* Styles pour la preview téléphone (copiés de ProfilePublic) */
+        .phone-contact-info { margin-top: 20px; padding: 0 20px; }
+        .copyable-field-preview {
+            display: flex; align-items: center; justify-content: space-between;
+            background-color: rgba(0,0,0,0.05); border-radius: 8px;
+            padding: 10px 15px; margin-bottom: 10px; font-size: 0.9em;
+            color: var(--text-primary); border: 1px solid rgba(0,0,0,0.1);
+        }
+        .copy-icon-preview { cursor: pointer; opacity: 0.7; }
+
+        .action-buttons-preview {
+            margin: 20px 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 0 20px;
+        }
+        .action-btn-preview {
+            background-color: transparent; border: 1px solid var(--border-color);
+            border-radius: 8px; padding: 10px 5px; text-align: center;
+            font-size: 0.8em; color: var(--text-primary);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
+            cursor: default;
+        }
+        .action-btn-preview svg {
+            width: 20px; height: 20px;
+        }
+        /* Mode sombre pour la preview */
+        .phone-preview .copyable-field-preview {
+            background-color: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.1);
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(calc(-1 * var(--sidebar-width-expanded)));
@@ -985,7 +1013,7 @@
             <div class="editor-nav">
                 <button class="editor-nav-btn active" onclick="showEditPane('edit-pane-about', this)">Informations</button>
                 <button class="editor-nav-btn" onclick="showEditPane('edit-pane-services', this)">Services (Entreprise)</button>
-                <button class="editor-nav-btn admin-only" onclick="showEditPane('edit-pane-appearance', this)">Apparence & Liens</button>
+                <button class="editor-nav-btn" onclick="showEditPane('edit-pane-appearance', this)">Apparence & Liens</button>
                 <!-- L'onglet "Liens" a été fusionné avec "À propos" -->
             </div>
             <div class="modal-editor-layout">
@@ -995,6 +1023,8 @@
                         <h3>Contenu Principal</h3>
                         <div class="form-group"><label for="Nom_Complet">Nom complet</label><input type="text" id="Nom_Complet" name="Nom_Complet" class="form-control" placeholder="Ex: Jean Dupont"></div>
                         <div class="form-group"><label for="URL_Profil">URL du profil personnalisée</label><input type="text" id="URL_Profil" name="URL_Profil" class="form-control" placeholder="Ex: jean-dupont (lettres, chiffres et tirets uniquement)"></div>
+                        <div class="form-group"><label for="Email">Email Public</label><input type="email" id="Email" name="Email" class="form-control" placeholder="contact@exemple.com"></div>
+                        <div class="form-group"><label for="Telephone">Téléphone</label><input type="tel" id="Telephone" name="Telephone" class="form-control" placeholder="+33 6 12 34 56 78"></div>
                         <div class="form-group"><label for="Profession">Profession</label><input type="text" id="Profession" name="Profession" class="form-control" placeholder="Ex: Commercial"></div>
                         <!-- Compagnie et Location sont gérés par l'entreprise pour les employés -->
                         <div class="form-group admin-only"><label for="Compagnie">Compagnie</label><input type="text" id="Compagnie" name="Compagnie" class="form-control" placeholder="Ex: Mahu Inc."></div>
@@ -1008,7 +1038,7 @@
                         <button type="button" class="btn btn-secondary" onclick="addServiceField()" style="width: auto; margin-top: 10px;">Ajouter un service</button>
                     </div>
                     <!-- Panneau d'édition "Apparence" -->
-                    <div id="edit-pane-appearance" class="edit-pane admin-only">
+                    <div id="edit-pane-appearance" class="edit-pane">
                         <h3>Réseaux Sociaux & Liens (Entreprise)</h3>
                         <div id="social-links-container"></div>
                         <button type="button" class="btn btn-secondary" onclick="addSocialLink()" style="width: auto; margin-top: 10px; margin-bottom: 30px;">Ajouter un lien</button>
@@ -1054,6 +1084,28 @@
                                     <h3 id="phone-name-preview">Nom Prénom</h3>
                                     <p id="phone-details-preview">Profession</p>
                                 </div>
+                                
+                                <div class="phone-contact-info">
+                                    <div class="copyable-field-preview" id="phone-number-container" style="display:none;">
+                                        <span id="phone-number-preview"></span>
+                                        <div class="copy-icon-preview">📋</div>
+                                    </div>
+                                    <div class="copyable-field-preview" id="email-address-container" style="display:none;">
+                                        <span id="email-address-preview"></span>
+                                        <div class="copy-icon-preview">📋</div>
+                                    </div>
+                                </div>
+
+                                <div class="action-buttons-preview">
+                                    <div class="action-btn-preview" style="background-color: var(--text-primary); color: var(--card-bg);">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                                        <span>Enregistrer</span>
+                                    </div>
+                                    <div class="action-btn-preview"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg><span>Appeler</span></div>
+                                    <div class="action-btn-preview"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg><span>Email</span></div>
+                                    <div class="action-btn-preview"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span>Carte</span></div>
+                                </div>
+
                                 <div id="phone-social-links-preview" class="phone-social-links"></div>
                             </div>
                         </div>
@@ -1307,6 +1359,8 @@
                 // Panneau "À propos"
                 Nom_Complet: profileForm.Nom_Complet.value,
                 URL_Profil: profileForm.URL_Profil.value, // Ajout du nouveau champ
+                Email: profileForm.Email.value,
+                Telephone: profileForm.Telephone.value,
                 Profession: profileForm.Profession.value,
                 Compagnie: profileForm.Compagnie.value,
                 Location: profileForm.Location.value,
@@ -1624,6 +1678,8 @@
             // Panneau "À propos"
             document.getElementById('Nom_Complet').value = profile.Nom_Complet || '';
             document.getElementById('URL_Profil').value = user.URL_Profil || ''; // Remplir le champ URL
+            document.getElementById('Email').value = profile.Email || user.Email || '';
+            document.getElementById('Telephone').value = profile.Telephone || '';
             document.getElementById('Profession').value = profile.Profession || '';
             document.getElementById('Compagnie').value = profile.Compagnie || '';
             document.getElementById('Location').value = profile.Location || '';
@@ -1639,6 +1695,8 @@
             document.getElementById('phone-name-preview').textContent = profile.Nom_Complet || user.Email || 'Utilisateur';
             const phoneSubtitleParts = [profile.Profession, profile.Compagnie, profile.Location].filter(Boolean);
             document.getElementById('phone-details-preview').textContent = phoneSubtitleParts.join(' | ');
+            updatePhoneContactInfo(profile.Telephone, profile.Email || user.Email);
+
             document.querySelector('.phone-header img').style.borderColor = profile.Couleur_Theme || 'var(--accent-color)'; // Utilise la couleur du thème
             
             // Remplir les liens sociaux dans l'éditeur
@@ -1869,10 +1927,24 @@
             clickedElement.classList.add('active');
         }
 
+        function updatePhoneContactInfo(phone, email) {
+            const phoneContainer = document.getElementById('phone-number-container');
+            const emailContainer = document.getElementById('email-address-container');
+            
+            document.getElementById('phone-number-preview').textContent = phone || '';
+            phoneContainer.style.display = phone ? 'flex' : 'none';
+
+            document.getElementById('email-address-preview').textContent = email || '';
+            emailContainer.style.display = email ? 'flex' : 'none';
+        }
+
         // Fonctions pour l'aperçu en direct
         document.getElementById('Nom_Complet').addEventListener('input', e => {
             document.getElementById('phone-name-preview').textContent = e.target.value || 'Nom Prénom';
         });
+        document.getElementById('Telephone').addEventListener('input', e => updatePhoneContactInfo(e.target.value, document.getElementById('Email').value));
+        document.getElementById('Email').addEventListener('input', e => updatePhoneContactInfo(document.getElementById('Telephone').value, e.target.value));
+
         document.getElementById('Profession').addEventListener('input', updatePhoneDetails);
         document.getElementById('Compagnie').addEventListener('input', updatePhoneDetails);
         document.getElementById('Location').addEventListener('input', updatePhoneDetails);
