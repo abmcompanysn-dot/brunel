@@ -3,17 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guides & Blog - Mahu</title>
+    <title>Guides & Conseils Networking - Blog Mahu</title>
+    <meta name="description" content="Découvrez nos guides experts sur le networking digital, l'utilisation des cartes NFC et les meilleures pratiques pour développer votre réseau professionnel.">
+    <meta name="keywords" content="blog networking, guide carte NFC, conseils réseautage, carte de visite digitale, Mahu blog, astuces pro">
+    <meta property="og:title" content="Guides & Conseils Networking - Blog Mahu">
+    <meta property="og:description" content="Boostez votre réseau avec nos conseils d'experts sur les cartes de visite connectées.">
+    <meta property="og:type" content="blog">
+    <meta property="og:url" content="https://mahu.cards/Guide.html">
     <link rel="stylesheet" href="style.css">
     <style>
         header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background-color: rgba(10, 10, 10, 0.85); backdrop-filter: blur(5px); border-bottom: 1px solid var(--border-color); }
         #login-link .profile-icon { stroke: #f0f0f0; width: 28px; height: 28px; }
         #login-link { background: transparent; border: none; stroke: #f0f0f0; }
-        .content-container { max-width: 800px; margin: 120px auto 60px; padding: 20px; color: #f0f0f0; }
+        .content-container { max-width: 1200px; margin: 120px auto 60px; padding: 20px; color: #f0f0f0; }
         h1 { text-align: center; margin-bottom: 40px; }
-        .article-card { background: #1a1a1a; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #333; }
-        .article-card h2 { color: var(--blue); margin-top: 0; }
-        .article-card p { color: #ccc; }
+        .hero-blog { text-align: center; margin-bottom: 60px; }
+        .hero-blog p { max-width: 600px; margin: 0 auto; color: #aaa; font-size: 1.1em; }
+        
         .more-menu-container { position: relative; }
         .more-menu-icon { cursor: pointer; padding: 5px; }
         .more-menu-icon svg { stroke: #f0f0f0; width: 28px; height: 28px; }
@@ -38,18 +44,41 @@
         </nav>
     </header>
     <div class="content-container">
-        <h1>Guides & Articles</h1>
-        <div class="article-card">
-            <h2>Guide Carte NFC 2025</h2>
-            <p>Tout ce que vous devez savoir sur les cartes de visite connectées et comment elles transforment le networking.</p>
+        <div class="hero-blog">
+            <h1>Le Blog Mahu</h1>
+            <p>Explorez nos ressources pour maîtriser l'art du networking à l'ère du digital. Conseils, astuces et actualités sur la technologie NFC.</p>
         </div>
-        <div class="article-card">
-            <h2>Pour les Entrepreneurs</h2>
-            <p>Comment optimiser votre présence digitale et convertir plus de prospects grâce à Mahu.</p>
-        </div>
-        <div class="article-card">
-            <h2>Astuces Networking</h2>
-            <p>Les meilleures pratiques pour laisser une impression durable lors de vos rencontres professionnelles.</p>
+
+        <div class="blog-grid">
+            <article class="blog-card">
+                <img src="r/cards/card_pro.png" alt="Guide Carte NFC" class="blog-image">
+                <div class="blog-content">
+                    <div class="blog-meta"><span>Guide</span> <span>15 Oct 2025</span></div>
+                    <h3>Le Guide Ultime de la Carte NFC en 2025</h3>
+                    <p>Découvrez comment la technologie NFC révolutionne les échanges professionnels. Fini le papier, place à l'instantanéité et à l'écologie.</p>
+                    <a href="#" class="read-more">Lire l'article <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                </div>
+            </article>
+
+            <article class="blog-card">
+                <img src="r/v.webp" alt="Networking Entrepreneurs" class="blog-image">
+                <div class="blog-content">
+                    <div class="blog-meta"><span>Business</span> <span>10 Oct 2025</span></div>
+                    <h3>Pourquoi chaque Entrepreneur a besoin d'une Carte Connectée</h3>
+                    <p>Optimisez votre présence digitale et convertissez plus de prospects. Une analyse détaillée du ROI d'une carte de visite intelligente pour les dirigeants.</p>
+                    <a href="#" class="read-more">Lire l'article <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                </div>
+            </article>
+
+            <article class="blog-card">
+                <img src="r/cards/card_metal.png" alt="Astuces Networking" class="blog-image">
+                <div class="blog-content">
+                    <div class="blog-meta"><span>Astuces</span> <span>05 Oct 2025</span></div>
+                    <h3>5 Astuces pour un Networking Mémorable</h3>
+                    <p>Laisser une bonne impression ne suffit plus. Apprenez comment marquer les esprits durablement lors de vos événements et conférences.</p>
+                    <a href="#" class="read-more">Lire l'article <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                </div>
+            </article>
         </div>
     </div>
     <footer class="main-footer">
