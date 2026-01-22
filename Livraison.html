@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Livraison - Mahu</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background-color: rgba(10, 10, 10, 0.85); backdrop-filter: blur(5px); border-bottom: 1px solid var(--border-color); }
+        #login-link .profile-icon { stroke: #f0f0f0; width: 28px; height: 28px; }
+        #login-link { background: transparent; border: none; stroke: #f0f0f0; }
+        .content-container { max-width: 800px; margin: 120px auto 60px; padding: 20px; color: #f0f0f0; }
+        h1 { text-align: center; margin-bottom: 40px; }
+        h2 { color: var(--blue); margin-top: 30px; }
+        p { line-height: 1.6; color: #ccc; }
+        .more-menu-container { position: relative; }
+        .more-menu-icon { cursor: pointer; padding: 5px; }
+        .more-menu-icon svg { stroke: #f0f0f0; width: 28px; height: 28px; }
+        .more-menu-dropdown { position: absolute; top: 100%; right: 0; background-color: rgba(10, 10, 10, 0.95); backdrop-filter: blur(5px); border-radius: 8px; padding: 10px; min-width: 160px; z-index: 1001; border: 1px solid #333; transform: translateY(10px); opacity: 0; visibility: hidden; transition: all 0.2s ease; }
+        .more-menu-dropdown.visible { transform: translateY(0); opacity: 1; visibility: visible; }
+        .more-menu-dropdown a { display: block; color: white; padding: 10px 15px; text-decoration: none; }
+        .more-menu-dropdown a:hover { background-color: rgba(255, 255, 255, 0.1); }
+        .desktop-links { display: none; }
+    </style>
+</head>
+<body style="background-color: #000;">
+    <header>
+        <nav class="container">
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 50px;"></a>
+            <div class="nav-actions">
+                <a href="Connexion.html" class="primary" id="login-link"><svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></a> 
+                <div class="more-menu-container">
+                    <div class="more-menu-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg></div>
+                    <div class="more-menu-dropdown"><a href="index.html">Accueil</a><a href="Boutique.html">Boutique</a></div>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="content-container">
+        <h1>Informations de Livraison</h1>
+        <h2>Zones de livraison</h2>
+        <p>Nous livrons actuellement en Côte d'Ivoire (Abidjan et intérieur) et au Sénégal (Dakar).</p>
+        <h2>Délais</h2>
+        <p>Abidjan : 24h à 48h ouvrables.<br>Intérieur : 3 à 5 jours ouvrables.<br>International : Sur devis.</p>
+        <h2>Frais</h2>
+        <p>Les frais de livraison sont calculés au moment de la commande en fonction de votre localisation.</p>
+    </div>
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col footer-logo-section"><img src="r/logo.png" alt="Mahu Logo"><p>Des cartes de visite intelligentes.</p></div>
+                <div class="footer-col"><h4>Produits</h4><ul><li><a href="Boutique.html">Catalogue</a></li></ul></div>
+                <div class="footer-col"><h4>Guides</h4><ul><li><a href="Guide.html">Guide 2025</a></li></ul></div>
+                <div class="footer-col"><h4>Infos</h4><ul><li><a href="Contact.html">Contact</a></li><li><a href="FAQ.html">FAQ</a></li></ul></div>
+            </div>
+            <div class="footer-bottom"><p>&copy; 2026 Mahu.</p></div>
+        </div>
+    </footer>
+    <script>
+        const moreMenuIcon = document.querySelector('.more-menu-icon');
+        if (moreMenuIcon) { moreMenuIcon.addEventListener('click', (e) => { e.stopPropagation(); document.querySelector('.more-menu-dropdown').classList.toggle('visible'); }); }
+        document.addEventListener('click', (e) => { const d = document.querySelector('.more-menu-dropdown'); if (d && d.classList.contains('visible') && !document.querySelector('.more-menu-container').contains(e.target)) d.classList.remove('visible'); });
+    </script>
+</body>
+</html>
