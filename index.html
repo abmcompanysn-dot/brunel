@@ -193,6 +193,7 @@
             text-align: center;
             padding: 0 20px;
             overflow: hidden; /* Cache les parties de la vidéo qui dépassent */
+            background-color: #000; /* Couleur de fond de secours si la vidéo ne charge pas */
         }
         .hero-video-background {
             position: absolute;
@@ -403,6 +404,8 @@
         <section class="hero">
             <div class="hero-video-background">
                 <video src="r/brunel.mp4" autoplay muted loop playsinline></video>
+                <!-- Ajout de poster pour afficher une image si la vidéo échoue -->
+                <video src="r/brunel.mp4" autoplay muted loop playsinline poster="r/og-image.png"></video>
             </div>
             <div class="hero-overlay"></div>
             <div class="container hero-text-content">
