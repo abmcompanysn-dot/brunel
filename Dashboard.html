@@ -1613,8 +1613,14 @@
             currentUser = user; // Stocker pour usage global
 
             // --- GESTION DES RÔLES ---
-            if (user.Role === 'Entreprise') {
+            if (user.Role === 'Entreprise' || user.Role === 'Admin' || user.Role === 'Particulier') {
                 document.body.classList.add('role-entreprise');
+                
+                // Masquer l'onglet Équipe pour les Particuliers car ils sont seuls
+                if (user.Role === 'Particulier') {
+                    const teamNav = document.getElementById('nav-team');
+                    if (teamNav) teamNav.style.display = 'none';
+                }
             } else {
                 document.body.classList.add('role-employe');
             }
