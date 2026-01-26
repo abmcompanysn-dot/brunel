@@ -635,30 +635,31 @@
 
         @media (max-width: 768px) {
             .sidebar {
-                transform: translateX(calc(-1 * var(--sidebar-width-expanded)));
-                transition: transform 0.3s ease;
+                width: var(--sidebar-width-collapsed);
+                transform: none;
+                align-items: center;
+            }
+            .sidebar nav a {
+                justify-content: center;
+                padding: 15px;
+            }
+            .sidebar nav a span {
+                display: none;
+            }
+            .sidebar h2 img {
+                height: 40px !important;
             }
             .menu-toggle {
-                display: flex; /* Afficher le bouton sur mobile */
+                display: none;
             }
-            /* Ajustement du header pour laisser la place au bouton burger */
             .dashboard-header {
-                padding: 15px 20px 15px 70px; 
-            }
-
-            .sidebar.visible {
-                transform: translateX(0);
-            }
-            body {
-                overflow-x: hidden;
+                padding: 15px 20px;
             }
             .main-content {
-                margin-left: 0 !important;
+                margin-left: var(--sidebar-width-collapsed) !important;
                 padding: 15px;
-                width: 100%;
-                overflow-x: hidden;
+                width: auto;
             }
-            .main-content.collapsed { margin-left: 0 !important; }
 
             .card {
                 padding: 15px;
