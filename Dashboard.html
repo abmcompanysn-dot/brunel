@@ -1236,10 +1236,14 @@
             if (localStorage.getItem('sidebarCollapsed') === 'true' && window.innerWidth > 768) {
                 toggleSidebar();
             }
-            // Appliquer le thème sauvegardé
-            if (localStorage.getItem('theme') === 'light') {
+            // Appliquer le thème sauvegardé ou Auto
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+            
+            if (savedTheme === 'light' || (!savedTheme && systemPrefersLight)) {
                 document.body.classList.add('light-mode');
-                document.getElementById('theme-toggle-btn').textContent = 'Passer au mode sombre';
+                const btn = document.getElementById('theme-toggle-btn');
+                if(btn) btn.textContent = 'Passer au mode sombre';
             }
         });
 

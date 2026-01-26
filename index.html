@@ -35,6 +35,21 @@
             border-bottom: 1px solid var(--border-color);
         }
 
+        /* Barre de recherche style Amazon (Mobile) */
+        .mobile-search-container {
+            display: none;
+            padding: 10px 20px;
+            background-color: rgba(10, 10, 10, 0.95);
+        }
+        .amz-search-input {
+            width: 100%;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: none;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
         /* Par défaut (sur la vidéo), cacher les éléments sauf l'icône de profil */
         header:not(.scrolled) .logo, /* S'assure que le logo est aussi caché sur la vidéo */
         header:not(.scrolled) .desktop-links {
@@ -276,6 +291,18 @@
             .hero-text-content h1 {
                 font-size: 2.5em;
             }
+            /* Afficher la barre de recherche sur mobile */
+            .mobile-search-container {
+                display: block;
+                position: fixed;
+                top: 60px; /* Juste sous le header */
+                width: 100%;
+                z-index: 999;
+            }
+            /* Ajustement du contenu pour ne pas être caché par la barre de recherche */
+            .hero {
+                padding-top: 60px;
+            }
         }
 
         /* Styles pour le défilement des logos */
@@ -375,11 +402,17 @@
         <nav class="container">
             <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 40px;"></a>
             <ul class="desktop-links">
-                <li><a href="index.html#features">Technologie</a></li>
-                <li><a href="index.html#about">À Propos</a></li>
-                <li><a href="Boutique.html">Boutique</a></li>
+                <li><a href="index.html#features" data-i18n="nav_tech">Technologie</a></li>
+                <li><a href="index.html#about" data-i18n="nav_about">À Propos</a></li>
+                <li><a href="Boutique.html" data-i18n="nav_shop">Boutique</a></li>
             </ul>
             <div class="nav-actions">
+                <!-- Sélecteur de langue -->
+                <select id="lang-selector" onchange="changeLanguage(this.value)" style="background: transparent; color: white; border: 1px solid #555; border-radius: 4px; padding: 5px;">
+                    <option value="fr">FR</option>
+                    <option value="en">EN</option>
+                </select>
+
                 <button id="support-btn" onclick="openModal('support-modal')" title="Contacter le Support">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg>
                 </button>
@@ -400,6 +433,10 @@
         </nav>
     </header>
 
+    <div class="mobile-search-container">
+        <input type="text" class="amz-search-input" placeholder="🔍 Rechercher sur Mahu...">
+    </div>
+
     <main>
         <section class="hero">
             <div class="hero-video-background">
@@ -413,10 +450,10 @@
             </div>
         </section>
 
-        <section id="card-showcase">
+        <section id="card-showcase" class="amz-mobile-section">
             <div class="container">
-                <h2 class="section-title">Un Visage de Nos Cartes</h2>
-                <p class="section-subtitle">Découvrez quelques-uns des designs élégants et professionnels que nous proposons.</p>
+                <h2 class="section-title" data-i18n="showcase_title">Un Visage de Nos Cartes</h2>
+                <p class="section-subtitle" data-i18n="showcase_subtitle">Découvrez quelques-uns des designs élégants et professionnels que nous proposons.</p>
             </div>
             <div class="card-scroller">
                 <div class="card-scroller-inner">
@@ -436,11 +473,11 @@
             </div>
         </section>
 
-        <section id="about" class="container">
+        <section id="about" class="container amz-mobile-section">
             <div class="about-layout">
                 <div class="about-text-column">
-                    <h2 class="section-title" style="text-align: left;">À Propos de Mahu</h2>
-                    <p class="section-subtitle" style="text-align: left; margin-bottom: 40px;">Nous réinventons la manière dont les professionnels se connectent. Fini les cartes en papier oubliées, place à une interaction mémorable et digitale.</p>
+                    <h2 class="section-title" style="text-align: left;" data-i18n="about_title">À Propos de Mahu</h2>
+                    <p class="section-subtitle" style="text-align: left; margin-bottom: 40px;" data-i18n="about_text">Nous réinventons la manière dont les professionnels se connectent.</p>
                     
                     <div class="card about-block">
                         <h3>Notre Vision</h3>
@@ -457,7 +494,7 @@
             </div>
         </section>
 
-        <section id="features" class="container">
+        <section id="features" class="container amz-mobile-section">
             <h2 class="section-title">Une Technologie Intuitive</h2>
             <p class="section-subtitle">Découvrez les technologies qui rendent nos cartes si puissantes.</p>
             <div class="grid-2">
@@ -472,7 +509,7 @@
             </div>
         </section>
 
-        <section id="platform-features" class="container">
+        <section id="platform-features" class="container amz-mobile-section">
             <h2 class="section-title">Au-delà de la Carte</h2>
             <p class="section-subtitle">Votre carte Mahu est la porte d'entrée vers une plateforme de gestion puissante, conçue pour les professionnels modernes.</p>
             <div class="grid-3">
@@ -723,6 +760,37 @@
                     btn.disabled = false;
                     btn.textContent = originalText;
                 });
+        }
+
+        // --- Système de Traduction Simple ---
+        const translations = {
+            fr: {
+                nav_tech: "Technologie",
+                nav_about: "À Propos",
+                nav_shop: "Boutique",
+                showcase_title: "Un Visage de Nos Cartes",
+                showcase_subtitle: "Découvrez quelques-uns des designs élégants et professionnels que nous proposons.",
+                about_title: "À Propos de Mahu",
+                about_text: "Nous réinventons la manière dont les professionnels se connectent."
+            },
+            en: {
+                nav_tech: "Technology",
+                nav_about: "About",
+                nav_shop: "Shop",
+                showcase_title: "Our Card Designs",
+                showcase_subtitle: "Discover some of the elegant and professional designs we offer.",
+                about_title: "About Mahu",
+                about_text: "We are reinventing how professionals connect."
+            }
+        };
+
+        function changeLanguage(lang) {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
         }
     </script>
 </body>
