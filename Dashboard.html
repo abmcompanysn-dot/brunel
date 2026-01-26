@@ -1979,11 +1979,13 @@
 
             // Remplir le statut de commande
             const orderStatusEl = document.getElementById('order-status');
-            if (data.lastOrder) {
-                const dateStr = new Date(data.lastOrder.date).toLocaleDateString();
-                orderStatusEl.innerHTML = `<span style="color: var(--accent-color); font-weight: bold;">${data.lastOrder.status}</span> - ${data.lastOrder.product} <span style="font-size: 0.8em; color: var(--text-secondary);">(${dateStr})</span>`;
-            } else {
-                orderStatusEl.textContent = "Aucune commande récente.";
+            if (orderStatusEl) {
+                if (data.lastOrder) {
+                    const dateStr = new Date(data.lastOrder.date).toLocaleDateString();
+                    orderStatusEl.innerHTML = `<span style="color: var(--accent-color); font-weight: bold;">${data.lastOrder.status}</span> - ${data.lastOrder.product} <span style="font-size: 0.8em; color: var(--text-secondary);">(${dateStr})</span>`;
+                } else {
+                    orderStatusEl.textContent = "Aucune commande récente.";
+                }
             }
 
             // Remplir les paramètres
@@ -2210,4 +2212,4 @@
 
     </script>
 </body>
-</html> 
+</html
