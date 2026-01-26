@@ -208,57 +208,6 @@
             }
         }
 
-        /* Styles pour la Modale Produit */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.85);
-            backdrop-filter: blur(5px);
-        }
-
-        .modal-content {
-            background-color: #1a1a1a;
-            margin: 5% auto;
-            padding: 0;
-            border: 1px solid #333;
-            width: 80%;
-            max-width: 900px;
-            border-radius: 15px;
-            display: block; /* Changé de flex à block pour gérer les vues */
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: slideUp 0.3s ease-out;
-        }
-
-        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        .modal-gallery { flex: 1.2; position: relative; background: #000; display: flex; align-items: center; justify-content: center; min-height: 400px; }
-        .modal-gallery img { max-width: 100%; max-height: 100%; object-fit: contain; display: none; }
-        .modal-gallery img.active { display: block; animation: fadeIn 0.3s; }
-        
-        .gallery-nav { position: absolute; width: 100%; display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; }
-        .gallery-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; transition: background 0.3s; }
-        .gallery-btn:hover { background: rgba(255,255,255,0.4); }
-
-        .modal-info { flex: 1; padding: 40px; display: flex; flex-direction: column; color: #fff; }
-        .close-modal { align-self: flex-end; font-size: 28px; cursor: pointer; color: #888; margin-bottom: 20px; }
-        .close-modal:hover { color: #fff; }
-        
-        .modal-info h2 { font-size: 2em; margin-bottom: 10px; color: #fff; }
-        .modal-info .price { font-size: 1.8em; color: var(--blue); font-weight: bold; margin-bottom: 20px; }
-        .modal-info p { line-height: 1.6; color: #ccc; margin-bottom: 30px; }
-        
-        .order-form { margin-top: auto; border-top: 1px solid #333; padding-top: 20px; }
-        .order-form label { display: block; margin-bottom: 8px; color: #aaa; }
-        .order-form input { width: 100%; padding: 8px; background: #333; border: 1px solid #444; border-radius: 8px; color: white; margin-bottom: 10px; box-sizing: border-box; }
-        .order-form input:focus { outline: none; border-color: var(--blue); }
-        
         /* Styles pour la section "Pourquoi nous choisir" */
         .why-us-section { padding: 60px 0; text-align: center; }
         .why-us-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 40px; }
@@ -393,21 +342,11 @@
                 <div class="footer-col">
                     <h4>Produits & Services</h4>
                     <ul>
-                        <li><a href="Boutique.html">Catalogue Cartes NFC</a></li>
-                        <li><a href="Boutique.html">Carte Pro</a></li>
-                        <li><a href="Boutique.html">Carte Prestige</a></li>
-                        <li><a href="Boutique.html">Carte Light</a></li>
                         <li><a href="Contact.html">Solutions Entreprises</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
                     <h4>Blog & Guides</h4>
-                    <ul>
-                        <li><a href="Guide.html">Tous les articles</a></li>
-                        <li><a href="Guide.html">Guide Carte NFC 2025</a></li>
-                        <li><a href="Guide.html">Pour Entrepreneurs</a></li>
-                        <li><a href="Livraison.html">Livraison Dakar</a></li>
-                    </ul>
                 </div>
                 <div class="footer-col">
                     <h4>Informations</h4>
@@ -425,53 +364,6 @@
             </div>
         </div>
     </footer>
-
-    <!-- Modale Produit -->
-    <div id="product-modal" class="modal">
-        <div class="modal-content">
-            <!-- Conteneur du configurateur 3D (caché par défaut) -->
-            <div id="modal-customizer-container">
-                <button class="back-to-details-btn" onclick="closeCustomizer()">
-                    <span>&#8592;</span> Retour aux détails
-                </button>
-                <iframe id="customizer-frame" src=""></iframe>
-            </div>
-
-            <!-- Contenu standard de la modale -->
-            <div id="modal-standard-content" style="display: flex; width: 100%; height: 100%; flex-wrap: wrap;">
-            <div class="modal-gallery" style="flex: 1.2; min-width: 300px;">
-                <div class="gallery-nav">
-                    <button class="gallery-btn" onclick="changeSlide(-1)">&#10094;</button>
-                    <button class="gallery-btn" onclick="changeSlide(1)">&#10095;</button>
-                </div>
-                <div id="modal-images-container">
-                    <!-- Images injectées via JS -->
-                </div>
-            </div>
-            <div class="modal-info" style="flex: 1; min-width: 300px;">
-                <span class="close-modal" onclick="closeModal()">&times;</span>
-                <h2 id="modal-title">Titre Produit</h2>
-                <div class="price" id="modal-price">0 FCFA</div>
-                <p id="modal-desc">Description du produit...</p>
-                <ul id="modal-features" class="features-list"></ul>
-
-                <button id="customize-btn" class="btn" style="width: 100%; margin-bottom: 20px; background-color: #667eea; color: white; display: none;" onclick="openCustomizer()">
-                    🎨 Personnaliser en 3D
-                </button>
-                
-                <div class="order-form">
-                    <label for="order-name">Nom complet :</label>
-                    <input type="text" id="order-name" placeholder="Votre nom">
-                    <label for="order-email">Email :</label>
-                    <input type="email" id="order-email" placeholder="votre@email.com">
-                    <label for="order-phone">Téléphone :</label>
-                    <input type="tel" id="order-phone" placeholder="Ex: 07 07 07 07 07">
-                    <button class="btn primary" style="width: 100%;" onclick="submitOrder()">Commander via WhatsApp/GS</button>
-                </div>
-            </div>
-            </div>
-        </div>
-    </div>
 
     <div id="back-to-top" onclick="scrollToTop()">&#8679;</div>
 
@@ -521,6 +413,9 @@
             grid.innerHTML = ''; // Vider la grille
 
             products.forEach((product, index) => {
+                // Lien vers la page de détail au lieu d'ouvrir une modale
+                const detailLink = `ProduitDetail.html?id=${index}&user=demo`; // ID simulé pour l'exemple
+
                 const card = document.createElement('div');
                 card.className = 'product-card';
                 card.style.animationDelay = `${index * 50}ms`; // Délai pour l'animation d'apparition
@@ -532,140 +427,11 @@
                     <div class="product-info">
                         <h3>${product.name}</h3>
                         <p class="price">${product.price.toLocaleString('fr-FR')} FCFA</p>
-                        <button class="btn" onclick="openModal(${index})">Voir les détails</button>
+                        <a href="${detailLink}" class="btn">Voir les détails</a>
                     </div>
                 `;
                 grid.appendChild(card);
             });
-        }
-
-        // --- Logique de la Modale et du Carrousel ---
-        let currentProductIndex = 0;
-        let currentSlideIndex = 0;
-
-        function openModal(index) {
-            currentProductIndex = index;
-            currentSlideIndex = 0;
-            const product = products[index];
-            
-            document.getElementById('modal-title').innerText = product.name;
-            document.getElementById('modal-price').innerText = product.price.toLocaleString('fr-FR') + " FCFA";
-            document.getElementById('modal-desc').innerText = product.desc;
-
-            // Afficher les caractéristiques
-            const featuresList = document.getElementById('modal-features');
-            featuresList.innerHTML = '';
-            product.features.forEach(feature => {
-                featuresList.innerHTML += `<li>${feature}</li>`;
-            });
-
-            // Afficher le bouton de personnalisation si le produit est personnalisable
-            const customizeBtn = document.getElementById('customize-btn');
-            if (product.customizable) {
-                customizeBtn.style.display = 'block';
-            } else {
-                customizeBtn.style.display = 'none';
-            }
-            
-            const container = document.getElementById('modal-images-container');
-            container.innerHTML = '';
-            
-            product.images.forEach((imgSrc, i) => {
-                const img = document.createElement('img');
-                img.src = imgSrc;
-                if (i === 0) img.classList.add('active');
-                container.appendChild(img);
-            });
-
-            document.getElementById('product-modal').style.display = 'block';
-            document.body.style.overflow = 'hidden'; // Empêcher le défilement
-        }
-
-        function closeModal() {
-            document.getElementById('product-modal').style.display = 'none';
-            document.body.style.overflow = 'auto';
-            // Réinitialiser l'iframe pour arrêter les scripts/animations
-            document.getElementById('customizer-frame').src = '';
-            // Remettre la vue standard
-            document.getElementById('modal-customizer-container').style.display = 'none';
-            document.getElementById('modal-standard-content').style.display = 'flex';
-        }
-
-        function openCustomizer() {
-            document.getElementById('modal-standard-content').style.display = 'none';
-            document.getElementById('modal-customizer-container').style.display = 'block';
-            // Charger le configurateur
-            document.getElementById('customizer-frame').src = 'Customizer.html';
-        }
-        
-        function closeCustomizer() {
-            document.getElementById('modal-customizer-container').style.display = 'none';
-            document.getElementById('modal-standard-content').style.display = 'flex';
-        }
-
-        function changeSlide(n) {
-            const images = document.querySelectorAll('#modal-images-container img');
-            if (images.length <= 1) return;
-
-            images[currentSlideIndex].classList.remove('active');
-            currentSlideIndex = (currentSlideIndex + n + images.length) % images.length;
-            images[currentSlideIndex].classList.add('active');
-        }
-
-        function submitOrder() {
-            const name = document.getElementById('order-name').value;
-            const email = document.getElementById('order-email').value;
-            const phone = document.getElementById('order-phone').value;
-            if (!name || !email || !phone) {
-                alert("Veuillez remplir tous les champs (Nom, Email, Téléphone).");
-                return;
-            }
-            
-            const product = products[currentProductIndex];
-            
-            // Préparer les données pour le backend
-            const orderData = {
-                product_name: product.name,
-                price: product.price,
-                client_name: name,
-                client_email: email,
-                client_phone: phone
-            };
-
-            const btn = document.querySelector('.order-form button');
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.textContent = "Traitement en cours...";
-
-            // Envoi au backend puis redirection WhatsApp
-            callApi('saveStoreOrder', { payload: orderData })
-                .then(response => {
-                    if (response.success) {
-                        const message = `Nouvelle Commande !\n\nProduit : ${product.name}\nPrix : ${product.price} FCFA\n\nClient :\nNom : ${name}\nEmail : ${email}\nTéléphone : ${phone}`;
-                        // Utiliser le numéro renvoyé par le serveur ou un fallback
-                        let whatsappNumber = response.whatsappNumber || '2250707070707';
-                        whatsappNumber = whatsappNumber.replace(/\D/g, ''); // Nettoyer le numéro
-                        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-                        
-                        window.open(whatsappUrl, '_blank');
-                        closeModal();
-                    } else {
-                        alert("Erreur lors de l'enregistrement de la commande : " + response.error);
-                    }
-                })
-                .catch(err => alert("Erreur de connexion : " + err))
-                .finally(() => {
-                    btn.disabled = false;
-                    btn.textContent = originalText;
-                });
-        }
-
-        // Fermer la modale en cliquant en dehors
-        window.onclick = function(event) {
-            const modal = document.getElementById('product-modal');
-            if (event.target == modal) {
-                closeModal();
-            }
         }
 
         // Logique pour le bouton "Retour en Haut"
