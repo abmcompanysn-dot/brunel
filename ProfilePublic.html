@@ -543,7 +543,14 @@
                 
                 // Création sécurisée des éléments pour éviter les failles XSS
                 const a = document.createElement('a');
-                a.href = link.url;
+
+                // Correction pour les URLs relatives
+                let correctedUrl = link.url;
+                if (correctedUrl && !correctedUrl.startsWith('http://') && !correctedUrl.startsWith('https://')) {
+                    correctedUrl = 'https://' + correctedUrl;
+                }
+                a.href = correctedUrl;
+
                 if (/^\s*javascript:/i.test(link.url)) a.href = '#'; // Bloquer les attaques XSS via javascript:
                 a.target = "_blank";
                 a.className = "social-link";
