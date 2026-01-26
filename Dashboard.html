@@ -48,6 +48,34 @@
             color: var(--text-primary);
         }
 
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+        }
+
+        .dashboard-header h1 {
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        .header-user-profile {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-user-profile img {
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+        }
+
         .dashboard-layout {
             display: flex;
         }
@@ -134,9 +162,11 @@
         .main-content {
             margin-left: var(--sidebar-width-expanded);
             flex-grow: 1;
-            padding: 40px;
             box-sizing: border-box;
             transition: margin-left 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
 
         /* Styles pour le bouton menu hamburger sur mobile */
@@ -713,9 +743,18 @@
         </aside>
 
         <main class="main-content">
+            <header class="dashboard-header">
+                <h1 id="dashboard-title">Profil</h1>
+                <div class="header-user-profile">
+                    <span id="header-user-name">Chargement...</span>
+                    <img id="header-user-avatar" src="https://placehold.co/40x40/333/ccc?text=P" alt="Avatar">
+                </div>
+            </header>
+
+            <div class="content-scroll-area" style="padding: 40px;">
             <!-- Panneau Profil (Aperçu) -->
             <div id="profil-content" class="content-pane">
-                <h1>Profil</h1>
+                <!-- Titre déplacé dans le header -->
                 <div class="progress-bar-container">
                     <p>Complétion du profil : <span id="profile-completeness-percent">...</span></p>
                     <div class="progress-bar"><div id="profile-completeness-bar" class="progress-bar-inner"></div></div>
@@ -820,7 +859,7 @@
 
             <!-- Panneau Contacts -->
             <div id="contact-content" class="content-pane">
-                <h1>Contacts</h1>
+                <!-- Titre déplacé dans le header -->
                 <div class="card">
                     <div class="card-header-flex">
                         <h3>Mes Prospects</h3>
@@ -853,7 +892,7 @@
 
             <!-- Panneau Équipe (Entreprise uniquement) -->
             <div id="team-content" class="content-pane admin-only">
-                <h1>Mon Entreprise & Équipe</h1>
+                <!-- Titre déplacé dans le header -->
                 
                 <div class="card">
                     <div class="card-header-flex">
@@ -902,7 +941,7 @@
 
             <!-- Panneau Statistiques -->
             <div id="statistique-content" class="content-pane">
-                <h1>Statistiques</h1>
+                <!-- Titre déplacé dans le header -->
                 <div class="card">
                     <h3>Aperçu Général</h3>
                     <div class="stats-grid">
@@ -936,7 +975,7 @@
 
             <!-- Panneau Blog -->
             <div id="blog-content" class="content-pane">
-                <h1>Gestion du Blog</h1>
+                <!-- Titre déplacé dans le header -->
                 <div class="card">
                     <div class="card-header-flex">
                         <h3>Mes Articles</h3>
@@ -962,7 +1001,7 @@
 
             <!-- Panneau Documents (Mode Disque) -->
             <div id="documents-content" class="content-pane">
-                <h1>Mes Documents (Coffre-fort)</h1>
+                <!-- Titre déplacé dans le header -->
                 <p style="color: var(--text-secondary); margin-bottom: 20px;">Stockez vos documents importants en toute sécurité. Ces documents sont privés.</p>
                 
                 <div class="card">
@@ -1000,7 +1039,7 @@
 
             <!-- Panneau Paramètres -->
             <div id="parametre-content" class="content-pane">
-                <h1>Paramètres</h1>
+                <!-- Titre déplacé dans le header -->
                 <div class="card">
                     <h3>Mon Compte</h3>
                     <p>Email du compte : <strong id="account-email">...</strong></p>
@@ -1031,6 +1070,7 @@
                        <span>Commander une nouvelle carte</span>
                    </button>
                </div>
+            </div>
             </div>
             
         </main>
@@ -1315,11 +1355,16 @@
 
             const targetPane = document.getElementById(paneId);
             if (targetPane) {
-                // Fait défiler la vue jusqu'au panneau cible
-                targetPane.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Fait défiler le conteneur scrollable, pas le body
+                document.querySelector('.content-scroll-area').scrollTo({
+                    top: targetPane.offsetTop - 20, // -20 pour un peu d'espace
+                    behavior: 'smooth'
+                });
             }
 
             // Met à jour l'état "actif" dans la barre latérale pour indiquer la section visible
+            const title = clickedElement.getAttribute('title');
+            document.getElementById('dashboard-title').textContent = title;
             document.querySelectorAll('.sidebar nav a').forEach(link => link.classList.remove('active'));
             clickedElement.classList.add('active');
 
@@ -1667,6 +1712,11 @@
             const enterprise = data.enterprise || {}; // Données entreprise
             const prospects = data.prospects || [];
             const documents = data.documents || []; // Nouveaux documents
+
+            // Remplir le nouveau header
+            document.getElementById('header-user-name').textContent = profile.Nom_Complet || user.Email;
+            document.getElementById('header-user-avatar').src = profile.URL_Photo || 'https://placehold.co/40x40/333/ccc?text=P';
+
 
             currentUser = user; // Stocker pour usage global
 

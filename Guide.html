@@ -20,6 +20,27 @@
         .hero-blog { text-align: center; margin-bottom: 60px; }
         .hero-blog p { max-width: 600px; margin: 0 auto; color: #aaa; font-size: 1.1em; }
         
+        /* Section Article à la une */
+        .featured-article-section { margin-bottom: 60px; }
+        .featured-card {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            background: var(--card-background);
+            border-radius: 12px;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+            border: 1px solid var(--border-color);
+            transition: box-shadow 0.3s;
+        }
+        .featured-card:hover { box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .featured-image img { width: 100%; height: 100%; object-fit: cover; }
+        .featured-content { padding: 30px; }
+        .featured-content .tag { background: var(--blue); color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.8em; display: inline-block; }
+        .featured-content h2 { font-size: 1.8em; margin: 15px 0; }
+        .featured-content p { color: #ccc; }
+
         .more-menu-container { position: relative; }
         .more-menu-icon { cursor: pointer; padding: 5px; }
         .more-menu-icon svg { stroke: #f0f0f0; width: 28px; height: 28px; }
@@ -28,6 +49,10 @@
         .more-menu-dropdown a { display: block; color: white; padding: 10px 15px; text-decoration: none; }
         .more-menu-dropdown a:hover { background-color: rgba(255, 255, 255, 0.1); }
         .desktop-links { display: none; }
+
+        @media (max-width: 768px) {
+            .featured-card { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body style="background-color: #000;">
@@ -49,9 +74,25 @@
             <p>Explorez nos ressources pour maîtriser l'art du networking à l'ère du digital. Conseils, astuces et actualités sur la technologie NFC.</p>
         </div>
 
+        <!-- Section Article à la une -->
+        <section id="featured-article" class="featured-article-section">
+            <a href="blog1.html" class="featured-card">
+                <div class="featured-image">
+                    <img src="https://iotjourney.orange.com/uploads/medias/W7dW0LYf3UkICeQrYNEk.PNG" alt="Technologie RFID">
+                </div>
+                <div class="featured-content">
+                    <span class="tag">Article à la une</span>
+                    <h2>Qu’est-ce que la technologie RFID : définition et fonctionnement</h2>
+                    <p>L’identification par radiofréquence (RFID) transforme notre manière de réseauter et de gérer nos actifs. De la carte bancaire à votre carte Mahu, découvrez les secrets de cette technologie.</p>
+                    <span class="read-more" style="margin-top: 15px;">Lire la suite...</span>
+                </div>
+            </a>
+        </section>
+
+        <h2 class="section-title" style="text-align:left; margin-top: 60px; font-size: 2em;">Plus d'articles</h2>
         <div class="blog-grid">
             <article class="blog-card">
-                <img src="r/cards/card_pro.png" alt="Guide Carte NFC" class="blog-image">
+                <a href="#"><img src="r/cards/card_pro.png" alt="Guide Carte NFC" class="blog-image"></a>
                 <div class="blog-content">
                     <div class="blog-meta"><span>Guide</span> <span>15 Oct 2025</span></div>
                     <h3>Le Guide Ultime de la Carte NFC en 2025</h3>
@@ -61,7 +102,7 @@
             </article>
 
             <article class="blog-card">
-                <img src="r/v.webp" alt="Networking Entrepreneurs" class="blog-image">
+                <a href="#"><img src="r/v.webp" alt="Networking Entrepreneurs" class="blog-image"></a>
                 <div class="blog-content">
                     <div class="blog-meta"><span>Business</span> <span>10 Oct 2025</span></div>
                     <h3>Pourquoi chaque Entrepreneur a besoin d'une Carte Connectée</h3>
@@ -71,7 +112,7 @@
             </article>
 
             <article class="blog-card">
-                <img src="r/cards/card_metal.png" alt="Astuces Networking" class="blog-image">
+                <a href="#"><img src="r/cards/card_metal.png" alt="Astuces Networking" class="blog-image"></a>
                 <div class="blog-content">
                     <div class="blog-meta"><span>Astuces</span> <span>05 Oct 2025</span></div>
                     <h3>5 Astuces pour un Networking Mémorable</h3>
@@ -86,7 +127,7 @@
             <div class="footer-grid">
                 <div class="footer-col footer-logo-section"><img src="r/logo.png" alt="Mahu Logo"><p>Des cartes de visite intelligentes.</p></div>
                 <div class="footer-col"><h4>Produits</h4><ul><li><a href="Boutique.html">Catalogue</a></li></ul></div>
-                <div class="footer-col"><h4>Guides</h4><ul><li><a href="Guide.html">Guide 2025</a></li></ul></div>
+                <div class="footer-col"><h4>Guides</h4><ul><li><a href="Guide.html">Blog</a></li></ul></div>
                 <div class="footer-col"><h4>Infos</h4><ul><li><a href="Contact.html">Contact</a></li><li><a href="FAQ.html">FAQ</a></li></ul></div>
             </div>
             <div class="footer-bottom"><p>&copy; 2026 Mahu.</p></div>
