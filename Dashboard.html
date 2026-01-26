@@ -709,6 +709,9 @@
                 max-height: 95vh; /* Empêche le débordement vertical */
                 overflow-y: auto;
             }
+            .header-user-profile #header-user-name {
+                display: none;
+            }
             .profile-picture-container .edit-overlay {
                 left: auto; /* Annule le positionnement à gauche */
                 right: calc(50% - 60px); /* Centre le bouton par rapport à l'image */
@@ -737,7 +740,9 @@
 </head>
 <body>
     <div class="dashboard-layout">
-        <div class="menu-toggle" onclick="toggleSidebar()">☰</div>
+        <div class="menu-toggle" onclick="toggleSidebar()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+        </div>
         <aside class="sidebar">
             <h2><img src="r/logo.png" alt="Logo Brunel" style="height: 70px;"></h2>
             <nav>
@@ -1022,18 +1027,20 @@
                             <span>Nouvel Article</span>
                         </button>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Titre</th>
-                                <th>Date</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="blog-table-body">
-                            <tr><td colspan="3" style="text-align:center; color:var(--text-secondary);">Aucun article pour le moment.</td></tr>
-                        </tbody>
-                    </table>
+                    <div style="overflow-x:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Titre</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="blog-table-body">
+                                <tr><td colspan="3" style="text-align:center; color:var(--text-secondary);">Aucun article pour le moment.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
