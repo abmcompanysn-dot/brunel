@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détail Produit - Style Amazon</title>
+    <link rel="icon" href="r/logo.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Styles spécifiques Amazon */
+        body { background-color: #fff; color: #0F1111; }
+        
+        .amz-container { max-width: 1500px; margin: 0 auto; padding: 20px; display: flex; flex-wrap: wrap; gap: 30px; }
+        
+        /* Colonne Gauche : Images */
+        .amz-gallery-col { flex: 0 0 40%; position: sticky; top: 80px; align-self: flex-start; }
+        .amz-main-img { text-align: center; margin-bottom: 20px; }
+        .amz-main-img img { max-width: 100%; max-height: 500px; object-fit: contain; cursor: zoom-in; }
+        .amz-thumbnails { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .amz-thumb { width: 50px; height: 50px; border: 1px solid #a2a6ac; border-radius: 4px; cursor: pointer; object-fit: cover; padding: 2px; }
+        .amz-thumb:hover, .amz-thumb.active { border-color: #e77600; box-shadow: 0 0 3px 2px rgba(228,121,17,0.5); }
+
+        /* Colonne Centre : Infos */
+        .amz-info-col { flex: 1; min-width: 300px; }
+        .amz-title { font-size: 24px; line-height: 32px; font-weight: 400; color: #0F1111; margin-bottom: 5px; }
+        .amz-store-link { color: #007185; font-size: 14px; text-decoration: none; }
+        .amz-store-link:hover { text-decoration: underline; color: #c7511f; }
+        .amz-rating { display: flex; align-items: center; gap: 5px; margin-bottom: 10px; font-size: 14px; color: #007185; }
+        .amz-rating i { color: #ffa41c; }
+        
+        .amz-price-block { border-top: 1px solid #e7e7e7; border-bottom: 1px solid #e7e7e7; padding: 10px 0; margin: 10px 0; }
+        .amz-price { font-size: 28px; font-weight: 500; color: #0F1111; display: flex; align-items: flex-start; }
+        .amz-currency { font-size: 14px; margin-top: 5px; }
+        .amz-fraction { font-size: 14px; margin-top: 5px; }
+        
+        .amz-features { margin-top: 20px; }
+        .amz-features h3 { font-size: 16px; font-weight: 700; margin-bottom: 10px; }
+        .amz-features ul { padding-left: 20px; margin: 0; }
+        .amz-features li { margin-bottom: 5px; font-size: 14px; line-height: 20px; }
+
+        /* Colonne Droite : Buy Box */
+        .amz-buybox-col { flex: 0 0 280px; }
+        .amz-buybox { border: 1px solid #d5d9d9; border-radius: 8px; padding: 18px; background: #fff; }
+        .amz-buybox .price { color: #B12704; font-size: 18px; font-weight: 500; margin-bottom: 10px; }
+        .amz-delivery { font-size: 14px; color: #565959; margin-bottom: 15px; }
+        .amz-delivery span { color: #007185; font-weight: bold; }
+        .amz-stock { color: #007600; font-size: 18px; margin-bottom: 15px; }
+        
+        .amz-btn { width: 100%; border-radius: 20px; border: none; padding: 10px; margin-bottom: 10px; cursor: pointer; font-size: 14px; box-shadow: 0 2px 5px rgba(213,217,217,.5); text-align: center; }
+        .amz-btn-cart { background: #ffd814; border: 1px solid #fcd200; }
+        .amz-btn-cart:hover { background: #f7ca00; }
+        .amz-btn-buy { background: #ffa41c; border: 1px solid #ff8f00; }
+        .amz-btn-buy:hover { background: #fa8900; }
+        
+        .amz-secure { font-size: 12px; color: #007185; display: flex; align-items: center; gap: 5px; margin-top: 10px; cursor: pointer; }
+        .amz-secure:hover { text-decoration: underline; color: #c7511f; }
+
+        @media(max-width: 992px) {
+            .amz-container { flex-direction: column; }
+            .amz-gallery-col, .amz-buybox-col { flex: 1 0 auto; position: static; width: 100%; }
+            .amz-buybox { margin-top: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Standard Mahu -->
+    <header>
+        <nav class="container">
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 40px;"></a>
+            <div class="nav-actions">
+                <a href="BoutiquePublique.html" style="color:white; text-decoration:none;">Retour Boutique</a>
+            </div>
+        </nav>
+    </header>
+
+    <main style="margin-top: 80px;">
+        <div class="amz-container">
+            <!-- Colonne Images -->
+            <div class="amz-gallery-col">
+                <div class="amz-main-img">
+                    <img id="main-img" src="" alt="Produit">
+                </div>
+                <div class="amz-thumbnails" id="thumbnails-container">
+                    <!-- Thumbnails injectés par JS -->
+                </div>
+            </div>
+
+            <!-- Colonne Infos -->
+            <div class="amz-info-col">
+                <h1 id="product-title" class="amz-title">Chargement...</h1>
+                <a href="#" class="amz-store-link">Visiter la boutique Mahu</a>
+                <div class="amz-rating">
+                    <span>★★★★☆</span> <span>4.5 sur 5 étoiles</span>
+                </div>
+                
+                <div class="amz-price-block">
+                    <div class="amz-price">
+                        <span class="amz-currency">FCFA</span>
+                        <span id="product-price">0</span>
+                    </div>
+                    <span style="font-size: 14px; color: #565959;">Tous les prix incluent la TVA.</span>
+                </div>
+
+                <div class="amz-features">
+                    <h3>À propos de cet article</h3>
+                    <ul id="product-desc-list">
+                        <!-- Description parsée ici -->
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Colonne Achat (Buy Box) -->
+            <div class="amz-buybox-col">
+                <div class="amz-buybox">
+                    <div class="price"><span id="buybox-price">0</span> FCFA</div>
+                    <div class="amz-delivery">
+                        Livraison GRATUITE <span>mardi 25 oct.</span> si vous commandez dans les 12h.
+                    </div>
+                    <div class="amz-stock">En stock</div>
+                    
+                    <button class="amz-btn amz-btn-cart">Ajouter au panier</button>
+                    <button class="amz-btn amz-btn-buy">Acheter maintenant</button>
+                    
+                    <div class="amz-secure">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        Transaction sécurisée
+                    </div>
+                    <div style="font-size: 12px; color: #565959; margin-top: 10px;">
+                        <div>Expédié par <span>Mahu</span></div>
+                        <div>Vendu par <span>Mahu</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="config.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const productId = params.get('id');
+            const userUrl = params.get('user');
+
+            if (productId && userUrl) {
+                fetchProductData(productId, userUrl);
+            } else {
+                document.querySelector('.amz-info-col').innerHTML = "<h1>Produit introuvable</h1>";
+            }
+        });
+
+        function fetchProductData(productId, userUrl) {
+            // Simulation d'appel API (remplacer par callApi réel)
+            const formData = new FormData();
+            formData.append('action', 'getPublicProductData');
+            formData.append('payload', JSON.stringify({ productId, userUrl }));
+            
+            fetch(API_URL, { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if(!data.error) populateAmazonProduct(data);
+                });
+        }
+
+        function populateAmazonProduct(product) {
+            document.title = product.Nom + " : Amazon.fr"; // Style titre Amazon
+            document.getElementById('product-title').textContent = product.Nom;
+            document.getElementById('product-price').textContent = product.Prix.toLocaleString();
+            document.getElementById('buybox-price').textContent = product.Prix.toLocaleString();
+
+            // Gestion Images
+            const images = JSON.parse(product.Images_JSON || '[]');
+            const mainImg = document.getElementById('main-img');
+            const thumbContainer = document.getElementById('thumbnails-container');
+            
+            if(images.length > 0) {
+                mainImg.src = images[0];
+                images.forEach((img, idx) => {
+                    const thumb = document.createElement('img');
+                    thumb.src = img;
+                    thumb.className = 'amz-thumb' + (idx === 0 ? ' active' : '');
+                    thumb.onmouseover = () => {
+                        mainImg.src = img;
+                        document.querySelectorAll('.amz-thumb').forEach(t => t.classList.remove('active'));
+                        thumb.classList.add('active');
+                    };
+                    thumbContainer.appendChild(thumb);
+                });
+            } else {
+                mainImg.src = 'https://placehold.co/400x400?text=No+Image';
+            }
+
+            // Description sous forme de liste
+            const descList = document.getElementById('product-desc-list');
+            const descText = product.Description || "Aucune description.";
+            // On découpe par point pour simuler des bullet points
+            const points = descText.split('.').filter(p => p.trim().length > 0);
+            points.forEach(point => {
+                const li = document.createElement('li');
+                li.textContent = point.trim() + '.';
+                descList.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
