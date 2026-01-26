@@ -1626,6 +1626,8 @@
             console.error("Erreur de chargement du dashboard:", error.message);
             // Affiche un message plus utile à l'utilisateur
             alert("Impossible de charger les données du tableau de bord. Erreur : " + error.message);
+            // On n'affiche plus d'alerte à l'utilisateur pour une meilleure expérience.
+            // Les erreurs sont visibles dans la console pour le débogage.
         }
 
         /**
@@ -1760,6 +1762,7 @@
             updatePhoneContactInfo(profile.Telephone, profile.Email || user.Email);
 
             document.querySelector('.phone-header img').style.borderColor = profile.Couleur_Theme || 'var(--accent-color)'; // Utilise la couleur du thème
+            document.getElementById('phone-picture-preview').style.borderColor = profile.Couleur_Theme || 'var(--accent-color)'; // CORRECTIF : Utilise l'ID de l'image
             
             // Remplir les liens sociaux dans l'éditeur
             updatePhoneSocialLinks(); // Mettre à jour l'aperçu

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Mahu Cards | Technologie RFID</title>
+    <style>
+        :root {
+            --primary-color: #000000; /* Style Mahu : Noir et Blanc épuré */
+            --accent-color: #ff6600; /* Une touche d'orange pour le dynamisme */
+            --bg-light: #f4f4f4;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Header Mahu Style */
+        header {
+            background: var(--primary-color);
+            color: #fff;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo { font-weight: bold; font-size: 1.5rem; letter-spacing: 2px; }
+        nav a { color: #fff; text-decoration: none; margin-left: 20px; font-size: 0.9rem; }
+
+        /* Blog Layout */
+        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        h1 { color: var(--primary-color); font-size: 2.5rem; text-align: center; }
+        h2 { border-left: 5px solid var(--accent-color); padding-left: 15px; margin-top: 40px; }
+
+        .summary {
+            background: var(--bg-light);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+
+        /* Image Handling */
+        .img-left { float: left; margin: 0 20px 20px 0; width: 300px; border-radius: 8px; }
+        .img-right { float: right; margin: 0 0 20px 20px; width: 300px; border-radius: 8px; }
+        .clearfix::after { content: ""; clear: both; display: table; }
+
+        .tag-box {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+
+        /* Footer Mahu Style */
+        footer {
+            background: #1a1a1a;
+            color: #888;
+            padding: 40px 5%;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        @media (max-width: 768px) {
+            .img-left, .img-right { float: none; width: 100%; margin: 20px 0; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">MAHU.CARDS</div>
+    <nav>
+        <a href="#">Boutique</a>
+        <a href="#">Comment ça marche ?</a>
+        <a href="#">Blog</a>
+    </nav>
+</header>
+
+<div class="container">
+    <div class="tag-box">Technologie & Innovation</div>
+    <h1>Qu’est-ce que la technologie RFID : définition et fonctionnement</h1>
+    
+    <p style="font-style: italic; color: #666; text-align: center;">
+        L’identification par radiofréquence (RFID) transforme notre manière de réseauter et de gérer nos actifs. 
+        De la carte bancaire à votre carte Mahu, découvrez les secrets de cette technologie.
+    </p>
+
+    <div class="summary">
+        <strong>Sommaire :</strong>
+        <ul>
+            <li><a href="#definition">Définition de la technologie RFID</a></li>
+            <li><a href="#fonctionnement">Comment fonctionne la technologie RFID ?</a></li>
+            <li><a href="#applications">Quelles sont les applications (Focus Sénégal) ?</a></li>
+            <li><a href="#avantages">Les avantages de la RFID</a></li>
+        </ul>
+    </div>
+
+    <section id="definition" class="clearfix">
+        <h2>Définition de la technologie RFID</h2>
+        <img src="https://iotjourney.orange.com/uploads/medias/W7dW0LYf3UkICeQrYNEk.PNG" alt="Etiquette RFID" class="img-left">
+        <p>
+            <strong>RFID</strong> est l’acronyme de <em>Radio Frequency Identification</em>. En français, on parle d'identification par radiofréquence. 
+            C'est une méthode qui permet de mémoriser et récupérer des données à distance via des ondes radio.
+        </p>
+        <p>
+            Née dans un contexte militaire pour identifier les avions alliés durant la Seconde Guerre mondiale, elle est aujourd'hui le moteur de la 
+            révolution digitale. Dans le contexte de <strong>Mahu Cards</strong>, c'est ce qui nous permet de rendre vos échanges de contacts 
+            instantanés : un simple rapprochement de votre carte vers un smartphone et la magie opère.
+        </p>
+    </section>
+
+    <section id="fonctionnement" class="clearfix">
+        <h2>Comment fonctionne la technologie RFID ?</h2>
+        <img src="https://iotjourney.orange.com/uploads/medias/stdBMHxbSvyWp6ferxrf.png" alt="Fonctionnement RFID" class="img-right">
+        <p>Un système RFID repose sur un dialogue invisible entre trois acteurs principaux :</p>
+        <ul>
+            <li><strong>L’antenne de balayage :</strong> Elle émet le signal.</li>
+            <li><strong>L’émetteur-récepteur :</strong> Il traite l'information.</li>
+            <li><strong>Le transpondeur (le Tag) :</strong> C'est la puce que l'on retrouve dans vos cartes Mahu.</li>
+        </ul>
+        <p>
+            Il existe trois types de tags : les <strong>passifs</strong> (sans batterie, ils s'activent grâce au lecteur), les 
+            <strong>actifs</strong> (avec batterie pour une longue portée) et les <strong>semi-actifs</strong>. 
+            Chez Mahu, nous privilégions les technologies passives pour leur durabilité infinie et leur format ultra-fin.
+        </p>
+    </section>
+
+    <section id="applications">
+        <h2>Quelles sont les applications de la RFID ?</h2>
+        <p>Si la RFID était autrefois réservée à l'industrie lourde, elle est aujourd'hui omniprésente au Sénégal et ailleurs.</p>
+        
+        <h3>Dans la vie courante au Sénégal :</h3>
+        <ul>
+            <li><strong>Transport :</strong> Validation des titres de transport pour le <strong>TER</strong> ou le futur <strong>BRT</strong> de Dakar.</li>
+            <li><strong>Automobile :</strong> Passage rapide au <strong>Télépéage de l'Autoroute de l'Avenir</strong>.</li>
+            <li><strong>Événementiel :</strong> Bracelets RFID pour l'accès aux festivals ou salons professionnels.</li>
+            <li><strong>Networking :</strong> Vos cartes de visite numériques <strong>Mahu</strong> pour un échange de contact sans papier.</li>
+        </ul>
+
+        <h3>Dans le commerce et l'industrie :</h3>
+        <p>
+            Les boutiques de prêt-à-porter à Dakar utilisent de plus en plus la RFID pour des inventaires éclairs. Au lieu de scanner 
+            chaque article un par un, un lecteur RFID peut lire 100 articles en quelques secondes.
+        </p>
+    </section>
+
+    <section id="avantages" class="clearfix">
+        <h2>Les avantages de la RFID</h2>
+        <img src="https://iotjourney.orange.com/uploads/medias/1mBkSuht3GbowbD2TRso.png" alt="Avantages RFID" class="img-left">
+        <p>Pourquoi choisir cette technologie plutôt que le traditionnel QR Code ?</p>
+        <ul>
+            <li><strong>Vitesse :</strong> Pas besoin de viser ou d'ouvrir l'appareil photo. Le contact est immédiat.</li>
+            <li><strong>Discrétion :</strong> La puce peut être cachée sous du plastique, du bois ou du métal brossé (comme sur nos modèles premium).</li>
+            <li><strong>Sécurité :</strong> Les données peuvent être cryptées, rendant la copie beaucoup plus difficile qu'un simple code-barres.</li>
+            <li><strong>Durabilité :</strong> Contrairement au papier qui se froisse, une puce RFID résiste au temps et aux manipulations.</li>
+        </ul>
+    </section>
+
+    <div style="margin-top: 50px; padding: 30px; border: 2px solid var(--accent-color); text-align: center; border-radius: 15px;">
+        <h3>Prêt à passer au digital ?</h3>
+        <p>Découvrez nos cartes de visite intelligentes utilisant la technologie NFC/RFID.</p>
+        <button style="background: var(--accent-color); color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            Commander ma Mahu Card
+        </button>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2025 Mahu.cards - Solution de Networking Intelligente au Sénégal</p>
+    <p>ATEKOSSI BRUNELLE | L2 MÉCATRONIQUE</p>
+    <div style="margin-top: 20px;">
+        <a href="#" style="color: #555; text-decoration: none; margin: 0 10px;">Instagram</a>
+        <a href="#" style="color: #555; text-decoration: none; margin: 0 10px;">LinkedIn</a>
+    </div>
+</footer>
+
+</body>
+</html>
