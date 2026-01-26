@@ -290,3 +290,26 @@ h1, h2, h3 {
 .blog-card p { color: #ccc; font-size: 0.95em; line-height: 1.6; margin-bottom: 20px; }
 .read-more { color: var(--blue); text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
 .read-more:hover { text-decoration: underline; }
+
+/* --- Style Mobile Amazon --- */
+@media (max-width: 992px) {
+    body {
+        background-color: #eaeded; /* Fond gris clair typique Amazon */
+    }
+    /* Transformer les sections en "cartes" sur fond gris */
+    .amz-mobile-section {
+        background-color: var(--card-background);
+        margin-bottom: 10px; /* Espace gris entre les sections */
+        padding: 20px 15px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    /* Ajuster le header pour qu'il soit opaque sur mobile */
+    header.scrolled, header {
+        background-color: #232f3e !important; /* Bleu foncé Amazon */
+        border-bottom: none;
+    }
+    /* Ajuster la couleur du texte pour le fond gris */
+    .section-subtitle {
+        color: #555;
+    }
+}
