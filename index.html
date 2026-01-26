@@ -35,21 +35,6 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        /* Barre de recherche style Amazon (Mobile) */
-        .mobile-search-container {
-            display: none;
-            padding: 10px 20px;
-            background-color: rgba(10, 10, 10, 0.95);
-        }
-        .amz-search-input {
-            width: 100%;
-            padding: 10px 15px;
-            border-radius: 8px;
-            border: none;
-            font-size: 16px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-
         /* Par défaut (sur la vidéo), cacher les éléments sauf l'icône de profil */
         header:not(.scrolled) .logo, /* S'assure que le logo est aussi caché sur la vidéo */
         header:not(.scrolled) .desktop-links {
@@ -291,18 +276,6 @@
             .hero-text-content h1 {
                 font-size: 2.5em;
             }
-            /* Afficher la barre de recherche sur mobile */
-            .mobile-search-container {
-                display: block;
-                position: fixed;
-                top: 60px; /* Juste sous le header */
-                width: 100%;
-                z-index: 999;
-            }
-            /* Ajustement du contenu pour ne pas être caché par la barre de recherche */
-            .hero {
-                padding-top: 60px;
-            }
         }
 
         /* Styles pour le défilement des logos */
@@ -406,6 +379,16 @@
                 <li><a href="index.html#about" data-i18n="nav_about">À Propos</a></li>
                 <li><a href="Boutique.html" data-i18n="nav_shop">Boutique</a></li>
             </ul>
+            <!-- Menu Mobile -->
+            <ul class="nav-links-mobile">
+                <li><a href="index.html#features" data-i18n="nav_tech">Technologie</a></li>
+                <li><a href="index.html#about" data-i18n="nav_about">À Propos</a></li>
+                <li><a href="Boutique.html" data-i18n="nav_shop">Boutique</a></li>
+                <li><select id="lang-selector-mobile" onchange="changeLanguage(this.value)" style="background: transparent; color: white; border: 1px solid #555; border-radius: 4px; padding: 10px; font-size: 0.8em; margin-top: 20px;">
+                    <option value="fr">Français</option>
+                    <option value="en">English</option>
+                </select></li>
+            </ul>
             <div class="nav-actions">
                 <!-- Sélecteur de langue -->
                 <select id="lang-selector" onchange="changeLanguage(this.value)" style="background: transparent; color: white; border: 1px solid #555; border-radius: 4px; padding: 5px;">
@@ -419,23 +402,11 @@
                 <a href="Connexion.html" class="primary" id="login-link">
                     <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> 
                 </a> 
-                <div class="more-menu-container">
-                    <div class="more-menu-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-                    </div>
-                    <div class="more-menu-dropdown">
-                        <a href="index.html#features">Technologie</a>
-                        <a href="index.html#about">À Propos</a>
-                        <a href="Boutique.html">Boutique</a>
-                    </div>
-                </div>
+                <!-- Icône du menu burger pour mobile -->
+                <div class="menu-burger">☰</div>
             </div>
         </nav>
     </header>
-
-    <div class="mobile-search-container">
-        <input type="text" class="amz-search-input" placeholder="🔍 Rechercher sur Mahu...">
-    </div>
 
     <main>
         <section class="hero">
@@ -665,39 +636,31 @@
         }
 
         /**
-         * Affiche ou cache le menu "trois points".
+         * Gère le menu burger sur mobile.
          */
-        function toggleMoreMenu(event) {
-            event.stopPropagation(); // Empêche le clic de se propager au document
-            const dropdown = document.querySelector('.more-menu-dropdown');
-            dropdown.classList.toggle('visible');
-        }
+        document.addEventListener('DOMContentLoaded', () => { 
+            const burger = document.querySelector('.menu-burger');
+            const mobileNav = document.querySelector('.nav-links-mobile');
+            const body = document.body;
 
-        // Fermer le menu si on clique ailleurs
-        document.addEventListener('click', function(event) {
-            const dropdown = document.querySelector('.more-menu-dropdown');
-            const menuContainer = document.querySelector('.more-menu-container');
-            if (dropdown && dropdown.classList.contains('visible') && !menuContainer.contains(event.target)) {
-                dropdown.classList.remove('visible');
+            if (burger && mobileNav) {
+                burger.addEventListener('click', () => {
+                    mobileNav.classList.toggle('active');
+                    body.classList.toggle('no-scroll');
+                });
+
+                mobileNav.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileNav.classList.remove('active');
+                        body.classList.remove('no-scroll');
+                    });
+                });
             }
-            
             // Fermer la modale si on clique en dehors
             const modal = document.getElementById('support-modal');
             if (event.target === modal) {
                 closeModal('support-modal');
             }
-        });
-
-        /**
-         * Logique exécutée au chargement du DOM.
-         */
-        document.addEventListener('DOMContentLoaded', () => { 
-            // Attacher l'événement au menu "trois points" de manière propre
-            const moreMenuIcon = document.querySelector('.more-menu-icon');
-            if (moreMenuIcon) {
-                moreMenuIcon.addEventListener('click', toggleMoreMenu);
-            }
-
         });
 
         /**
