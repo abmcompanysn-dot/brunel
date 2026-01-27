@@ -1,0 +1,101 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage{fancyhdr}
+
+% Configuration de la mise en page
+\geometry{hmargin=2.5cm,vmargin=2.5cm}
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Mahu - Guide Gestionnaire}
+\lhead{\today}
+\cfoot{\thepage}
+
+\title{\textbf{Manuel de Procédure : Gestion des Boutiques et Produits}}
+\author{Direction Technique Mahu}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+Ce document technique définit les standards professionnels pour l'ajout de boutiques, la gestion des produits avec variantes, ainsi que la structure tarifaire (commissions et frais fixes) appliquée sur la plateforme.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+\section{Administration des Boutiques (WordPress \& Dokan)}
+
+Cette section détaille la procédure technique pour ajouter et configurer un gestionnaire de boutique via l'interface Dokan sur WordPress.
+
+\subsection{Procédure d'Ajout d'un Vendeur}
+\begin{enumerate}
+    \item \textbf{Accès au Back-Office :} Connectez-vous au tableau de bord administrateur WordPress.
+    \item \textbf{Création du Compte :}
+    \begin{itemize}
+        \item Naviguez vers l'onglet \textbf{Comptes} $\rightarrow$ \textbf{Ajouter}.
+        \item Renseignez les informations : Identifiant, Email professionnel, Prénom, Nom.
+        \item \textbf{Rôle Clé :} Sélectionnez \texttt{Vendeur} (Vendor) ou \texttt{Gestionnaire de boutique} dans la liste déroulante.
+    \end{itemize}
+    \item \textbf{Configuration Dokan :}
+    \begin{itemize}
+        \item Allez dans l'onglet \textbf{Dokan} $\rightarrow$ \textbf{Vendeurs}.
+        \item Éditez le profil du nouveau vendeur pour activer la vente (\textit{Enable Selling}).
+        \item Vérifiez les informations de la boutique (Adresse, Bannière, Logo).
+    \end{itemize}
+\end{enumerate}
+
+\subsection{Validation et Conformité}
+Pour garantir une image professionnelle ("Correctes et Vérifiées") :
+\begin{itemize}
+    \item \textbf{Vérification Légale :} Contrôle des documents d'entreprise.
+    \item \textbf{Intégration API :} Configuration des clés pour l'automatisation logistique.
+\end{itemize}
+
+\section{Gestion du Catalogue Produits}
+
+\subsection{Ajout d'un Produit}
+Le gestionnaire de boutique doit fournir des informations précises pour chaque référence :
+\begin{itemize}
+    \item \textbf{Désignation et Description :} Textes clairs et professionnels.
+    \item \textbf{Visuels :} Images haute résolution sur fond neutre.
+    \item \textbf{Variantes :} Gestion des déclinaisons (Tailles, Couleurs, Matériaux) via des SKU distincts pour un suivi de stock précis.
+\end{itemize}
+
+\section{Politique Tarifaire et Commissions}
+
+Une structure de prix automatisée est appliquée pour couvrir les frais de fonctionnement, les commissions et les coûts de conversion.
+
+\subsection{Formule de Calcul du Prix de Vente}
+Le prix final affiché au client ($P_{final}$) est calculé automatiquement à partir du prix vendeur ($P_{vendeur}$) selon la formule suivante :
+
+\begin{equation}
+    P_{final} = P_{vendeur} + \text{Commission}_{\%} + \text{Frais}_{fixe}
+\end{equation}
+
+\subsubsection{Détails des Composantes}
+\begin{description}
+    \item[Commission Proportionnelle :] Un taux de \textbf{7\%} est appliqué sur le prix du produit pour couvrir les frais de service.
+    \[ \text{Commission}_{\%} = P_{vendeur} \times 0,07 \]
+    
+    \item[Frais de Conversion :] Un montant fixe de \textbf{3 USD} (ou équivalent local) est ajouté pour couvrir les frais de conversion de devise et de traitement international.
+    \[ \text{Frais}_{fixe} \approx 3,00 \$ \]
+\end{description}
+
+\section{Logistique et Livraison}
+
+La livraison est gérée de manière transparente grâce à l'intégration API configurée au niveau de la boutique.
+\begin{itemize}
+    \item Le calcul des frais de port est dynamique lors du paiement.
+    \item L'expédition est déclenchée automatiquement après validation de la commande.
+\end{itemize}
+
+\end{document}
