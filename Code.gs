@@ -1154,6 +1154,7 @@ function getProfileData(profileUrl) {
     const userId = userRowData[headersMap['id_unique']];
     const userEmail = userRowData[headersMap['email']];
     const enterpriseId = userRowData[headersMap['id_entreprise']];
+    const mainUrl = userRowData[headersMap['url_profil']];
 
     if (!userId) return { error: "ID utilisateur introuvable pour ce profil." };
 
@@ -1178,6 +1179,7 @@ function getProfileData(profileUrl) {
     }, {});
 
     profileDataObject.Email = userEmail;
+    profileDataObject.URL_Profil = mainUrl;
 
     // --- LOGIQUE D'HÉRITAGE ENTREPRISE ---
     // Si l'utilisateur a un ID_Entreprise (c'est un employé), on surcharge certaines données
@@ -1312,6 +1314,7 @@ function saveProfile(data, user) {
         return obj;
       }, {});
       profileDataObject.Email = user.Email;
+      profileDataObject.URL_Profil = currentProfileUrl;
 
       // Mise à jour immédiate du cache
       const cacheDuration = parseInt(getConfigValue('CACHE_DURATION')) || 86400;
@@ -1390,6 +1393,7 @@ function saveProfileImage(data, user) {
       return obj;
     }, {});
     profileDataObject.Email = user.Email;
+    profileDataObject.URL_Profil = user.URL_Profil;
 
     const cacheDuration = parseInt(getConfigValue('CACHE_DURATION')) || 86400;
     
