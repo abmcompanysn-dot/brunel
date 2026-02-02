@@ -181,6 +181,7 @@ function onOpen() {
       .createMenu('Mahu Admin')
       .addItem('Vérifier et Réparer la Structure', 'verifyAndFixSheetStructure')
       .addItem('1. Initialiser les feuilles', 'setupSpreadsheet')
+      .addItem('Activer Cache Agressif (Vitesse)', 'enableAggressiveCaching')
       .addSeparator()
       .addItem('Tester la notification CallMeBot', 'testCallMeBot')
       .addItem('Mettre à jour la feuille Support', 'verifyAndFixSheetStructure')
@@ -194,7 +195,7 @@ function onOpen() {
 function setupSpreadsheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheetsToCreate = [
-    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'Mot_De_Passe', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration', 'Reset_Token', 'Reset_Token_Expiration'] },
+    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'Mot_De_Passe', 'ID_Entreprise', 'Role', 'URL_Profil', 'URL_Profil_2', 'URL_Profil_3', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration', 'Reset_Token', 'Reset_Token_Expiration'] },
     { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Telephone', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'Services_JSON', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
@@ -234,6 +235,7 @@ function setupSpreadsheet() {
         sheet.appendRow(['CALLMEBOT_PHONE', '', 'Votre numéro (avec code pays) pour CallMeBot']);
         sheet.appendRow(['CALLMEBOT_API_KEY', '', 'Votre clé API CallMeBot']);
         sheet.appendRow(['EMAIL_SIGNATURE', '', 'Signature HTML des emails']);
+        sheet.appendRow(['CACHE_DURATION', '21600', 'Durée du cache en secondes (21600 = 6h, 172800 = 48h)']);
       }
     } else {
       Logger.log(`La feuille "${sheetInfo.name}" existe déjà.`);
@@ -253,7 +255,7 @@ function verifyAndFixSheetStructure() {
   let corrections = [];
 
   const requiredSheets = [
-    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'Mot_De_Passe', 'ID_Entreprise', 'Role', 'URL_Profil', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration', 'Reset_Token', 'Reset_Token_Expiration'] },
+    { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'Mot_De_Passe', 'ID_Entreprise', 'Role', 'URL_Profil', 'URL_Profil_2', 'URL_Profil_3', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration', 'Reset_Token', 'Reset_Token_Expiration'] },
     { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Telephone', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'Services_JSON', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
     { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
@@ -295,6 +297,38 @@ function verifyAndFixSheetStructure() {
   } else {
     ui.alert('Vérification terminée', 'Aucune correction nécessaire. Votre structure est à jour.', ui.ButtonSet.OK);
   }
+}
+
+/**
+ * Active le cache agressif pour rendre le système plus rapide.
+ * Configure la durée du cache à 48 heures (172800 secondes).
+ */
+function enableAggressiveCaching() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let configSheet = ss.getSheetByName('Configuration');
+  
+  if (!configSheet) {
+    setupSpreadsheet(); // Crée la feuille si elle n'existe pas
+    configSheet = ss.getSheetByName('Configuration');
+  }
+
+  const data = configSheet.getDataRange().getValues();
+  let found = false;
+
+  // Cherche la ligne CACHE_DURATION
+  for (let i = 0; i < data.length; i++) {
+    if (data[i][0] === 'CACHE_DURATION') {
+      configSheet.getRange(i + 1, 2).setValue('172800'); // 48 heures
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    configSheet.appendRow(['CACHE_DURATION', '172800', 'Durée du cache en secondes (Mode Agressif Actif)']);
+  }
+
+  SpreadsheetApp.getUi().alert('Cache Agressif Activé', 'Les profils seront maintenant mis en cache pendant 48 heures pour une vitesse maximale.', SpreadsheetApp.getUi().ButtonSet.OK);
 }
 
 /**
@@ -1067,20 +1101,28 @@ function getProfileData(profileUrl) {
     
     // 1. Récupérer les en-têtes (opération très rapide)
     const usersHeaders = usersSheet.getRange(1, 1, 1, usersSheet.getLastColumn()).getValues()[0];
-    const urlColIdx = usersHeaders.indexOf('URL_Profil') + 1; // +1 pour l'index 1-based
     
-    if (urlColIdx === 0) return { error: "Colonne URL_Profil introuvable." };
     if (usersSheet.getLastRow() <= 1) return { error: "Aucun utilisateur enregistré." };
 
-    // 2. Chercher l'URL dans la colonne spécifique (très rapide même sur de grandes feuilles)
-    const userFinder = usersSheet.getRange(2, urlColIdx, usersSheet.getLastRow() - 1, 1)
-      .createTextFinder(profileUrl)
-      .matchEntireCell(true);
-    const foundUser = userFinder.findNext();
+    // 2. Chercher l'URL dans les colonnes URL_Profil, URL_Profil_2 et URL_Profil_3
+    const urlColumnsToCheck = ['URL_Profil', 'URL_Profil_2', 'URL_Profil_3'];
+    let foundUser = null;
+
+    for (const colName of urlColumnsToCheck) {
+      const colIdx = usersHeaders.indexOf(colName) + 1;
+      if (colIdx > 0) {
+        const userFinder = usersSheet.getRange(2, colIdx, usersSheet.getLastRow() - 1, 1)
+          .createTextFinder(profileUrl)
+          .matchEntireCell(true);
+        foundUser = userFinder.findNext();
+        
+        if (foundUser) break; // Si trouvé, on arrête de chercher
+      }
+    }
 
     if (!foundUser) return { error: "Profil non trouvé." };
 
-    // 3. Récupérer l'ID et l'Email de l'utilisateur trouvé
+    // 3. Récupérer l'ID et l'Email de l'utilisateur trouvé (peu importe la colonne URL utilisée)
     const userRowIndex = foundUser.getRow();
     const userRowData = usersSheet.getRange(userRowIndex, 1, 1, usersSheet.getLastColumn()).getValues()[0];
     const userId = userRowData[usersHeaders.indexOf('ID_Unique')];
@@ -1135,8 +1177,10 @@ function getProfileData(profileUrl) {
       }
     }
 
-    // Mise en cache (6 heures)
-    cache.put(cacheKey, JSON.stringify(profileDataObject), 21600); // 21600 secondes = 6 heures
+    // Mise en cache (Durée dynamique selon configuration)
+    // Par défaut 6h (21600), mais peut être augmenté par enableAggressiveCaching
+    const cacheDuration = parseInt(getConfigValue('CACHE_DURATION')) || 21600;
+    cache.put(cacheKey, JSON.stringify(profileDataObject), cacheDuration);
 
     return profileDataObject;
 
@@ -1243,8 +1287,9 @@ function saveProfile(data, user) {
       }, {});
       profileDataObject.Email = user.Email;
 
-      // Mise à jour immédiate du cache (6 heures)
-      cache.put(`profile_${currentProfileUrl}`, JSON.stringify(profileDataObject), 21600);
+      // Mise à jour immédiate du cache
+      const cacheDuration = parseInt(getConfigValue('CACHE_DURATION')) || 21600;
+      cache.put(`profile_${currentProfileUrl}`, JSON.stringify(profileDataObject), cacheDuration);
 
       return { success: true, message: "Profil sauvegardé avec succès." };
     } else {
@@ -1313,7 +1358,8 @@ function saveProfileImage(data, user) {
     }, {});
     profileDataObject.Email = user.Email;
 
-    CacheService.getScriptCache().put(`profile_${user.URL_Profil}`, JSON.stringify(profileDataObject), 21600);
+    const cacheDuration = parseInt(getConfigValue('CACHE_DURATION')) || 21600;
+    CacheService.getScriptCache().put(`profile_${user.URL_Profil}`, JSON.stringify(profileDataObject), cacheDuration);
 
     return { success: true, message: "Image sauvegardée avec succès." };
   } catch (e) {
