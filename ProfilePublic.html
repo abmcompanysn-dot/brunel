@@ -605,12 +605,14 @@
         }
 
         function generateVCard(data) {
+            const profilePageUrl = window.location.href; // Utilise l'URL actuelle de la page (peut être URL 1, 2 ou 3)
             const vCard = `BEGIN:VCARD
 VERSION:3.0
 FN:${data.Nom_Complet || ''}
 N:;${data.Nom_Complet || ''};;;
 ORG:${data.Compagnie || ''}
 TITLE:${data.Profession || ''}
+URL;TYPE=WORK:${profilePageUrl}
 TEL;TYPE=CELL:${data.Telephone || ''}
 EMAIL:${data.Email || ''}
 END:VCARD`;
