@@ -1120,14 +1120,18 @@ function getProfileData(profileUrl) {
     const usersData = usersSheet.getDataRange().getValues();
     if (usersData.length <= 1) return { error: "Aucun utilisateur enregistré." };
     
-    const usersHeaders = usersData[0];
+    // Normalisation des en-têtes pour éviter les erreurs de casse ou d'espaces
+    const headersMap = usersData[0].reduce((acc, header, index) => {
+      acc[String(header).trim().toLowerCase()] = index;
+      return acc;
+    }, {});
 
     // 2. Identifier les colonnes d'URL disponibles
     const urlIndices = [
-      usersHeaders.indexOf('URL_Profil'),
-      usersHeaders.indexOf('URL_Profil_2'),
-      usersHeaders.indexOf('URL_Profil_3')
-    ].filter(idx => idx !== -1); // Filtre les colonnes introuvables
+      headersMap['url_profil'],
+      headersMap['url_profil_2'],
+      headersMap['url_profil_3']
+    ].filter(idx => idx !== undefined);
 
     // 3. Chercher l'URL (insensible à la casse et aux espaces)
     const targetUrl = profileUrl.toLowerCase();
@@ -1147,9 +1151,9 @@ function getProfileData(profileUrl) {
     if (!userRowData) return { error: "Profil non trouvé." };
 
     // 4. Récupérer les infos
-    const userId = userRowData[usersHeaders.indexOf('ID_Unique')];
-    const userEmail = userRowData[usersHeaders.indexOf('Email')];
-    const enterpriseId = userRowData[usersHeaders.indexOf('ID_Entreprise')];
+    const userId = userRowData[headersMap['id_unique']];
+    const userEmail = userRowData[headersMap['email']];
+    const enterpriseId = userRowData[headersMap['id_entreprise']];
 
     if (!userId) return { error: "ID utilisateur introuvable pour ce profil." };
 
