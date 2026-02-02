@@ -1008,10 +1008,12 @@ function testProfileUrl() {
   const url2Idx = headers.indexOf('url_profil_2');
   const url3Idx = headers.indexOf('url_profil_3');
 
-  const userRow = data.find((row, i) => i > 0 && (
-    String(row[emailIdx]).toLowerCase() === input || 
-    String(row[urlIdx]).toLowerCase() === input
-  ));
+  const userRow = data.slice(1).find(row =>
+    String(row[emailIdx] || '').toLowerCase() === input ||
+    String(row[urlIdx] || '').toLowerCase() === input ||
+    (url2Idx !== -1 && String(row[url2Idx] || '').toLowerCase() === input) ||
+    (url3Idx !== -1 && String(row[url3Idx] || '').toLowerCase() === input)
+  );
 
   if (!userRow) {
     ui.alert('Erreur', 'Profil non trouvé avec cet identifiant.', ui.ButtonSet.OK);
@@ -1225,17 +1227,15 @@ function getProfileData(profileUrl) {
     // 3. Chercher l'URL (insensible à la casse et aux espaces)
     const targetUrl = profileUrl.toLowerCase();
     let userRowData = null;
-
-    for (let i = 1; i < usersData.length; i++) {
-      const row = usersData[i];
-      // Vérifie si l'une des colonnes URL contient la valeur recherchée
-      const match = urlIndices.some(idx => String(row[idx] || '').trim().toLowerCase() === targetUrl);
-      
-      if (match) {
-        userRowData = row;
-        break;
-      }
-    }
+    
+    // On cherche la première ligne d'utilisateur où l'une des colonnes URL correspond à l'URL cible.
+    // Cela permet d'identifier un profil via son URL principale, secondaire (2) ou tertiaire (3).
+    userRowData = usersData.slice(1).find(row => {
+      return urlIndices.some(index => {
+        const cellValue = row[index] || '';
+        return String(cellValue).trim().toLowerCase() === targetUrl;
+      });
+    });
 
     if (!userRowData) return { error: "Profil non trouvé." };
 
