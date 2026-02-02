@@ -836,9 +836,13 @@ function getDashboardData(user) {
       ? statsSheet.getRange('A2:C' + statsSheet.getLastRow()).getValues()
       : [];
     const sevenDaysAgo = new Date(new Date().setDate(new Date().getDate() - 7));
+
+    // Liste de toutes les URLs associées à l'utilisateur pour agréger les stats
+    const userUrls = [user.URL_Profil, user.URL_Profil_2, user.URL_Profil_3]
+      .filter(u => u).map(u => String(u).toLowerCase());
     
     const userViews = allViews.filter(row => 
-      row[0] === user.URL_Profil && // Filtre par URL de profil
+      userUrls.includes(String(row[0]).toLowerCase()) && // Filtre par n'importe quelle URL du profil
       row[1] && new Date(row[1]) >= sevenDaysAgo // Filtre sur les 7 derniers jours
     );
 
@@ -856,7 +860,7 @@ function getDashboardData(user) {
     };
 
     // --- Récupérer le nombre total de vues ---
-    const totalUserViews = allViews.filter(row => row[0] === user.URL_Profil).length;
+    const totalUserViews = allViews.filter(row => userUrls.includes(String(row[0]).toLowerCase())).length;
 
     // Récupérer les prospects
     const prospectsSheet = ss.getSheetByName('Prospects');
@@ -1529,11 +1533,18 @@ function handleLeadCapture(leadData) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const usersSheet = ss.getSheetByName('Utilisateurs');
     const usersData = usersSheet.getDataRange().getValues();
-    const urlCol = usersData[0].indexOf('URL_Profil');
-    const idCol = usersData[0].indexOf('ID_Unique');
-    const emailCol = usersData[0].indexOf('Email');
+    
+    // Recherche multi-colonnes pour trouver le propriétaire du profil (URL 1, 2 ou 3)
+    const headers = usersData[0].map(h => String(h).trim().toLowerCase());
+    const idCol = headers.indexOf('id_unique');
+    const emailCol = headers.indexOf('email');
+    const urlIndices = [headers.indexOf('url_profil'), headers.indexOf('url_profil_2'), headers.indexOf('url_profil_3')].filter(idx => idx !== -1);
 
-    const userRow = usersData.find(row => row[urlCol] === leadData.profileUrl);
+    const targetUrl = String(leadData.profileUrl).trim().toLowerCase();
+    const userRow = usersData.slice(1).find(row => 
+      urlIndices.some(idx => String(row[idx] || '').trim().toLowerCase() === targetUrl)
+    );
+
     if (!userRow) throw new Error("Profil source introuvable.");
 
     const profileOwnerId = userRow[idCol];

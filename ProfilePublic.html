@@ -416,13 +416,6 @@
                         if (data.error) {
                             onProfileError({ message: data.error });
                         } else {
-                            // Redirection intelligente vers l'URL principale si une URL secondaire est utilisée
-                            if (data.URL_Profil && profileUrl.toLowerCase() !== data.URL_Profil.toLowerCase()) {
-                                const newUrl = new URL(window.location.href);
-                                newUrl.searchParams.set('user', data.URL_Profil);
-                                window.location.replace(newUrl.toString());
-                                return;
-                            }
                             populateProfile(data);
                         }
                         // Appeler la fonction de tracking après avoir chargé le profil
