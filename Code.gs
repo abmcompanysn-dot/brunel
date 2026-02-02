@@ -182,6 +182,7 @@ function onOpen() {
       .addItem('Vérifier et Réparer la Structure', 'verifyAndFixSheetStructure')
       .addItem('1. Initialiser les feuilles', 'setupSpreadsheet')
       .addItem('Activer Cache Agressif (Vitesse)', 'enableAggressiveCaching')
+      .addItem('Vider le cache d\'un profil (Urgence)', 'manualClearCache')
       .addSeparator()
       .addItem('Tester la notification CallMeBot', 'testCallMeBot')
       .addItem('Mettre à jour la feuille Support', 'verifyAndFixSheetStructure')
@@ -235,7 +236,7 @@ function setupSpreadsheet() {
         sheet.appendRow(['CALLMEBOT_PHONE', '', 'Votre numéro (avec code pays) pour CallMeBot']);
         sheet.appendRow(['CALLMEBOT_API_KEY', '', 'Votre clé API CallMeBot']);
         sheet.appendRow(['EMAIL_SIGNATURE', '', 'Signature HTML des emails']);
-        sheet.appendRow(['CACHE_DURATION', '21600', 'Durée du cache en secondes (21600 = 6h, 172800 = 48h)']);
+        sheet.appendRow(['CACHE_DURATION', '86400', 'Durée du cache en secondes (86400 = 24h)']);
       }
     } else {
       Logger.log(`La feuille "${sheetInfo.name}" existe déjà.`);
@@ -296,6 +297,23 @@ function verifyAndFixSheetStructure() {
     ui.alert('Vérification terminée', 'Les corrections suivantes ont été apportées :\n- ' + corrections.join('\n- '), ui.ButtonSet.OK);
   } else {
     ui.alert('Vérification terminée', 'Aucune correction nécessaire. Votre structure est à jour.', ui.ButtonSet.OK);
+  }
+}
+
+/**
+ * Permet de vider manuellement le cache pour une URL de profil spécifique.
+ * Utile en cas de modification urgente qui ne s'affiche pas.
+ */
+function manualClearCache() {
+  const ui = SpreadsheetApp.getUi();
+  const result = ui.prompt('Vider le cache', 'Entrez l\'URL du profil à rafraîchir (ex: brunel) :', ui.ButtonSet.OK_CANCEL);
+  
+  if (result.getSelectedButton() == ui.Button.OK) {
+    const url = result.getResponseText().trim();
+    if (url) {
+      CacheService.getScriptCache().remove(`profile_${url}`);
+      ui.alert('Succès', `Le cache pour "${url}" a été vidé. La prochaine visite chargera les données fraîches.`, ui.ButtonSet.OK);
+    }
   }
 }
 
@@ -1178,8 +1196,8 @@ function getProfileData(profileUrl) {
     }
 
     // Mise en cache (Durée dynamique selon configuration)
-    // Par défaut 6h (21600), mais peut être augmenté par enableAggressiveCaching
-    const cacheDuration = parseInt(getConfigValue('CACHE_DURATION')) || 21600;
+    // Par défaut 24h (86400), mais peut être augmenté par enableAggressiveCaching
+    const cacheDuration = parseInt(getConfigValue('CACHE_DURATION')) || 86400;
     cache.put(cacheKey, JSON.stringify(profileDataObject), cacheDuration);
 
     return profileDataObject;
@@ -1288,8 +1306,15 @@ function saveProfile(data, user) {
       profileDataObject.Email = user.Email;
 
       // Mise à jour immédiate du cache
-      const cacheDuration = parseInt(getConfigValue('CACHE_DURATION')) || 21600;
-      cache.put(`profile_${currentProfileUrl}`, JSON.stringify(profileDataObject), cacheDuration);
+      const cacheDuration = parseInt(getConfigValue('CACHE_DURATION')) || 86400;
+      
+      const urlsToCache = [currentProfileUrl];
+      if (user.URL_Profil_2) urlsToCache.push(user.URL_Profil_2);
+      if (user.URL_Profil_3) urlsToCache.push(user.URL_Profil_3);
+
+      urlsToCache.forEach(url => {
+        cache.put(`profile_${url}`, JSON.stringify(profileDataObject), cacheDuration);
+      });
 
       return { success: true, message: "Profil sauvegardé avec succès." };
     } else {
@@ -1358,8 +1383,16 @@ function saveProfileImage(data, user) {
     }, {});
     profileDataObject.Email = user.Email;
 
-    const cacheDuration = parseInt(getConfigValue('CACHE_DURATION')) || 21600;
-    CacheService.getScriptCache().put(`profile_${user.URL_Profil}`, JSON.stringify(profileDataObject), cacheDuration);
+    const cacheDuration = parseInt(getConfigValue('CACHE_DURATION')) || 86400;
+    
+    // Mise à jour du cache pour TOUTES les URLs associées
+    const urlsToCache = [user.URL_Profil];
+    if (user.URL_Profil_2) urlsToCache.push(user.URL_Profil_2);
+    if (user.URL_Profil_3) urlsToCache.push(user.URL_Profil_3);
+
+    urlsToCache.forEach(url => {
+      CacheService.getScriptCache().put(`profile_${url}`, JSON.stringify(profileDataObject), cacheDuration);
+    });
 
     return { success: true, message: "Image sauvegardée avec succès." };
   } catch (e) {
