@@ -51,7 +51,7 @@ function doPost(e) {
       case 'resetPassword': result = resetPassword(payload.token, payload.newPassword); break;
       case 'trackView': result = trackView(payload.profileUrl, payload.source); break;
       case 'handleLeadCapture': result = handleLeadCapture(payload); break;
-      case 'getProfileData': result = getProfileData(e.parameter.user); break;
+      case 'getProfileData': result = getProfileData(e.parameter.user || payload.user); break;
       case 'saveCustomCardOrder': result = saveCustomCardOrder(payload); break;
       case 'saveStoreOrder': result = saveStoreOrder(payload); break;
       case 'contactSupport': result = handleSupportMessage(payload, user); break;
@@ -183,6 +183,7 @@ function onOpen() {
       .addItem('1. Initialiser les feuilles', 'setupSpreadsheet')
       .addItem('Activer Cache Agressif (Vitesse)', 'enableAggressiveCaching')
       .addItem('Vider le cache d\'un profil (Urgence)', 'manualClearCache')
+      .addItem('Tester les URLs d\'un profil', 'testProfileUrl')
       .addSeparator()
       .addItem('Tester la notification CallMeBot', 'testCallMeBot')
       .addItem('Mettre à jour la feuille Support', 'verifyAndFixSheetStructure')
@@ -979,6 +980,92 @@ function getPublicProfileUrl(user) {
 }
 
 /**
+ * Outil de test pour vérifier les URLs (1, 2, 3) d'un profil.
+ * Permet à l'admin de choisir un profil, une URL, et d'être redirigé pour tester.
+ */
+function testProfileUrl() {
+  const ui = SpreadsheetApp.getUi();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const usersSheet = ss.getSheetByName('Utilisateurs');
+  
+  // 1. Demander le profil
+  const response = ui.prompt('Tester URL Profil', 'Entrez l\'email ou l\'URL principale du profil :', ui.ButtonSet.OK_CANCEL);
+  if (response.getSelectedButton() !== ui.Button.OK) return;
+  
+  const input = response.getResponseText().trim().toLowerCase();
+  if (!input) return;
+
+  // 2. Chercher l'utilisateur
+  const data = usersSheet.getDataRange().getValues();
+  if (data.length <= 1) {
+    ui.alert('Aucun utilisateur trouvé.');
+    return;
+  }
+  
+  const headers = data[0].map(h => String(h).trim().toLowerCase());
+  const emailIdx = headers.indexOf('email');
+  const urlIdx = headers.indexOf('url_profil');
+  const url2Idx = headers.indexOf('url_profil_2');
+  const url3Idx = headers.indexOf('url_profil_3');
+
+  const userRow = data.find((row, i) => i > 0 && (
+    String(row[emailIdx]).toLowerCase() === input || 
+    String(row[urlIdx]).toLowerCase() === input
+  ));
+
+  if (!userRow) {
+    ui.alert('Erreur', 'Profil non trouvé avec cet identifiant.', ui.ButtonSet.OK);
+    return;
+  }
+
+  const url1 = userRow[urlIdx];
+  const url2 = (url2Idx !== -1) ? userRow[url2Idx] : '';
+  const url3 = (url3Idx !== -1) ? userRow[url3Idx] : '';
+
+  // 3. Demander quelle URL tester
+  let message = `Profil trouvé : ${userRow[emailIdx]}\n\n`;
+  message += `1. URL Principale : ${url1}\n`;
+  message += `2. URL 2 : ${url2 ? url2 : '(Non définie)'}\n`;
+  message += `3. URL 3 : ${url3 ? url3 : '(Non définie)'}\n\n`;
+  message += `Entrez le numéro (1, 2 ou 3) pour générer le lien de test :`;
+
+  const choiceResponse = ui.prompt('Choix de l\'URL à tester', message, ui.ButtonSet.OK_CANCEL);
+  if (choiceResponse.getSelectedButton() !== ui.Button.OK) return;
+
+  const choice = choiceResponse.getResponseText().trim();
+  let targetUrl = '';
+  
+  if (choice === '1') targetUrl = url1;
+  else if (choice === '2') targetUrl = url2;
+  else if (choice === '3') targetUrl = url3;
+  else {
+    ui.alert('Choix invalide. Veuillez entrer 1, 2 ou 3.');
+    return;
+  }
+
+  if (!targetUrl) {
+    ui.alert('Attention', `L'URL ${choice} n'est pas définie pour ce profil.`, ui.ButtonSet.OK);
+    return;
+  }
+
+  // 4. Afficher le lien cliquable
+  const fullUrl = `https://mahu.cards/ProfilePublic.html?user=${targetUrl}`;
+  
+  const htmlOutput = HtmlService.createHtmlOutput(
+    `<div style="font-family:sans-serif; padding:20px; text-align:center;">
+       <h3 style="margin-top:0;">Test de redirection</h3>
+       <p>Cliquez ci-dessous pour tester l'URL <strong>${choice}</strong> :</p>
+       <a href="${fullUrl}" target="_blank" style="background-color:#007bff; color:white; padding:12px 24px; text-decoration:none; border-radius:5px; display:inline-block; font-weight:bold;">Ouvrir le profil</a>
+       <p style="margin-top:20px; font-size:0.8em; color:#666; word-break:break-all;">${fullUrl}</p>
+       <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
+       <button onclick="google.script.host.close()" style="padding:8px 16px; cursor:pointer;">Fermer</button>
+     </div>`
+  ).setWidth(400).setHeight(300);
+
+  ui.showModalDialog(htmlOutput, `Test URL ${choice} - ${targetUrl}`);
+}
+
+/**
  * Enregistre une commande de carte personnalisée.
  */
 function saveCustomCardOrder(payload) {
@@ -1132,6 +1219,8 @@ function getProfileData(profileUrl) {
       headersMap['url_profil_2'],
       headersMap['url_profil_3']
     ].filter(idx => idx !== undefined);
+
+    if (urlIndices.length === 0) return { error: "Colonnes URL introuvables. Lancez 'Vérifier la Structure' dans le menu Admin." };
 
     // 3. Chercher l'URL (insensible à la casse et aux espaces)
     const targetUrl = profileUrl.toLowerCase();
