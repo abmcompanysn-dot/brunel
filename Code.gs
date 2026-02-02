@@ -1114,38 +1114,42 @@ function getProfileData(profileUrl) {
     const usersSheet = ss.getSheetByName('Utilisateurs');
     const profilesSheet = ss.getSheetByName('Profils');
 
-    // --- OPTIMISATION : Recherche ciblée avec TextFinder ---
-    // Cette méthode évite de charger toute la base de données en mémoire.
+    // --- OPTIMISATION : Recherche en mémoire (Plus robuste) ---
     
-    // 1. Récupérer les en-têtes (opération très rapide)
-    const usersHeaders = usersSheet.getRange(1, 1, 1, usersSheet.getLastColumn()).getValues()[0];
+    // 1. Récupérer toutes les données
+    const usersData = usersSheet.getDataRange().getValues();
+    if (usersData.length <= 1) return { error: "Aucun utilisateur enregistré." };
     
-    if (usersSheet.getLastRow() <= 1) return { error: "Aucun utilisateur enregistré." };
+    const usersHeaders = usersData[0];
 
-    // 2. Chercher l'URL dans les colonnes URL_Profil, URL_Profil_2 et URL_Profil_3
-    const urlColumnsToCheck = ['URL_Profil', 'URL_Profil_2', 'URL_Profil_3'];
-    let foundUser = null;
+    // 2. Identifier les colonnes d'URL disponibles
+    const urlIndices = [
+      usersHeaders.indexOf('URL_Profil'),
+      usersHeaders.indexOf('URL_Profil_2'),
+      usersHeaders.indexOf('URL_Profil_3')
+    ].filter(idx => idx !== -1); // Filtre les colonnes introuvables
 
-    for (const colName of urlColumnsToCheck) {
-      const colIdx = usersHeaders.indexOf(colName) + 1;
-      if (colIdx > 0) {
-        const userFinder = usersSheet.getRange(2, colIdx, usersSheet.getLastRow() - 1, 1)
-          .createTextFinder(profileUrl)
-          .matchEntireCell(true);
-        foundUser = userFinder.findNext();
-        
-        if (foundUser) break; // Si trouvé, on arrête de chercher
+    // 3. Chercher l'URL (insensible à la casse et aux espaces)
+    const targetUrl = profileUrl.toLowerCase();
+    let userRowData = null;
+
+    for (let i = 1; i < usersData.length; i++) {
+      const row = usersData[i];
+      // Vérifie si l'une des colonnes URL contient la valeur recherchée
+      const match = urlIndices.some(idx => String(row[idx] || '').trim().toLowerCase() === targetUrl);
+      
+      if (match) {
+        userRowData = row;
+        break;
       }
     }
 
-    if (!foundUser) return { error: "Profil non trouvé." };
+    if (!userRowData) return { error: "Profil non trouvé." };
 
-    // 3. Récupérer l'ID et l'Email de l'utilisateur trouvé (peu importe la colonne URL utilisée)
-    const userRowIndex = foundUser.getRow();
-    const userRowData = usersSheet.getRange(userRowIndex, 1, 1, usersSheet.getLastColumn()).getValues()[0];
+    // 4. Récupérer les infos
     const userId = userRowData[usersHeaders.indexOf('ID_Unique')];
     const userEmail = userRowData[usersHeaders.indexOf('Email')];
-    const enterpriseId = userRowData[usersHeaders.indexOf('ID_Entreprise')]; // Récupérer l'ID entreprise
+    const enterpriseId = userRowData[usersHeaders.indexOf('ID_Entreprise')];
 
     if (!userId) return { error: "ID utilisateur introuvable pour ce profil." };
 
