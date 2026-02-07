@@ -475,6 +475,7 @@ function loginUser(email, password) {
   const tokenCol = headers.indexOf('Auth_Token');
   const expCol = headers.indexOf('Token_Expiration');
   const onboardingStatusCol = headers.indexOf('Onboarding_Status');
+  const roleCol = headers.indexOf('Role');
 
   // On cherche l'utilisateur à partir de la 2ème ligne (index 1)
   const userRowIndex = usersData.slice(1).findIndex(row => row[emailCol] === email);
@@ -518,8 +519,9 @@ function loginUser(email, password) {
   userSheet.getRange(sheetRow, expCol + 1).setValue(expiration);
 
   const onboardingStatus = usersData[userRowIndex + 1][onboardingStatusCol];
+  const role = usersData[userRowIndex + 1][roleCol];
 
-  return { success: true, newUser: onboardingStatus !== 'COMPLETED', token: token };
+  return { success: true, newUser: onboardingStatus !== 'COMPLETED', token: token, role: role };
 }
 /**
  * Gère la demande de réinitialisation de mot de passe.
@@ -651,15 +653,30 @@ function getUserByToken(token) {
   if (!token) return null;
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const userSheet = ss.getSheetByName('Utilisateurs');
-  const usersData = userSheet.getDataRange().getValues();
-  const headers = usersData.shift();
-  const tokenCol = headers.indexOf('Auth_Token');
-  const expCol = headers.indexOf('Token_Expiration');
+  
+  // OPTIMISATION : Utilisation de TextFinder et Cache pour éviter de charger toute la feuille (Hyper Rapide)
+  const headers = getCachedHeaders(userSheet);
+  const tokenColIndex = headers.indexOf('Auth_Token');
+  const expColIndex = headers.indexOf('Token_Expiration');
 
-  const userRow = usersData.find(row => row[tokenCol] === token);
-  if (!userRow || new Date(userRow[expCol]) < new Date()) {
-    return null; // Token non trouvé ou expiré
+  if (tokenColIndex === -1) return null;
+
+  // Recherche ciblée du token sans charger les données
+  const finder = userSheet.createTextFinder(token).matchEntireCell(true);
+  const foundCell = finder.findNext();
+
+  if (!foundCell) return null;
+
+  // Vérification que le token est bien dans la bonne colonne (sécurité)
+  if (foundCell.getColumn() !== tokenColIndex + 1) return null;
+
+  const rowIndex = foundCell.getRow();
+  const userRow = userSheet.getRange(rowIndex, 1, 1, headers.length).getValues()[0];
+
+  if (new Date(userRow[expColIndex]) < new Date()) {
+    return null; // Token expiré
   }
+
   return headers.reduce((obj, header, index) => { obj[header] = userRow[index]; return obj; }, {});
 }
 
@@ -667,7 +684,7 @@ function getUserByToken(token) {
  * Crée un compte employé depuis le tableau de bord administrateur.
  */
 function createEmployee(data, adminUser) {
-  if (adminUser.Role !== 'Entreprise') {
+  if (adminUser.Role !== 'Entreprise' && adminUser.Role !== 'Admin') {
     throw new Error("Seuls les comptes Entreprise peuvent créer des employés.");
   }
 
@@ -735,7 +752,7 @@ function createEmployee(data, adminUser) {
  * @param {Object} adminUser - L'administrateur (Entreprise)
  */
 function deleteEmployee(data, adminUser) {
-  if (adminUser.Role !== 'Entreprise') {
+  if (adminUser.Role !== 'Entreprise' && adminUser.Role !== 'Admin') {
     return { success: false, error: "Action réservée aux comptes Entreprise." };
   }
   
@@ -896,7 +913,7 @@ function getDashboardData(user) {
     // --- Données d'équipe (Si Entreprise) ---
     let teamData = [];
     let enterpriseData = {};
-    if (user.Role === 'Entreprise') {
+    if (user.Role === 'Entreprise' || user.Role === 'Admin') {
       const usersSheet = ss.getSheetByName('Utilisateurs');
       const usersData = usersSheet.getDataRange().getValues(); // On garde getDataRange ici car on filtre ensuite
       const uHeaders = usersData[0]; // Headers sont la première ligne
@@ -1215,11 +1232,13 @@ function getProfileData(profileUrl) {
     const finder = usersSheet.createTextFinder(profileUrl).matchEntireCell(true);
     const foundCell = finder.findNext();
 
+    if (!foundCell) return { error: "Profil non trouvé." };
+
     const userRowIndex = foundCell.getRow();
     
     // Récupération des en-têtes et de la ligne utilisateur spécifique uniquement
-    const headers = usersSheet.getRange(1, 1, 1, usersSheet.getLastColumn()).getValues()[0];
-    const userRowData = usersSheet.getRange(userRowIndex, 1, 1, usersSheet.getLastColumn()).getValues()[0];
+    const headers = getCachedHeaders(usersSheet);
+    const userRowData = usersSheet.getRange(userRowIndex, 1, 1, headers.length).getValues()[0];
 
     // Normalisation des en-têtes
     const headersMap = headers.reduce((acc, header, index) => {
@@ -1246,7 +1265,7 @@ function getProfileData(profileUrl) {
     const enterpriseId = userRowData[headersMap['id_entreprise']];
 
     // --- Récupération des données du profil ---
-    const profilesHeaders = profilesSheet.getRange(1, 1, 1, profilesSheet.getLastColumn()).getValues()[0];
+    const profilesHeaders = getCachedHeaders(profilesSheet);
     const pIdColIdx = profilesHeaders.indexOf('ID_Utilisateur') + 1;
     
     const profileFinder = profilesSheet.getRange(2, pIdColIdx, profilesSheet.getLastRow() - 1, 1)
@@ -1257,7 +1276,7 @@ function getProfileData(profileUrl) {
     if (!foundProfile) return { error: "Données de profil introuvables." };
 
     const profileRowIndex = foundProfile.getRow();
-    const profileData = profilesSheet.getRange(profileRowIndex, 1, 1, profilesSheet.getLastColumn()).getValues()[0];
+    const profileData = profilesSheet.getRange(profileRowIndex, 1, 1, profilesHeaders.length).getValues()[0];
 
     const profileDataObject = profilesHeaders.reduce((obj, header, index) => {
       obj[header] = profileData[index];
@@ -1278,7 +1297,7 @@ function getProfileData(profileUrl) {
       
       if (foundEntProfile) {
         const entRowIndex = foundEntProfile.getRow();
-        const entData = profilesSheet.getRange(entRowIndex, 1, 1, profilesSheet.getLastColumn()).getValues()[0];
+        const entData = profilesSheet.getRange(entRowIndex, 1, 1, profilesHeaders.length).getValues()[0];
         
         // Champs à hériter de l'entreprise
         const inheritedFields = ['Compagnie', 'Location', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Mise_En_Page', 'Couleur_Theme', 'Cacher_Marque', 'Services_JSON'];
@@ -1293,7 +1312,8 @@ function getProfileData(profileUrl) {
 
     // Mise en cache (Durée dynamique selon configuration)
     // Par défaut 24h (86400), mais peut être augmenté par enableAggressiveCaching
-    const cacheDuration = parseInt(getConfigValue('CACHE_DURATION')) || 86400;
+    // OPTIMISATION : Valeur fixe (48h) pour éviter une lecture lente de la feuille Configuration
+    const cacheDuration = 172800;
     cache.put(cacheKey, JSON.stringify(profileDataObject), cacheDuration);
 
     return profileDataObject;
@@ -1305,12 +1325,30 @@ function getProfileData(profileUrl) {
 }
 
 /**
+ * Récupère les en-têtes d'une feuille avec mise en cache pour accélérer les lectures.
+ * Évite d'appeler getRange(1,1,1,lastCol) à chaque requête.
+ */
+function getCachedHeaders(sheet) {
+  const cache = CacheService.getScriptCache();
+  const cacheKey = 'headers_' + sheet.getName();
+  const cached = cache.get(cacheKey);
+  
+  if (cached) {
+    return JSON.parse(cached);
+  }
+  
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  cache.put(cacheKey, JSON.stringify(headers), 21600); // Cache 6 heures
+  return headers;
+}
+
+/**
  * Sauvegarde les informations de l'entreprise (Nom, Téléphone, Adresse).
  * @param {Object} data - { name, phone, address }
  * @param {Object} user - L'utilisateur authentifié
  */
 function saveEnterpriseInfo(data, user) {
-  if (user.Role !== 'Entreprise') {
+  if (user.Role !== 'Entreprise' && user.Role !== 'Admin') {
     return { success: false, error: "Action réservée aux comptes Entreprise." };
   }
 
@@ -1595,8 +1633,12 @@ function handleLeadCapture(leadData) {
  * Gère la création du compte, du profil et l'upload des images.
  */
 function adminRegisterClient(data, adminUser) {
-  // Vérification des droits (Optionnel : on peut restreindre aux rôles 'Entreprise' ou Admin)
-  // if (adminUser.Role !== 'Entreprise') return { success: false, error: "Accès refusé." };
+  // SÉCURITÉ BACKEND : Vérification stricte des droits SADMIN
+  // Cette logique est exécutée uniquement sur le serveur, impossible à contourner depuis le frontend.
+  const authorizedEmails = ['abmcompanysn@gmail.com']; // Liste des emails Super Admin autorisés
+  if (!authorizedEmails.includes(adminUser.Email) && adminUser.Role !== 'SADMIN') {
+      return { success: false, error: "Accès refusé. Action réservée aux administrateurs de la plateforme." };
+  }
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const userSheet = ss.getSheetByName('Utilisateurs');

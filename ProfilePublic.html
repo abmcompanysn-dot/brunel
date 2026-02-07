@@ -7,6 +7,10 @@
     <link rel="preconnect" href="https://script.google.com">
     <link rel="preconnect" href="https://i.ibb.co">
     <link rel="dns-prefetch" href="https://script.google.com">
+    <link rel="preconnect" href="https://drive.google.com">
+    <link rel="dns-prefetch" href="https://drive.google.com">
+    <link rel="preconnect" href="https://lh3.googleusercontent.com">
+    <link rel="preload" href="r/logo.png" as="image">
     <title>Profil Public</title>
     <meta name="description" content="Découvrez le profil numérique de ce contact sur Mahu.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -298,10 +302,43 @@
             transform: translateY(0);
         }
 
+        /* --- NOUVEAU LOADER GLOBAL --- */
+        #global-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #121212;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s;
+        }
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent-color, #007BFF);
+            animation: spin 1s ease-in-out infinite;
+        }
+        .loader-text {
+            color: #ffffff;
+            margin-top: 20px;
+            font-size: 1.1em;
+            letter-spacing: 1px;
+            font-weight: 300;
+        }
     </style>
 </head>
 <body>
-
+    <div id="global-loader">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Chargement...</div>
+    </div>
     <div class="profile-card loading">
         <div class="profile-cover skeleton"></div>
         <div class="profile-header">
@@ -433,12 +470,31 @@
 
         function onProfileError(error) {
             console.error("Erreur de chargement du profil:", error.message);
+            document.getElementById('global-loader').style.display = 'none';
             document.querySelector('.profile-card').innerHTML = `<h1>Profil non trouvé</h1><p>${error.message}</p>`;
             // Cacher la carte de profil et afficher le conteneur d'erreur
             document.querySelector('.profile-card').style.display = 'none';
             const errorContainer = document.getElementById('error-container');
             errorContainer.innerHTML = `<h1>Profil non trouvé</h1><p>Désolé, le profil que vous cherchez n'existe pas ou l'URL est incorrecte.</p>`;
             errorContainer.style.display = 'block';
+        }
+
+        // Fonction pour optimiser les URLs d'images (Google Drive) pour un chargement ultra-rapide
+        function getOptimizedImageUrl(url, size) {
+            if (!url) return '';
+            
+            // Gestion explicite pour ImgBB : Retourner l'URL telle quelle pour éviter tout conflit avec l'optimisation Drive
+            if (url.indexOf('ibb.co') !== -1) {
+                return url;
+            }
+
+            // Transforme les liens Google Drive standards (lents) en liens CDN (rapides)
+            if (url.indexOf('drive.google.com') !== -1 && url.indexOf('id=') !== -1) {
+                var id = url.split('id=')[1].split('&')[0];
+                // sz=s{size} demande au serveur Google de redimensionner l'image à la volée
+                return 'https://drive.google.com/thumbnail?id=' + id + '&sz=s' + size;
+            }
+            return url;
         }
 
         function populateProfile(data) {
@@ -470,9 +526,12 @@
             // --- LOGIQUE D'AFFICHAGE CONDITIONNEL ---
             if (data.URL_Photo) {
                 // Comportement normal si la photo de profil existe
-                card.querySelector('.profile-cover').style.backgroundImage = `url('${data.URL_Couverture || ''}')`;
+                // Optimisation : On demande une version 1000px max pour la couverture (gain de poids ~80%)
+                const optimizedCover = getOptimizedImageUrl(data.URL_Couverture, 1000);
+                card.querySelector('.profile-cover').style.backgroundImage = `url('${optimizedCover || ''}')`;
                 const profileImg = card.querySelector('.profile-header img');
-                profileImg.src = data.URL_Photo;
+                // Optimisation : On demande une version 300px pour la photo de profil
+                profileImg.src = getOptimizedImageUrl(data.URL_Photo, 300);
                 profileImg.style.display = 'block';
             } else {
                 // Comportement si PAS de photo de profil
@@ -602,6 +661,11 @@
 
             // Cacher le squelette
             card.classList.remove('loading');
+            
+            // Cacher le loader global avec une transition fluide
+            const loader = document.getElementById('global-loader');
+            loader.style.opacity = '0';
+            setTimeout(() => { loader.style.display = 'none'; }, 500);
         }
 
         function generateVCard(data) {

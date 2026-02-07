@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration Mahu</title>
+    <link rel="icon" href="r/logo.png" type="image/png">
+    <style>
+        :root {
+            --bg-main: #121212;
+            --card-bg: #1E1E1E;
+            --text-primary: #f8f9fa;
+            --text-secondary: #adb5bd;
+            --border-color: #444;
+            --accent-color: #dc3545; /* Rouge pour Admin */
+            --input-bg: rgba(0,0,0,0.2);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 40px; border-bottom: 1px solid var(--border-color); padding-bottom: 20px;
+        }
+        .card {
+            background-color: var(--card-bg); padding: 30px; border-radius: 12px;
+            border: 1px solid var(--border-color); margin-bottom: 30px;
+        }
+        h1, h2 { margin-top: 0; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: var(--text-secondary); }
+        .form-control {
+            width: 100%; padding: 10px; background-color: var(--input-bg);
+            border: 1px solid var(--border-color); border-radius: 5px;
+            color: var(--text-primary); box-sizing: border-box;
+        }
+        .btn {
+            padding: 12px 20px; border-radius: 5px; border: none; cursor: pointer;
+            font-weight: bold; text-decoration: none; display: inline-block;
+        }
+        .btn-primary { background-color: var(--accent-color); color: white; width: 100%; }
+        .btn-secondary { background-color: #333; color: white; border: 1px solid #555; }
+        .btn-secondary:hover { background-color: #444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Super Admin (SADMIN)</h1>
+            <div>
+                <a href="Dashboard.html" class="btn btn-secondary">Aller au Tableau de Bord Personnel</a>
+                <button onclick="logout()" class="btn btn-secondary" style="margin-left: 10px;">Déconnexion</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Créer un nouveau Client (Complet)</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Crée le compte utilisateur, le profil associé et génère l'URL.</p>
+            
+            <form id="create-client-form" onsubmit="handleCreateClient(event)">
+                <div class="form-group">
+                    <label>Email (Identifiant)</label>
+                    <input type="email" id="email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Mot de passe</label>
+                    <input type="text" id="password" class="form-control" required value="Mahu2024!">
+                </div>
+                <div class="form-group">
+                    <label>Nom Complet</label>
+                    <input type="text" id="nom" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Téléphone</label>
+                    <input type="tel" id="telephone" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Profession</label>
+                    <input type="text" id="profession" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Compagnie</label>
+                    <input type="text" id="compagnie" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Lieu</label>
+                    <input type="text" id="location" class="form-control">
+                </div>
+                
+                <button type="submit" id="submit-btn" class="btn btn-primary">Créer le Client</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        // Vérification Auth
+        const token = localStorage.getItem('authToken');
+        if (!token) window.location.href = 'Connexion.html';
+
+        function callApi(action, data = {}) {
+            const formData = new FormData();
+            formData.append('action', action);
+            formData.append('token', token);
+            for (const key in data) {
+                const value = typeof data[key] === 'object' ? JSON.stringify(data[key]) : data[key];
+                formData.append(key, value);
+            }
+            return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
+        }
+
+        function handleCreateClient(event) {
+            event.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.textContent = "Création en cours...";
+
+            const data = {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                nom: document.getElementById('nom').value,
+                telephone: document.getElementById('telephone').value,
+                profession: document.getElementById('profession').value,
+                compagnie: document.getElementById('compagnie').value,
+                location: document.getElementById('location').value
+            };
+
+            callApi('adminRegisterClient', data)
+                .then(res => {
+                    if (res.success) {
+                        alert('Client créé avec succès !');
+                        document.getElementById('create-client-form').reset();
+                    } else {
+                        alert('Erreur : ' + res.error);
+                    }
+                })
+                .catch(err => alert('Erreur réseau : ' + err.message))
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = "Créer le Client";
+                });
+        }
+
+        function logout() {
+            localStorage.removeItem('authToken');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

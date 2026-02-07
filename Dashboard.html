@@ -1804,7 +1804,7 @@
             currentUser = user; // Stocker pour usage global
 
             // --- GESTION DES RÔLES ---
-            if (user.Role === 'Entreprise' || user.Role === 'Admin' || user.Role === 'Particulier') {
+            if (user.Role === 'Entreprise' || user.Role === 'Admin' || user.Role === 'Particulier' || user.Role === 'SADMIN') {
                 document.body.classList.add('role-entreprise');
                 
                 // Masquer l'onglet Équipe pour les Particuliers car ils sont seuls
