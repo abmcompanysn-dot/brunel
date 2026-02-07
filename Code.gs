@@ -135,17 +135,6 @@ function doPost(e) {
 }
 
 /**
- * Gère les requêtes "preflight" CORS envoyées par les navigateurs.
- */
-function doOptions(e) {
-  // Réponse standard pour les requêtes preflight CORS.
-  return ContentService.createTextOutput()
-    .addHttpHeader('Access-Control-Allow-Origin', '*')
-    .addHttpHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-    .addHttpHeader('Access-Control-Allow-Headers', 'Content-Type');
-}
-
-/**
  * ==================================================================
  * FONCTION UTILITAIRE CORS
  * ==================================================================
@@ -172,8 +161,6 @@ function corsify(data, e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 
-  // Ajoute l'en-tête CORS pour autoriser les requêtes cross-domain.
-  output.addHttpHeader('Access-Control-Allow-Origin', '*');
   return output;
 }
 
