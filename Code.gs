@@ -21,9 +21,9 @@ const CONFIG = {
 function doGet(e) {
   // Optimisation : Permettre la récupération du profil via GET pour une meilleure performance
   if (e.parameter.action === 'getProfileData') {
-    return corsify(getProfileData(e.parameter.user));
+    return corsify(getProfileData(e.parameter.user), e);
   }
-  return corsify({ status: 'API en ligne', message: 'Veuillez utiliser des requêtes POST.' });
+  return corsify({ status: 'API en ligne', message: 'Veuillez utiliser des requêtes POST.' }, e);
 }
 
 /**
@@ -120,7 +120,7 @@ function doPost(e) {
         break;
     }
     logAction(action, 'SUCCESS', `Action exécutée avec succès.`, userEmail);
-    return corsify(result);
+    return corsify(result, e);
   } catch (err) {
     const action = e.parameter.action || 'inconnue';
     const userIdentifier = e.parameter.token ? 'Token: ' + e.parameter.token : 'anonyme';
@@ -130,7 +130,7 @@ function doPost(e) {
     logAction(action, 'ERROR', errorMessage, userIdentifier, `Vérifiez que les données envoyées sont correctes. Payload reçu: ${JSON.stringify(e.parameter)}. Si l'erreur persiste, consultez les logs.`);
     
     // Renvoie une réponse d'erreur générique au client, mais avec les en-têtes CORS
-    return corsify({ success: false, error: "Une erreur interne est survenue. L'incident a été enregistré." });
+    return corsify({ success: false, error: "Une erreur interne est survenue. L'incident a été enregistré." }, e);
   }
 }
 
@@ -138,7 +138,11 @@ function doPost(e) {
  * Gère les requêtes "preflight" CORS envoyées par les navigateurs.
  */
 function doOptions(e) {
-  return corsify(null, true);
+  // Réponse standard pour les requêtes preflight CORS.
+  return ContentService.createTextOutput()
+    .addHttpHeader('Access-Control-Allow-Origin', '*')
+    .addHttpHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+    .addHttpHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
 /**
@@ -156,18 +160,22 @@ function doOptions(e) {
 function corsify(data, e) {
   var json = JSON.stringify(data);
   var callback = e && e.parameter && e.parameter.callback;
-  
+  var output;
+
   if (callback) {
     // Réponse JSONP : enveloppe dans une fonction callback
-    return ContentService.createTextOutput(callback + "(" + json + ")")
+    output = ContentService.createTextOutput(callback + "(" + json + ")")
       .setMimeType(ContentService.MimeType.JAVASCRIPT);
   } else {
     // Réponse JSON normale
-    return ContentService.createTextOutput(json)
+    output = ContentService.createTextOutput(json)
       .setMimeType(ContentService.MimeType.JSON);
   }
+
+  // Ajoute l'en-tête CORS pour autoriser les requêtes cross-domain.
+  output.addHttpHeader('Access-Control-Allow-Origin', '*');
+  return output;
 }
-  
 
 
 /**
@@ -1227,36 +1235,42 @@ function getProfileData(profileUrl) {
     const usersSheet = ss.getSheetByName('Utilisateurs');
     const profilesSheet = ss.getSheetByName('Profils');
 
-    // --- OPTIMISATION : Recherche 
-    // Recherche de l'URL directement dans la feuille sans tout charger
+    // --- OPTIMISATION & CORRECTION : Recherche robuste de l'URL ---
     const finder = usersSheet.createTextFinder(profileUrl).matchEntireCell(true);
-    const foundCell = finder.findNext();
+    const foundCells = finder.findAll();
 
-    if (!foundCell) return { error: "Profil non trouvé." };
+    if (foundCells.length === 0) return { error: "Profil non trouvé." };
 
-    const userRowIndex = foundCell.getRow();
-    
-    // Récupération des en-têtes et de la ligne utilisateur spécifique uniquement
     const headers = getCachedHeaders(usersSheet);
-    const userRowData = usersSheet.getRange(userRowIndex, 1, 1, headers.length).getValues()[0];
-
-    // Normalisation des en-têtes
     const headersMap = headers.reduce((acc, header, index) => {
       acc[String(header).trim().toLowerCase()] = index;
       return acc;
     }, {});
 
-    // Validation : Vérifier que la correspondance est bien dans une colonne URL
-    const foundColIndex = foundCell.getColumn() - 1; // Index base 0 pour le tableau
     const urlIndices = [
       headersMap['url_profil'],
       headersMap['url_profil_2'],
       headersMap['url_profil_3']
     ].filter(idx => idx !== undefined);
 
-    if (!urlIndices.includes(foundColIndex)) {
-         return { error: "Profil non trouvé (Correspondance invalide)." };
+    let userRowIndex = -1;
+    // Parcourir toutes les cellules trouvées pour en trouver une dans une colonne d'URL valide.
+    for (var i = 0; i < foundCells.length; i++) {
+      var cell = foundCells[i];
+      var colIndex = cell.getColumn() - 1; // Index base 0
+      if (urlIndices.indexOf(colIndex) !== -1) {
+        userRowIndex = cell.getRow();
+        break; // On a trouvé une correspondance valide, on arrête la boucle.
+      }
     }
+
+    if (userRowIndex === -1) {
+      // Aucune des correspondances n'était dans une colonne d'URL.
+      return { error: "Profil non trouvé (URL invalide)." };
+    }
+    
+    // Récupération de la ligne utilisateur spécifique uniquement
+    const userRowData = usersSheet.getRange(userRowIndex, 1, 1, headers.length).getValues()[0];
 
     // Récupérer les infos
     const userId = userRowData[headersMap['id_unique']];
@@ -2014,6 +2028,7 @@ function updateOnboardingData(request, user) {
       if (request.data.Role) {
         const roleCol = userHeaders.indexOf('Role') + 1;
         userSheet.getRange(userRowIndex, roleCol).setValue(request.data.Role);
+        userSheet.getRange(userRowIndex, roleCol + 1).setValue(request.data.Role);
         Logger.log(`Rôle mis à jour à '${request.data.Role}' pour ${user.Email}.`);
       }
       
