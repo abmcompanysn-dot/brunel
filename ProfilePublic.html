@@ -413,11 +413,8 @@
             const source = urlParams.get('source') || 'Lien'; // 'NFC', 'QR', 'Lien'
 
             if (profileUrl) {
-                // Optimisation Vitesse : Utilisation de GET au lieu de POST pour accélérer la requête
-                const getUrl = `${API_URL}?action=getProfileData&user=${encodeURIComponent(profileUrl)}`;
-                
-                fetch(getUrl)
-                    .then(res => res.json())
+                // Utilisation de POST (via callApi) pour éviter les erreurs CORS et assurer la stabilité
+                callApi('getProfileData', { user: profileUrl })
                     .then(data => {
                         if (data.error) {
                             onProfileError({ message: data.error });
