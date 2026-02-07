@@ -404,14 +404,17 @@
         }
 
         // Au chargement de la page, récupérer l'URL du profil et charger les données
-        window.addEventListener('load', function() {
+        document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const profileUrl = urlParams.get('user');
             const source = urlParams.get('source') || 'Lien'; // 'NFC', 'QR', 'Lien'
 
             if (profileUrl) {
-                // Utilisation de POST pour garantir la cohérence avec trackView et éviter les problèmes de cache
-                callApi('getProfileData', { user: profileUrl })
+                // Optimisation Vitesse : Utilisation de GET au lieu de POST pour accélérer la requête
+                const getUrl = `${API_URL}?action=getProfileData&user=${encodeURIComponent(profileUrl)}`;
+                
+                fetch(getUrl)
+                    .then(res => res.json())
                     .then(data => {
                         if (data.error) {
                             onProfileError({ message: data.error });

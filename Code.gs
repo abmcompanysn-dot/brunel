@@ -107,6 +107,9 @@ function doPost(e) {
           case 'saveEnterpriseInfo':
             result = saveEnterpriseInfo(payload, user);
             break;
+          case 'adminRegisterClient':
+            result = adminRegisterClient(payload, user);
+            break;
           case 'deleteEmployee':
             result = deleteEmployee(payload, user);
             break;
@@ -1207,51 +1210,42 @@ function getProfileData(profileUrl) {
     const usersSheet = ss.getSheetByName('Utilisateurs');
     const profilesSheet = ss.getSheetByName('Profils');
 
-    // --- OPTIMISATION : Recherche en mémoire (Plus robuste) ---
+    // --- OPTIMISATION : Recherche 
+    // Recherche de l'URL directement dans la feuille sans tout charger
+    const finder = usersSheet.createTextFinder(profileUrl).matchEntireCell(true);
+    const foundCell = finder.findNext();
+
+    const userRowIndex = foundCell.getRow();
     
-    // 1. Récupérer toutes les données
-    const usersData = usersSheet.getDataRange().getValues();
-    if (usersData.length <= 1) return { error: "Aucun utilisateur enregistré." };
-    
-    // Normalisation des en-têtes pour éviter les erreurs de casse ou d'espaces
-    const headersMap = usersData[0].reduce((acc, header, index) => {
+    // Récupération des en-têtes et de la ligne utilisateur spécifique uniquement
+    const headers = usersSheet.getRange(1, 1, 1, usersSheet.getLastColumn()).getValues()[0];
+    const userRowData = usersSheet.getRange(userRowIndex, 1, 1, usersSheet.getLastColumn()).getValues()[0];
+
+    // Normalisation des en-têtes
+    const headersMap = headers.reduce((acc, header, index) => {
       acc[String(header).trim().toLowerCase()] = index;
       return acc;
     }, {});
 
-    // 2. Identifier les colonnes d'URL disponibles
+    // Validation : Vérifier que la correspondance est bien dans une colonne URL
+    const foundColIndex = foundCell.getColumn() - 1; // Index base 0 pour le tableau
     const urlIndices = [
       headersMap['url_profil'],
       headersMap['url_profil_2'],
       headersMap['url_profil_3']
     ].filter(idx => idx !== undefined);
 
-    if (urlIndices.length === 0) return { error: "Colonnes URL introuvables. Lancez 'Vérifier la Structure' dans le menu Admin." };
+    if (!urlIndices.includes(foundColIndex)) {
+         return { error: "Profil non trouvé (Correspondance invalide)." };
+    }
 
-    // 3. Chercher l'URL (insensible à la casse et aux espaces)
-    const targetUrl = profileUrl.toLowerCase();
-    let userRowData = null;
-    
-    // On cherche la première ligne d'utilisateur où l'une des colonnes URL correspond à l'URL cible.
-    // Cela permet d'identifier un profil via son URL principale, secondaire (2) ou tertiaire (3).
-    userRowData = usersData.slice(1).find(row => {
-      return urlIndices.some(index => {
-        const cellValue = row[index] || '';
-        return String(cellValue).trim().toLowerCase() === targetUrl;
-      });
-    });
-
-    if (!userRowData) return { error: "Profil non trouvé." };
-
-    // 4. Récupérer les infos
+    // Récupérer les infos
     const userId = userRowData[headersMap['id_unique']];
     const userEmail = userRowData[headersMap['email']];
-    const enterpriseId = userRowData[headersMap['id_entreprise']];
     const mainUrl = userRowData[headersMap['url_profil']];
+    const enterpriseId = userRowData[headersMap['id_entreprise']];
 
-    if (!userId) return { error: "ID utilisateur introuvable pour ce profil." };
-
-    // 4. Chercher le profil correspondant dans la feuille Profils
+    // --- Récupération des données du profil ---
     const profilesHeaders = profilesSheet.getRange(1, 1, 1, profilesSheet.getLastColumn()).getValues()[0];
     const pIdColIdx = profilesHeaders.indexOf('ID_Utilisateur') + 1;
     
@@ -1260,9 +1254,8 @@ function getProfileData(profileUrl) {
       .matchEntireCell(true);
     const foundProfile = profileFinder.findNext();
 
-    if (!foundProfile) return { error: "Données de profil manquantes." };
+    if (!foundProfile) return { error: "Données de profil introuvables." };
 
-    // 5. Lire les données du profil
     const profileRowIndex = foundProfile.getRow();
     const profileData = profilesSheet.getRange(profileRowIndex, 1, 1, profilesSheet.getLastColumn()).getValues()[0];
 
@@ -1594,6 +1587,105 @@ function handleLeadCapture(leadData) {
   } catch (e) {
     Logger.log(`Erreur dans handleLeadCapture: ${e.message}`);
     return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Enregistre un nouveau client complet (Admin seulement).
+ * Gère la création du compte, du profil et l'upload des images.
+ */
+function adminRegisterClient(data, adminUser) {
+  // Vérification des droits (Optionnel : on peut restreindre aux rôles 'Entreprise' ou Admin)
+  // if (adminUser.Role !== 'Entreprise') return { success: false, error: "Accès refusé." };
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const userSheet = ss.getSheetByName('Utilisateurs');
+  const profileSheet = ss.getSheetByName('Profils');
+
+  // 1. Vérifier si l'email existe déjà
+  const usersData = userSheet.getDataRange().getValues();
+  const emailCol = usersData[0].indexOf('Email');
+  if (usersData.slice(1).some(row => row[emailCol] === data.email)) {
+    return { success: false, error: "Cet email est déjà utilisé." };
+  }
+
+  // 2. Créer l'utilisateur (Utilisateurs)
+  const newId = 'user_' + Utilities.getUuid();
+  // Génération d'une URL de profil propre (nom-prenom-random)
+  const baseSlug = (data.nom || 'user').toLowerCase().replace(/[^a-z0-9]/g, '-');
+  const profileUrl = baseSlug + '-' + Math.floor(Math.random() * 1000);
+  
+  // Sécurisation mot de passe
+  const salt = Utilities.getUuid();
+  const passwordHash = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + data.password));
+  const storedPassword = salt + "$" + passwordHash;
+
+  // Ajout ligne Utilisateur
+  // ID, Email, Pass, ID_Ent, Role, URL, URL2, URL3, NFC, Status, Token...
+  userSheet.appendRow([
+    newId, data.email, storedPassword, '', 'Entreprise', profileUrl, '', '', '[]', 'COMPLETED', '', '', '', ''
+  ]);
+
+  // 3. Gérer les images (Upload vers Drive)
+  let photoUrl = '';
+  let coverUrl = '';
+
+  if (data.photoBase64) {
+    photoUrl = uploadImageToDrive(data.photoBase64, `photo_${newId}.png`);
+  }
+  if (data.coverBase64) {
+    coverUrl = uploadImageToDrive(data.coverBase64, `cover_${newId}.png`);
+  }
+
+  // 4. Créer le profil complet (Profils)
+  const headers = profileSheet.getRange(1, 1, 1, profileSheet.getLastColumn()).getValues()[0];
+  const newProfileRow = headers.map(header => {
+    switch(header) {
+      case 'ID_Utilisateur': return newId;
+      case 'Email': return data.email;
+      case 'Nom_Complet': return data.nom;
+      case 'Telephone': return data.telephone || '';
+      case 'Profession': return data.profession || '';
+      case 'Compagnie': return data.compagnie || '';
+      case 'Location': return data.location || '';
+      case 'URL_Photo': return photoUrl;
+      case 'URL_Couverture': return coverUrl;
+      case 'Liens_Sociaux_JSON': return '[]';
+      case 'Lead_Capture_Actif': return 'NON';
+      case 'Services_JSON': return '[]';
+      default: return '';
+    }
+  });
+  profileSheet.appendRow(newProfileRow);
+
+  // 5. Envoyer email de bienvenue (Réutilisation de la logique existante ou simplifiée)
+  try {
+    sendEmail(data.email, "Bienvenue sur Mahu", `Bonjour ${data.nom},<br><br>Votre compte a été créé avec succès.<br>Email: ${data.email}<br>Mot de passe: ${data.password}<br><br>Connectez-vous ici : https://mahu.cards/Connexion.html`);
+  } catch (e) { Logger.log("Erreur mail: " + e.message); }
+
+  return { success: true, message: "Client créé avec succès." };
+}
+
+/**
+ * Fonction utilitaire pour uploader une image Base64 sur Drive et obtenir un lien public.
+ */
+function uploadImageToDrive(base64String, fileName) {
+  try {
+    // Nettoyage du header data:image/...;base64,
+    const data = base64String.split(',')[1] || base64String;
+    const blob = Utilities.newBlob(Utilities.base64Decode(data), MimeType.PNG, fileName);
+    
+    // Création du fichier à la racine (ou dossier spécifique si besoin)
+    const file = DriveApp.createFile(blob);
+    
+    // Rendre le fichier public pour qu'il soit visible sur le profil
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    // Astuce : Utiliser le lien d'exportation pour l'affichage direct en IMG src
+    return "https://drive.google.com/uc?export=view&id=" + file.getId();
+  } catch (e) {
+    Logger.log("Erreur upload Drive: " + e.message);
+    return "";
   }
 }
 

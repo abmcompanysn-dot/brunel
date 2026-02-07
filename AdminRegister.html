@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - Enregistrement Client</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background-color: #121212;
+            color: white;
+            font-family: sans-serif;
+            padding: 20px;
+        }
+        .admin-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        h1 { text-align: center; color: #007bff; margin-bottom: 30px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #444;
+            background-color: #2c2c2c;
+            color: white;
+            box-sizing: border-box;
+        }
+        .file-input-wrapper {
+            border: 2px dashed #444;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .file-input-wrapper:hover { border-color: #007bff; }
+        .btn-submit {
+            width: 100%;
+            padding: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-submit:hover { background-color: #0056b3; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        #status-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+            text-align: center;
+        }
+        .success { background-color: rgba(40, 167, 69, 0.2); color: #28a745; border: 1px solid #28a745; }
+        .error { background-color: rgba(220, 53, 69, 0.2); color: #dc3545; border: 1px solid #dc3545; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-container">
+        <h1>Nouveau Client Mahu</h1>
+        <form id="register-form" onsubmit="handleRegister(event)">
+            
+            <h3>Informations de Connexion</h3>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" name="email" required placeholder="client@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Mot de passe *</label>
+                    <input type="password" name="password" required placeholder="********">
+                </div>
+            </div>
+
+            <h3>Profil Public</h3>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Nom Complet *</label>
+                    <input type="text" name="nom" required placeholder="Jean Dupont">
+                </div>
+                <div class="form-group">
+                    <label>Téléphone</label>
+                    <input type="text" name="telephone" placeholder="+221 77 ...">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Profession</label>
+                    <input type="text" name="profession" placeholder="Directeur Général">
+                </div>
+                <div class="form-group">
+                    <label>Entreprise</label>
+                    <input type="text" name="compagnie" placeholder="Nom de l'entreprise">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Adresse / Localisation</label>
+                <input type="text" name="location" placeholder="Dakar, Sénégal">
+            </div>
+
+            <h3>Images</h3>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Photo de Profil</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="photo-file" accept="image/*">
+                        <p>Cliquez pour choisir une photo</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Photo de Couverture</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="cover-file" accept="image/*">
+                        <p>Cliquez pour choisir une couverture</p>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" id="submit-btn" class="btn-submit">Enregistrer le Client</button>
+        </form>
+        <div id="status-message"></div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        // Vérification basique que l'utilisateur est connecté (Admin)
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            window.location.href = 'Connexion.html';
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            const msgDiv = document.getElementById('status-message');
+            
+            btn.disabled = true;
+            btn.textContent = "Traitement en cours...";
+            msgDiv.style.display = 'none';
+
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+
+            // Conversion des images en Base64
+            try {
+                if (document.getElementById('photo-file').files[0]) {
+                    data.photoBase64 = await toBase64(document.getElementById('photo-file').files[0]);
+                }
+                if (document.getElementById('cover-file').files[0]) {
+                    data.coverBase64 = await toBase64(document.getElementById('cover-file').files[0]);
+                }
+
+                // Envoi à l'API
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: new URLSearchParams({
+                        action: 'adminRegisterClient',
+                        token: token, // Token de l'admin qui fait l'action
+                        payload: JSON.stringify(data)
+                    })
+                }).then(res => res.json());
+
+                if (response.success) {
+                    msgDiv.className = 'success';
+                    msgDiv.textContent = "Client créé avec succès ! Il peut maintenant se connecter.";
+                    msgDiv.style.display = 'block';
+                    event.target.reset();
+                } else {
+                    throw new Error(response.error || "Erreur inconnue");
+                }
+            } catch (error) {
+                msgDiv.className = 'error';
+                msgDiv.textContent = "Erreur : " + error.message;
+                msgDiv.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Enregistrer le Client";
+            }
+        }
+
+        function toBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+    </script>
+</body>
+</html>
