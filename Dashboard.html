@@ -1569,22 +1569,35 @@
             saveDataToSheet(profileData, button);
         }
 
-        function uploadToImgBB(file) {
+        function uploadToCloudinary(file) {
             return new Promise((resolve, reject) => {
-                const apiKey = '96ff1e4e9603661db4d410f53df99454'; // Clé API ImgBB directement dans le code
-                const formData = new FormData();
-                formData.append('image', file);
+                // REMPLACEZ AVEC VOS INFORMATIONS CLOUDINARY
+                const CLOUDINARY_CLOUD_NAME = 'dl3cdiz6k'; // <-- METTEZ VOTRE "CLOUD NAME" ICI
+                const CLOUDINARY_UPLOAD_PRESET = 'mahucards'; // <-- METTEZ VOTRE "UPLOAD PRESET" NON SIGNÉ ICI
 
-                fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+                if (CLOUDINARY_CLOUD_NAME === 'VOTRE_CLOUD_NAME' || CLOUDINARY_UPLOAD_PRESET === 'VOTRE_UPLOAD_PRESET') {
+                    const errorMsg = "Veuillez configurer votre CLOUD_NAME et UPLOAD_PRESET Cloudinary dans le fichier Dashboard.html.";
+                    alert(errorMsg);
+                    return reject(new Error(errorMsg));
+                }
+
+                const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+                fetch(url, {
                     method: 'POST',
                     body: formData
                 })
                 .then(response => response.json())
                 .then(result => {
-                    if (result.success) {
-                        resolve(result.data.url);
+                    if (result.secure_url) {
+                        // On retourne l'URL sécurisée de l'image
+                        resolve(result.secure_url);
                     } else {
-                        reject(new Error('Erreur ImgBB: ' + result.error.message));
+                        reject(new Error('Erreur Cloudinary: ' + (result.error?.message || 'Réponse invalide')));
                     }
                 })
                 .catch(reject);
@@ -1635,7 +1648,7 @@
 
             // Uploader et sauvegarder
             alert('Mise à jour de l\'image en cours...');
-            uploadToImgBB(file).then(url => {
+            uploadToCloudinary(file).then(url => {
                 // Utilise la nouvelle fonction avec le format attendu par le backend
                 saveImageData(type, url);
             }).catch(err => alert("Erreur d'upload: " + err.message));
@@ -1695,7 +1708,7 @@
 
             alert("Envoi du document en cours vers le coffre-fort...");
 
-            uploadToImgBB(file).then(url => {
+            uploadToCloudinary(file).then(url => {
                 const docName = file.name;
                 const payload = { 
                     type: type, 

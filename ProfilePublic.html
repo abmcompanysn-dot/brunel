@@ -441,17 +441,25 @@
             errorContainer.style.display = 'block';
         }
 
-        // Fonction pour optimiser les URLs d'images (Google Drive) pour un chargement ultra-rapide
+        // Fonction pour optimiser les URLs d'images pour un chargement ultra-rapide
         function getOptimizedImageUrl(url, size) {
             if (!url) return '';
             
-            // Gestion explicite pour ImgBB : Retourner l'URL telle quelle pour éviter tout conflit avec l'optimisation Drive
-            if (url.indexOf('ibb.co') !== -1) {
+            // NOUVEAU : Gestion pour Cloudinary
+            if (url.includes('res.cloudinary.com')) {
+                // Insère les transformations de taille juste après /upload/
+                // Exemple : w_300,c_limit,q_auto,f_auto (limite la largeur, qualité et format auto)
+                const transformation = `w_${size},c_limit,q_auto,f_auto`;
+                return url.replace('/upload/', `/upload/${transformation}/`);
+            }
+
+            // Gestion pour ImgBB : Retourner l'URL telle quelle
+            if (url.includes('ibb.co')) {
                 return url;
             }
 
             // Transforme les liens Google Drive standards (lents) en liens CDN (rapides)
-            if (url.indexOf('drive.google.com') !== -1 && url.indexOf('id=') !== -1) {
+            if (url.includes('drive.google.com') && url.includes('id=')) {
                 var id = url.split('id=')[1].split('&')[0];
                 // sz=s{size} demande au serveur Google de redimensionner l'image à la volée
                 return 'https://drive.google.com/thumbnail?id=' + id + '&sz=s' + size;
