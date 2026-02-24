@@ -1459,6 +1459,7 @@
 
         function toggleModule(moduleName, isEnabled) {
             const dataToSave = {};
+            if (currentUser && currentUser.URL_Profil) dataToSave.user = currentUser.URL_Profil; // Important pour le cache
             // Convertit le booléen en 'OUI' ou 'NON' pour la feuille de calcul
             dataToSave[moduleName] = isEnabled ? 'OUI' : 'NON';
 
@@ -1540,6 +1541,7 @@
             const profileForm = document.getElementById('profile-form');
 
             const profileData = {
+                user: profileForm.URL_Profil.value || (currentUser ? currentUser.URL_Profil : ''), // Important pour le cache
                 // Panneau "À propos"
                 Nom_Complet: profileForm.Nom_Complet.value,
                 URL_Profil: profileForm.URL_Profil.value, // Ajout du nouveau champ
@@ -1668,7 +1670,11 @@
 
         // Fonction dédiée à la sauvegarde des données d'image via la nouvelle action
         function saveImageData(imageType, imageUrl) {
-            const payload = { imageType: imageType, imageUrl: imageUrl };
+            const payload = { 
+                imageType: imageType, 
+                imageUrl: imageUrl,
+                user: currentUser ? currentUser.URL_Profil : '' // Important pour le cache
+            };
             callApi('saveProfileImage', { payload: payload })
                 .then(response => {
                     alert(response.error || response.message || 'Image sauvegardée !');

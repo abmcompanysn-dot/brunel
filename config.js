@@ -1,9 +1,3 @@
-// config.js
-// Ce fichier centralise la configuration de l'application.
-
-// URL de déploiement de votre script Google Apps Script en tant qu'API web.
-// IMPORTANT : Chaque fois que vous redéployez votre script, vous devez mettre à jour cette URL.
-
-const API_URL = "https://script.google.com/macros/s/AKfycbzUcADa5RmJRqTk4rWO1Hw6dXLanAly1iWM-iA2CyTNJRETDVecAp32hEXi-pl-isWJew/exec";
-
-
+// Exemple de contenu pour config.js
+// const API_URL = "https://script.google.com/macros/s/..../exec"; // ANCIENNE URL
+const API_URL = "https://mahuprofile.abmcompanysn.workers.dev"; // NOUVELLE URL CLOUDFLARE
