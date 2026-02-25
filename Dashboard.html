@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tableau de Bord</title>
     <link rel="icon" href="r/logo.png" type="image/png">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <style>
         /* Thème sombre par défaut */
         :root {
@@ -1199,6 +1200,16 @@
                             <option value="fullscreen_photo">Photo de profil en plein écran</option>
                             <option value="fullscreen_bg">Arrière-plan en plein écran</option>
                         </select>
+                        
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label>Disposition des infos (Sous le nom)</label>
+                            <select name="Info_Separator" id="Info_Separator" class="form-control" onchange="updatePhoneDetails()">
+                                <option value=" | ">Barre verticale ( | )</option>
+                                <option value=" - ">Tiret ( - )</option>
+                                <option value=" • ">Point ( • )</option>
+                                <option value="newline">Retour à la ligne (Liste)</option>
+                            </select>
+                        </div>
 
                         <h4 style="margin-top: 25px;">Typographie</h4>
                         <p class="text-secondary" style="color: var(--text-secondary); margin-top:-10px; margin-bottom: 10px;">Modifier la police et les couleurs du texte de votre profil.</p>
@@ -1347,6 +1358,21 @@
                 <button type="submit" id="product-save-button" class="btn btn-primary">Sauvegarder le produit</button>
                 <button type="button" class="btn btn-danger" id="product-delete-button" onclick="handleProductDelete()" style="display: none; margin-left: 10px;">Supprimer</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Modale de Recadrage d'Image -->
+    <div id="crop-modal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-btn" onclick="closeCropModal()">&times;</span>
+            <h2>Recadrer l'image</h2>
+            <div style="max-height: 400px; overflow: hidden; background: #333;">
+                <img id="image-to-crop" src="" style="max-width: 100%; display: block;">
+            </div>
+            <div style="margin-top: 20px; text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn btn-secondary" onclick="closeCropModal()">Annuler</button>
+                <button type="button" class="btn btn-primary" onclick="saveCroppedImage()">Recadrer & Sauvegarder</button>
+            </div>
         </div>
     </div>
 
@@ -1553,6 +1579,7 @@
 
                 // Panneau "Apparence"
                 Mise_En_Page: profileForm.Mise_En_Page.value,
+                Info_Separator: document.getElementById('Info_Separator').value, // Sauvegarde du séparateur
                 // Police: profileForm.Police.value, // Champ Police n'existe pas dans le HTML
                 Couleur_Theme: profileForm.Couleur_Theme.value, // Nouveau champ
                 Cacher_Marque: document.getElementById('toggle-branding').checked,
@@ -1633,28 +1660,80 @@
             document.getElementById(inputId).click();
         }
 
+        // Variables pour le recadrage
+        let cropper;
+        let currentImageType = ''; // 'picture' ou 'cover'
+
         /**
-         * Gère le changement d'image depuis l'aperçu et lance la sauvegarde.
+         * Gère le changement d'image : Ouvre la modale de recadrage au lieu d'uploader direct.
          */
         function handleDirectImageChange(event, type) {
             const file = event.target.files[0];
             if (!file) return;
 
-            // Mettre à jour l'aperçu
-            const previewUrl = URL.createObjectURL(file);
-            if (type === 'picture') {
-                document.getElementById('profile-picture-preview').src = previewUrl;
-            } else {
-                document.getElementById('profile-cover-preview').style.backgroundImage = `url('${previewUrl}')`;
-            }
+            currentImageType = type;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imageElement = document.getElementById('image-to-crop');
+                imageElement.src = e.target.result;
+                
+                // Ouvrir la modale
+                document.getElementById('crop-modal').style.display = 'block';
 
-            // Uploader et sauvegarder
-            alert('Mise à jour de l\'image en cours...');
-            uploadToCloudinary(file).then(url => {
-                // Utilise la nouvelle fonction avec le format attendu par le backend
-                saveImageData(type, url);
-            }).catch(err => alert("Erreur d'upload: " + err.message));
+                // Initialiser Cropper
+                if (cropper) {
+                    cropper.destroy();
+                }
+                cropper = new Cropper(imageElement, {
+                    aspectRatio: type === 'picture' ? 1 : 3/1, // Carré pour profil, Rectangle pour couverture
+                    viewMode: 1,
+                    autoCropArea: 1,
+                });
+            };
+            reader.readAsDataURL(file);
+            
+            // Reset l'input pour permettre de resélectionner le même fichier si besoin
+            event.target.value = '';
         }
+
+        function closeCropModal() {
+            document.getElementById('crop-modal').style.display = 'none';
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+        }
+
+        function saveCroppedImage() {
+            if (!cropper) return;
+
+            // Obtenir le canvas recadré
+            const canvas = cropper.getCroppedCanvas({
+                width: currentImageType === 'picture' ? 500 : 1200, // Taille max optimisée
+                height: currentImageType === 'picture' ? 500 : 400,
+            });
+
+            // Convertir en Blob pour l'upload
+            canvas.toBlob(function(blob) {
+                // Mettre à jour l'aperçu local immédiatement
+                const previewUrl = URL.createObjectURL(blob);
+                if (currentImageType === 'picture') {
+                    document.getElementById('profile-picture-preview').src = previewUrl;
+                } else {
+                    document.getElementById('profile-cover-preview').style.backgroundImage = `url('${previewUrl}')`;
+                }
+
+                // Fermer la modale
+                closeCropModal();
+
+                // Uploader et sauvegarder
+                alert('Mise à jour de l\'image en cours...');
+                uploadToCloudinary(blob).then(url => {
+                    saveImageData(currentImageType, url);
+                }).catch(err => alert("Erreur d'upload: " + err.message));
+            }, 'image/jpeg', 0.9);
+        }
+
 
         function deleteImage(event, type) {
             event.preventDefault();
@@ -1753,6 +1832,7 @@
     <!-- Intégration de Chart.js et appel à Apps Script -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <script>
         let viewsChartInstance = null; // Variable pour stocker l'instance du graphique
         let currentUser = null; // Variable globale pour stocker l'utilisateur courant
@@ -1902,6 +1982,7 @@
             // Panneau "Apparence"
             // Remplir les champs d'apparence avec les données sauvegardées (ou des valeurs par défaut)
             document.querySelector('select[name="Mise_En_Page"]').value = profile.Mise_En_Page || 'default';
+            document.getElementById('Info_Separator').value = profile.Info_Separator || ' | ';
             document.getElementById('Couleur_Theme').value = profile.Couleur_Theme || '#007BFF';
 
             // Remplir l'aperçu du téléphone
@@ -2176,8 +2257,14 @@
         });
 
         function updatePhoneDetails() {
+            const separatorVal = document.getElementById('Info_Separator').value;
             const parts = [document.getElementById('Profession').value, document.getElementById('Compagnie').value, document.getElementById('Location').value].filter(Boolean);
-            document.getElementById('phone-details-preview').textContent = parts.join(' | ') || 'Profession';
+            
+            if (separatorVal === 'newline') {
+                document.getElementById('phone-details-preview').innerHTML = parts.join('<br>');
+            } else {
+                document.getElementById('phone-details-preview').textContent = parts.join(separatorVal);
+            }
         }
 
         function updatePhoneSocialLinks() {

@@ -553,7 +553,11 @@
             // Concaténer Profession, Compagnie, Location
             const subtitleParts = [data.Profession, data.Compagnie, data.Location].filter(Boolean); // Filtre les valeurs vides
             const subtitleElement = card.querySelector('.profile-header p .real-text');
-            subtitleElement.textContent = subtitleParts.join(' | ');
+            // Gestion du séparateur personnalisé
+            const separator = data.Info_Separator === 'newline' ? '<br>' : (data.Info_Separator || ' | ');
+            
+            // Utilisation de innerHTML pour permettre le <br> si nécessaire
+            subtitleElement.innerHTML = subtitleParts.join(separator);
             subtitleElement.style.display = 'inline';
 
             // Remplir les champs copiables et les boutons d'action
