@@ -414,19 +414,37 @@
             const source = urlParams.get('source') || 'Lien'; // 'NFC', 'QR', 'Lien'
 
             if (profileUrl) {
+                // --- OPTIMISATION : CACHE LOCAL (LocalStorage) ---
+                // Permet d'afficher le profil instantanément si déjà visité (< 5ms)
+                const cacheKey = 'profile_data_' + profileUrl;
+                const cachedData = localStorage.getItem(cacheKey);
+                
+                if (cachedData) {
+                    try {
+                        const parsed = JSON.parse(cachedData);
+                        // Affiche immédiatement les données en mémoire
+                        populateProfile(parsed); 
+                    } catch (e) { console.error("Cache local invalide"); }
+                }
+
                 // Utilisation de POST (via callApi) pour éviter les erreurs CORS et assurer la stabilité
                 callApi('getProfileData', { user: profileUrl })
                     .then(data => {
                         if (data.error) {
-                            onProfileError({ message: data.error });
+                            // Si erreur réseau mais qu'on a le cache, on garde l'affichage actuel
+                            if (!cachedData) onProfileError({ message: data.error });
                         } else {
+                            // Mise à jour du cache local et de l'affichage avec les données fraîches (Réglages)
+                            localStorage.setItem(cacheKey, JSON.stringify(data));
                             populateProfile(data);
                         }
                         // Appeler la fonction de tracking après avoir chargé le profil
                         callApi('trackView', { payload: { profileUrl, source } })
                             .catch(err => console.error('Erreur de tracking:', err));
                     })
-                    .catch(err => onProfileError({ message: err.toString() }));
+                    .catch(err => {
+                        if (!cachedData) onProfileError({ message: err.toString() });
+                    });
             } else {
                 onProfileError({ message: "URL de profil manquante." });
             }
