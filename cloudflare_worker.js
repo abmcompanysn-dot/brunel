@@ -117,8 +117,10 @@ async function handleRequest(request) {
           const headers = new Headers(responseToCache.headers);
           
           // Configuration du cache : 
-          // s-maxage=3600 (1h sur Cloudflare), max-age=600 (10min sur le navigateur)
-          headers.set('Cache-Control', 'public, s-maxage=86400, max-age=300'); // 24h Cloudflare, 5min navigateur
+          // s-maxage=86400 : Le cache reste 24h sur les serveurs Cloudflare.
+          // stale-while-revalidate=604800 : Si le cache est périmé (après 24h), on le sert QUAND MÊME immédiatement, 
+          // et on met à jour en arrière-plan. (Valable 1 semaine).
+          headers.set('Cache-Control', 'public, s-maxage=86400, max-age=3600, stale-while-revalidate=604800');
           headers.set('Access-Control-Allow-Origin', '*');
           headers.set('X-Worker-Cache', 'MISS');
 

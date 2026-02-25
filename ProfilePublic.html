@@ -310,7 +310,8 @@
         <div class="profile-header">
             <div class="skeleton skeleton-img" style="width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 15px;"></div>
             <div id="profile-qrcode-placeholder"></div>
-            <img src="" alt="Photo de profil" style="display: none;" loading="lazy">
+            <!-- Optimisation : fetchpriority="high" force le navigateur à charger cette image AVANT tout le reste -->
+            <img src="" alt="Photo de profil" style="display: none;" fetchpriority="high">
             <h1>
                 <span class="skeleton skeleton-text" style="width: 60%; height: 28px; margin: 10px auto 5px;"></span>
                 <span class="real-text" style="display:none;">Nom Prénom</span>
@@ -448,8 +449,10 @@
             // NOUVEAU : Gestion pour Cloudinary
             if (url.includes('res.cloudinary.com')) {
                 // Insère les transformations de taille juste après /upload/
-                // Exemple : w_300,c_limit,q_auto,f_auto (limite la largeur, qualité et format auto)
-                const transformation = `w_${size},c_limit,q_auto,f_auto`;
+                // q_auto:eco = Compression agressive pour réduire le poids
+                // f_auto = Choisit le meilleur format (WebP ou AVIF)
+                // fl_progressive = L'image s'affiche floue immédiatement puis devient nette (sensation de vitesse)
+                const transformation = `w_${size},c_limit,q_auto:eco,f_auto,fl_progressive`;
                 return url.replace('/upload/', `/upload/${transformation}/`);
             }
 
@@ -498,6 +501,16 @@
                 // Comportement normal si la photo de profil existe
                 // Optimisation : On demande une version 1000px max pour la couverture (gain de poids ~80%)
                 const optimizedCover = getOptimizedImageUrl(data.URL_Couverture, 1000);
+                
+                // NOUVEAU : Préchargement forcé de l'image de couverture (car les background-image sont lents à démarrer)
+                if (optimizedCover) {
+                    const link = document.createElement('link');
+                    link.rel = 'preload';
+                    link.as = 'image';
+                    link.href = optimizedCover;
+                    document.head.appendChild(link);
+                }
+
                 card.querySelector('.profile-cover').style.backgroundImage = `url('${optimizedCover || ''}')`;
                 const profileImg = card.querySelector('.profile-header img');
                 // Optimisation : On demande une version 300px pour la photo de profil
