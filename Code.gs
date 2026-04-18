@@ -113,6 +113,9 @@ function doPost(e) {
           case 'deleteEmployee':
             result = deleteEmployee(payload, user);
             break;
+         case 'activatePhysicalCard':
+            result = activatePhysicalCard(payload, user);
+            break;
           default:
             result = { error: 'Action POST non reconnue.' };
             break;
@@ -204,6 +207,7 @@ function setupSpreadsheet() {
     { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut', 'Telephone'] },
     { name: 'Configuration', headers: ['Clé', 'Valeur', 'Description'] },
     { name: 'Commandes_Custom', headers: ['Date', 'Matériau', 'Finition', 'Prix', 'Nom Titulaire', 'Entreprise', 'Poste'] },
+    { name: 'PhysicalCards', headers: ['Code_Carte', 'Email_Proprietaire', 'Date_Activation', 'Statut'] },
     { name: 'Commandes', headers: ['Date', 'Produit', 'Prix', 'Client_Nom', 'Client_Email', 'Client_Telephone', 'Statut'] },
     // L'onglet Commandes n'était pas dans la nouvelle spec, mais on peut le garder si besoin.
     // { name: 'Commandes NFC', headers: ['ID_Commande', 'ID_Utilisateur', 'Type_Carte', 'Quantite', 'Date_Commande', 'Statut'] },
@@ -264,6 +268,7 @@ function verifyAndFixSheetStructure() {
     { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut', 'Telephone'] },
     { name: 'Configuration', headers: ['Clé', 'Valeur', 'Description'] },
     { name: 'Commandes', headers: ['Date', 'Produit', 'Prix', 'Client_Nom', 'Client_Email', 'Client_Telephone', 'Statut'] },
+    { name: 'PhysicalCards', headers: ['Code_Carte', 'Email_Proprietaire', 'Date_Activation', 'Statut'] },
   ];
 
   requiredSheets.forEach(sheetInfo => {
@@ -2031,5 +2036,53 @@ function updateOnboardingData(request, user) {
   } catch (e) {
     Logger.log(`Erreur dans updateOnboardingData: ${e.message}`);
     return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Action : activatePhysicalCard
+ * Lie une carte physique (via son code) au compte de l'utilisateur connecté.
+ * Permet de gérer plusieurs cartes par profil.
+ */
+function activatePhysicalCard(payload, user) {
+  try {
+    if (!user) return { success: false, error: "Non autorisé." };
+    
+    const code = (payload.activationCode || "").trim().toUpperCase();
+    if (!code) return { success: false, error: "Code manquant." };
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName("PhysicalCards");
+    
+    // Création de la feuille si elle n'existe pas encore
+    if (!sheet) {
+      sheet = ss.insertSheet("PhysicalCards");
+      sheet.appendRow(["Code_Carte", "Email_Proprietaire", "Date_Activation", "Statut"]);
+    }
+
+    const data = sheet.getDataRange().getValues();
+    let foundRow = -1;
+
+    // Vérifier si le code est déjà utilisé par quelqu'un d'autre
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === code) {
+        if (data[i][1] && data[i][1] !== "" && data[i][1] !== user.Email) {
+          return { success: false, error: "Cette carte appartient déjà à un autre utilisateur." };
+        }
+        foundRow = i + 1;
+        break;
+      }
+    }
+
+    if (foundRow !== -1) {
+      sheet.getRange(foundRow, 2, 1, 3).setValues([[user.Email, new Date(), "Active"]]);
+    } else {
+      sheet.appendRow([code, user.Email, new Date(), "Active"]);
+    }
+
+    logAction('activatePhysicalCard', 'SUCCESS', `Carte ${code} liée à ${user.Email}`, user.Email);
+    return { success: true, message: "Carte activée avec succès !" };
+  } catch (e) {
+    return { success: false, error: "Erreur d'activation : " + e.message };
   }
 }

@@ -300,3 +300,54 @@ h1, h2, h3 {
 .blog-card p { color: #ccc; font-size: 0.95em; line-height: 1.6; margin-bottom: 20px; }
 .read-more { color: var(--blue); text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 5px; }
 .read-more:hover { text-decoration: underline; }
+
+/* --- Styles pour les Mockups de Démo --- */
+.demo-section { background: #050505; overflow: hidden; }
+.demo-tabs { display: flex; justify-content: center; gap: 20px; margin-bottom: 50px; }
+.demo-tab-btn { 
+    background: #1a1a1a; color: white; border: 1px solid #333; padding: 12px 25px; 
+    border-radius: 30px; cursor: pointer; transition: all 0.3s; font-weight: 600;
+}
+.demo-tab-btn.active { background: var(--blue); border-color: var(--blue); }
+
+.demo-display { position: relative; min-height: 600px; display: flex; justify-content: center; align-items: center; }
+.demo-view { display: none; width: 100%; max-width: 900px; animation: fadeIn 0.5s ease; }
+.demo-view.active { display: block; }
+
+/* Mockup Laptop (Dashboard) */
+.laptop-frame {
+    background: #222; border-radius: 15px; padding: 10px; border: 4px solid #444;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.6); position: relative;
+    width: 100%; max-width: 900px; margin: 0 auto;
+}
+.laptop-screen { 
+    background: #121212; border-radius: 5px; height: 500px; overflow: hidden; 
+    display: flex; position: relative;
+}
+.laptop-sidebar { width: 60px; background: #1e1e1e; height: 100%; border-right: 1px solid #333; padding: 10px; }
+.laptop-content { flex-grow: 1; padding: 20px; overflow-y: auto; }
+
+.laptop-sidebar svg { color: #555; margin-bottom: 20px; width: 24px; display: block; margin-left: auto; margin-right: auto; }
+.laptop-sidebar .active svg { color: var(--blue); }
+
+/* Mockup Phone (Profile Public) */
+.phone-frame {
+    width: 300px; height: 600px; background: #111; border: 10px solid #222;
+    border-radius: 40px; margin: 0 auto; position: relative; overflow: hidden;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+}
+.phone-notch { 
+    width: 120px; height: 25px; background: #222; position: absolute; 
+    top: 0; left: 50%; transform: translateX(-50%); border-bottom-left-radius: 15px; 
+    border-bottom-right-radius: 15px; z-index: 10;
+}
+.phone-screen-inner { 
+    height: 100%; overflow-y: auto;
+}
+
+/* Ajustements pour que le contenu réel tienne dans les petits mockups */
+.demo-view .card { padding: 15px; font-size: 0.85em; }
+.demo-view h2, .demo-view h3 { font-size: 1.1em; }
+.demo-view .stat-item .number { font-size: 1.5em; }
+
+@keyframes slideUp { from { opacity: 0.5; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activer votre carte - Mahu</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { background: #000; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .activation-box { background: #111; padding: 40px; border-radius: 20px; border: 1px solid #222; width: 100%; max-width: 450px; text-align: center; }
+        .logo-small { height: 50px; margin-bottom: 30px; }
+        h1 { font-size: 1.8em; margin-bottom: 10px; color: #fff; }
+        p { color: #888; margin-bottom: 30px; }
+        .card-id-badge { background: #222; color: var(--blue); padding: 10px 20px; border-radius: 50px; font-family: monospace; font-weight: bold; margin-bottom: 30px; display: inline-block; }
+        .form-group { text-align: left; margin-bottom: 20px; }
+        label { display: block; color: #aaa; margin-bottom: 8px; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+    <div class="activation-box">
+        <img src="r/logo.png" alt="Mahu" class="logo-small">
+        <h1>Nouvelle Carte Détectée</h1>
+        <p>Cette carte n'est pas encore liée à un profil. Activez-la maintenant pour commencer à networker.</p>
+        
+        <div id="card-display" class="card-id-badge">CODE : chargement...</div>
+
+        <form id="quick-activation-form" onsubmit="handleQuickActivation(event)">
+            <div class="form-group">
+                <label>Votre Email Professionnel</label>
+                <input type="email" id="email" class="form-control" required placeholder="nom@entreprise.com">
+            </div>
+            <div class="form-group">
+                <label>Choisissez un mot de passe</label>
+                <input type="password" id="password" class="form-control" required placeholder="••••••••">
+            </div>
+            <button type="submit" id="btn-submit" class="btn btn-primary">Créer mon profil & Activer</button>
+        </form>
+        
+        <p style="margin-top: 20px; font-size: 0.8em;">Déjà un compte ? <a href="Connexion.html" style="color: var(--blue);">Connectez-vous</a> pour lier cette carte.</p>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const cardCode = urlParams.get('code');
+        
+        if (cardCode) {
+            document.getElementById('card-display').textContent = "CARTE : " + cardCode.toUpperCase();
+        } else {
+            window.location.href = "index.html";
+        }
+
+        async function handleQuickActivation(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit');
+            btn.disabled = true;
+            btn.textContent = "Activation...";
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                // 1. Inscription rapide
+                const regRes = await fetch(API_URL, {
+                    method: 'POST',
+                    body: new URLSearchParams({
+                        'action': 'registerUser',
+                        'payload': JSON.stringify({ email, password })
+                    })
+                }).then(r => r.json());
+
+                if (regRes.success) {
+                    localStorage.setItem('authToken', regRes.token);
+                    
+                    // 2. Activation de la carte immédiatement
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        body: new URLSearchParams({
+                            'action': 'activatePhysicalCard',
+                            'token': regRes.token,
+                            'payload': JSON.stringify({ activationCode: cardCode })
+                        })
+                    });
+
+                    alert("Succès ! Votre compte est créé et votre carte est active.");
+                    window.location.href = "Onboarding.html";
+                } else {
+                    alert("Erreur : " + regRes.error);
+                    btn.disabled = false;
+                    btn.textContent = "Créer mon profil & Activer";
+                }
+            } catch (err) { alert("Erreur réseau."); btn.disabled = false; }
+        }
+    </script>
+</body>
+</html>

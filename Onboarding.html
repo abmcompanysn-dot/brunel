@@ -358,7 +358,8 @@
                 payload.data.Nom_Complet = `${document.getElementById('first-name').value} ${document.getElementById('last-name').value}`;
                 payload.data.Telephone = document.getElementById('phone').value;
             } else if (currentStep === 2) {
-                payload.data.Role = onboardingData.accountType === 'team' ? 'Admin' : 'Particulier';
+                // Correction : Assurer que le rôle est correctement mappé pour le backend
+                payload.data.Role = (onboardingData.accountType === 'team') ? 'Entreprise' : 'Particulier';
             } else if (currentStep === 3) {
                 payload.data.Profession = document.getElementById('profession').value;
                 payload.data.Compagnie = document.getElementById('company').value;

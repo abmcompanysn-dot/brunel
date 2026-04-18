@@ -928,6 +928,26 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- NOUVELLE SECTION : ACTIVER UNE CARTE PHYSIQUE -->
+                <div class="card" style="border-top: 4px solid var(--accent-color);">
+                    <h3>Activer ma carte physique</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9em;">Vous avez reçu votre carte Mahu ? Entrez le code d'activation présent au dos ou scannez-la pour la lier à ce profil.</p>
+                    <div class="form-group" style="display: flex; gap: 10px;">
+                        <input type="text" id="activation-code" class="form-control" placeholder="Code d'activation (ex: MH-123456)">
+                        <button class="btn btn-primary" onclick="handleCardActivation()" style="width: auto;">Activer</button>
+                    </div>
+                    <div id="activation-status" style="margin-top: 10px; font-weight: bold;"></div>
+                    
+                    <!-- LISTE DES CARTES DÉJÀ LIÉES -->
+                    <div id="linked-cards-section" style="margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+                        <h4 style="font-size: 0.9em; text-transform: uppercase; color: var(--text-secondary);">Mes cartes actives</h4>
+                        <ul id="linked-cards-list" style="list-style: none; padding: 0; margin-top: 10px;">
+                            <!-- Rempli par JS -->
+                            <li style="color: var(--text-secondary); font-size: 0.85em;">Aucune carte physique liée pour le moment.</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
 
             <!-- Panneau Contacts -->
@@ -1778,6 +1798,30 @@
                 .finally(() => {
                     if (saveButton) { saveButton.textContent = 'Sauvegarder les changements'; saveButton.disabled = false; }
                 });
+        }
+
+        /**
+         * Gère l'activation d'une carte physique NFC.
+         */
+        function handleCardActivation() {
+            const code = document.getElementById('activation-code').value;
+            const status = document.getElementById('activation-status');
+            
+            if (!code) return alert("Veuillez entrer un code.");
+            
+            status.textContent = "Vérification...";
+            status.style.color = "var(--text-secondary)";
+
+            callApi('activatePhysicalCard', { payload: { activationCode: code } })
+                .then(res => {
+                    if (res.success) {
+                        status.textContent = "✅ Votre carte est maintenant active et liée à ce profil !";
+                        status.style.color = "#28a745";
+                    } else {
+                        status.textContent = "❌ " + (res.error || "Code invalide.");
+                        status.style.color = "#dc3545";
+                    }
+                }).catch(err => alert("Erreur de connexion."));
         }
 
         // --- Gestion des Documents (Mode Disque) ---
