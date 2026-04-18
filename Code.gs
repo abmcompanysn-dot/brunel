@@ -4,7 +4,7 @@
  * ==================================================================
  */
 const CONFIG = {
-  SENDER_NAME: "L'équipe Mahu", // Le nom qui apparaîtra comme expéditeur des e-mails.
+  SENDER_NAME: "MAHU DIGITAL SYSTEM", // Le nom qui apparaîtra comme expéditeur des e-mails.
   SENDER_EMAIL_ALIAS: "abmcompanysn@gmail.com" // OPTIONNEL: L'alias email à utiliser (ex: "contact@votre-site.com"). Doit être configuré dans Gmail > Paramètres > Comptes.
 };
 
@@ -52,6 +52,7 @@ function doPost(e) {
       case 'trackView': result = trackView(payload.profileUrl, payload.source); break;
       case 'handleLeadCapture': result = handleLeadCapture(payload); break;
       case 'getProfileData': result = getProfileData(e.parameter.user || payload.user); break;
+      case 'checkCardStatus': result = checkCardStatus(payload); break;
       case 'saveCustomCardOrder': result = saveCustomCardOrder(payload); break;
       case 'saveStoreOrder': result = saveStoreOrder(payload); break;
       case 'contactSupport': result = handleSupportMessage(payload, user); break;
@@ -115,6 +116,27 @@ function doPost(e) {
             break;
          case 'activatePhysicalCard':
             result = activatePhysicalCard(payload, user);
+            break;
+          case 'adminGetCardsData':
+            result = adminGetCardsData(user);
+            break;
+          case 'adminGenerateCardCodes':
+            result = adminGenerateCardCodes(payload, user);
+            break;
+          case 'adminUpdateCardSale':
+            result = adminUpdateCardSale(payload, user);
+            break;
+          case 'adminAssignCardLot':
+            result = adminAssignCardLot(payload, user);
+            break;
+          case 'adminCreateReseller':
+            result = adminCreateReseller(payload, user);
+            break;
+          case 'adminDeactivateCard':
+            result = adminDeactivateCard(payload, user);
+            break;
+          case 'adminBroadcastMessage':
+            result = adminBroadcastMessage(payload, user);
             break;
           default:
             result = { error: 'Action POST non reconnue.' };
@@ -207,7 +229,7 @@ function setupSpreadsheet() {
     { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut', 'Telephone'] },
     { name: 'Configuration', headers: ['Clé', 'Valeur', 'Description'] },
     { name: 'Commandes_Custom', headers: ['Date', 'Matériau', 'Finition', 'Prix', 'Nom Titulaire', 'Entreprise', 'Poste'] },
-    { name: 'PhysicalCards', headers: ['Code_Carte', 'Email_Proprietaire', 'Date_Activation', 'Statut'] },
+    { name: 'PhysicalCards', headers: ['Code_Carte', 'Email_Proprietaire', 'Date_Activation', 'Statut', 'Date_Vente', 'Vendeur', 'Commentaire'] },
     { name: 'Commandes', headers: ['Date', 'Produit', 'Prix', 'Client_Nom', 'Client_Email', 'Client_Telephone', 'Statut'] },
     // L'onglet Commandes n'était pas dans la nouvelle spec, mais on peut le garder si besoin.
     // { name: 'Commandes NFC', headers: ['ID_Commande', 'ID_Utilisateur', 'Type_Carte', 'Quantite', 'Date_Commande', 'Statut'] },
@@ -268,7 +290,7 @@ function verifyAndFixSheetStructure() {
     { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut', 'Telephone'] },
     { name: 'Configuration', headers: ['Clé', 'Valeur', 'Description'] },
     { name: 'Commandes', headers: ['Date', 'Produit', 'Prix', 'Client_Nom', 'Client_Email', 'Client_Telephone', 'Statut'] },
-    { name: 'PhysicalCards', headers: ['Code_Carte', 'Email_Proprietaire', 'Date_Activation', 'Statut'] },
+    { name: 'PhysicalCards', headers: ['Code_Carte', 'Email_Proprietaire', 'Date_Activation', 'Statut', 'Date_Vente', 'Vendeur', 'Commentaire'] },
   ];
 
   requiredSheets.forEach(sheetInfo => {
@@ -407,7 +429,12 @@ function registerUser(email, password, enterpriseId = '') {
 
   const role = enterpriseId ? 'Employe' : 'Entreprise'; // Par défaut Entreprise si pas d'ID parent, sinon Employé
   
-  const newUserRow = [newId, email, storedPassword, enterpriseId, role, profileUrl, '[]', 'ONBOARDING_STARTED', token, expiration, '', ''];
+  // Construction de la ligne en respectant scrupuleusement tes 14 colonnes :
+  // ID_Unique (0), Email (1), Pass (2), ID_Ent (3), Role (4), URL (5), URL2 (6), URL3 (7), NFC (8), Status (9), AuthToken (10), Exp (11), Reset (12), ResetExp (13)
+  const newUserRow = [
+    newId, email, storedPassword, enterpriseId, role, profileUrl, 
+    '', '', '[]', 'ONBOARDING_STARTED', token, expiration, '', ''
+  ];
   userSheet.appendRow(newUserRow);
 
   // Créer un profil de base associé
@@ -1847,15 +1874,20 @@ function testCallMeBot() {
 function sendEmail(recipient, subject, htmlBody, textBody) {
   const mailOptions = {
     htmlBody: htmlBody,
-    name: CONFIG.SENDER_NAME
+    name: CONFIG.SENDER_NAME,
+    replyTo: CONFIG.SENDER_EMAIL_ALIAS
   };
 
   // Ajout de la signature
-  const signature = getConfigValue('EMAIL_SIGNATURE') || `<p>Cordialement,<br>L'équipe Mahu</p>`;
+  const companyInfo = `
+    <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; font-size: 11px; color: #777; font-family: sans-serif; line-height: 1.5;">
+      <p><strong>MAHU DIGITAL SYSTEM</strong><br>
+      Médina Rue 13 Angle 12, Dakar, Sénégal<br>
+      NINEA: 012834182 | RCCM: SN.DKR.2026.A.6465</p>
+    </div>`;
   
-  // On s'assure que le corps HTML est bien fermé avant d'ajouter la signature, 
-  // ou on l'ajoute simplement à la fin si c'est un fragment.
-  // Pour faire simple, on l'ajoute à la fin du contenu HTML.
+  const signature = getConfigValue('EMAIL_SIGNATURE') || companyInfo;
+
   mailOptions.htmlBody = htmlBody + signature;
 
   if (CONFIG.SENDER_EMAIL_ALIAS) {
@@ -2020,7 +2052,6 @@ function updateOnboardingData(request, user) {
       if (request.data.Role) {
         const roleCol = userHeaders.indexOf('Role') + 1;
         userSheet.getRange(userRowIndex, roleCol).setValue(request.data.Role);
-        userSheet.getRange(userRowIndex, roleCol + 1).setValue(request.data.Role);
         Logger.log(`Rôle mis à jour à '${request.data.Role}' pour ${user.Email}.`);
       }
       
@@ -2062,6 +2093,7 @@ function activatePhysicalCard(payload, user) {
 
     const data = sheet.getDataRange().getValues();
     let foundRow = -1;
+    let resellerEmail = "";
 
     // Vérifier si le code est déjà utilisé par quelqu'un d'autre
     for (let i = 1; i < data.length; i++) {
@@ -2070,6 +2102,7 @@ function activatePhysicalCard(payload, user) {
           return { success: false, error: "Cette carte appartient déjà à un autre utilisateur." };
         }
         foundRow = i + 1;
+        resellerEmail = data[i][5]; // Colonne Vendeur
         break;
       }
     }
@@ -2080,9 +2113,312 @@ function activatePhysicalCard(payload, user) {
       sheet.appendRow([code, user.Email, new Date(), "Active"]);
     }
 
+    // --- NOTIFICATION AU REVENDEUR ---
+    if (resellerEmail && resellerEmail.includes('@') && resellerEmail !== "Mahu Direct") {
+      try {
+        const subject = "Félicitations ! Une de vos cartes Mahu vient d'être activée";
+        const htmlBody = `
+          <div style="font-family: sans-serif; padding: 20px; color: #1a1a1a; border: 1px solid #eee; border-radius: 10px;">
+            <img src="https://mahu.cards/r/logo.png" style="height: 40px; margin-bottom: 20px;">
+            <h2 style="color: #007BFF;">Bonne nouvelle !</h2>
+            <p>Le client qui a reçu la carte <strong>${code}</strong> vient de l'activer sur son profil.</p>
+            <p>Cela confirme le succès de votre distribution. Continuez comme ça !</p>
+            <div style="margin-top: 30px; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 10px;">
+              Mahu Cloud Management System
+            </div>
+          </div>`;
+        sendEmail(resellerEmail, subject, htmlBody);
+      } catch (e) { Logger.log("Erreur notif revendeur: " + e.message); }
+    }
+
     logAction('activatePhysicalCard', 'SUCCESS', `Carte ${code} liée à ${user.Email}`, user.Email);
     return { success: true, message: "Carte activée avec succès !" };
   } catch (e) {
     return { success: false, error: "Erreur d'activation : " + e.message };
   }
+}
+
+/**
+ * SÉCURITÉ : Vérifie si l'utilisateur est un revendeur ou le Super Admin.
+ */
+function checkStaffAccess(user) {
+  const superAdmins = ['abmcompanysn@gmail.com'];
+  if (!user) throw new Error("Authentification requise.");
+  
+  const isSuper = superAdmins.includes(user.Email);
+  const isReseller = user.Role === 'Entreprise' || user.Role === 'Revendeur';
+  
+  if (!isSuper && !isReseller) {
+    throw new Error("Accès refusé. Espace réservé au staff.");
+  }
+  return { isSuper, isReseller };
+}
+
+/**
+ * Action : adminGetCardsData
+ * Récupère la liste de toutes les cartes physiques pour le tableau de bord admin.
+ */
+function adminGetCardsData(user) {
+  const perms = checkStaffAccess(user);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("PhysicalCards");
+  if (!sheet) return { cards: [] };
+  
+  const data = sheet.getDataRange().getValues();
+  const headers = data.shift();
+  const baseUrl = "https://mahu.cards/ActivationDirecte.html?code=";
+
+  const cards = data.map(row => {
+    let obj = {};
+    headers.forEach((h, i) => obj[h] = row[i]);
+    
+    // Génération automatique du lien pour le tagueur
+    obj.Tag_URL = baseUrl + obj.Code_Carte;
+
+    // PROTECTION VIE PRIVÉE : On masque l'email du propriétaire pour les revendeurs
+    if (!perms.isSuper && obj.Email_Proprietaire) {
+      obj.Email_Proprietaire = "Utilisateur Actif"; 
+    }
+    return obj;
+  });
+  
+  // FILTRAGE : Si c'est un revendeur, il ne voit QUE ses cartes
+  let filteredCards = cards;
+  if (!perms.isSuper) {
+    filteredCards = cards.filter(c => c.Vendeur === user.Email);
+  }
+  
+  return { success: true, cards: filteredCards, isSuper: perms.isSuper };
+}
+
+/**
+ * Action : adminGenerateCardCodes
+ * Génère une série de codes de cartes vierges.
+ */
+function adminGenerateCardCodes(payload, user) {
+  const perms = checkStaffAccess(user);
+  if (!perms.isSuper) throw new Error("Action réservée au Super Admin.");
+  
+  const quantity = parseInt(payload.quantity) || 10;
+  const prefix = (payload.prefix || "MH").toUpperCase();
+  const batchId = "LOT-" + Utilities.getUuid().substring(0, 5).toUpperCase();
+  
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName("PhysicalCards");
+  
+  const codes = [];
+  for (let i = 0; i < quantity; i++) {
+    const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const fullCode = `${prefix}-${randomPart}`;
+    // Ajout avec Batch_ID
+    sheet.appendRow([fullCode, "", "", "Vierge", "", "", "Généré par Admin", batchId]);
+    codes.push(fullCode);
+  }
+  
+  return { success: true, message: `${quantity} codes générés (Lot: ${batchId}).`, batchId: batchId };
+}
+
+/**
+ * Action : adminUpdateCardSale
+ * Enregistre la vente d'une carte à un revendeur ou client.
+ */
+function adminUpdateCardSale(payload, user) {
+  checkStaffAccess(user); // Revendeur peut aussi marquer comme vendu
+  
+  const { code, vendeur, commentaire } = payload;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("PhysicalCards");
+  const data = sheet.getDataRange().getValues();
+  
+  let rowIndex = -1;
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === code) {
+      rowIndex = i + 1;
+      break;
+    }
+  }
+  
+  if (rowIndex === -1) return { success: false, error: "Code introuvable." };
+  
+  // Mise à jour Statut (Vendu), Date_Vente, Vendeur, Commentaire
+  sheet.getRange(rowIndex, 4).setValue("Vendu");
+  sheet.getRange(rowIndex, 5).setValue(new Date());
+  sheet.getRange(rowIndex, 6).setValue(vendeur || "Mahu Direct");
+  sheet.getRange(rowIndex, 7).setValue(commentaire || "");
+  
+  return { success: true, message: "Vente enregistrée." };
+}
+
+/**
+ * Action : adminAssignCardLot
+ * Assigne un lot de cartes (codes) à un revendeur spécifique.
+ */
+function adminAssignCardLot(payload, user) {
+  const perms = checkStaffAccess(user);
+  if (!perms.isSuper) throw new Error("Seul le Super Admin peut assigner des lots.");
+  
+  const { codes, resellerEmail } = payload; // codes est une string séparée par des virgules ou un tableau
+  const codeList = Array.isArray(codes) ? codes : codes.split(',').map(c => c.trim().toUpperCase());
+  
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("PhysicalCards");
+  const data = sheet.getDataRange().getValues();
+  
+  codeList.forEach(code => {
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === code) {
+        sheet.getRange(i + 1, 6).setValue(resellerEmail); // Col Vendeur
+        sheet.getRange(i + 1, 4).setValue("Vendu"); // Marqué comme vendu au revendeur
+        break;
+      }
+    }
+  });
+  
+  return { success: true, message: `Lot de ${codeList.length} cartes assigné à ${resellerEmail}.` };
+}
+
+/**
+ * Action : adminCreateReseller
+ * Crée un compte revendeur dans 'Utilisateurs' et l'enregistre dans 'Resellers'.
+ */
+function adminCreateReseller(payload, user) {
+  const perms = checkStaffAccess(user);
+  if (!perms.isSuper) throw new Error("Action réservée au Super Admin.");
+
+  const { email, password, name, phone } = payload;
+  
+  // 1. Créer le compte utilisateur avec le rôle Revendeur
+  // On réutilise la logique de registerUser mais en forçant le rôle
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const userSheet = ss.getSheetByName('Utilisateurs');
+  
+  // Vérifier si existe déjà
+  const usersData = userSheet.getDataRange().getValues();
+  if (usersData.some(row => row[1] === email)) {
+    return { success: false, error: "Cet email est déjà utilisé." };
+  }
+
+  // Sécurisation mot de passe
+  const salt = Utilities.getUuid();
+  const hash = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + password));
+  const storedPassword = salt + "$" + hash;
+  const newId = 'res_' + Utilities.getUuid().substring(0,8);
+
+  // Ajout dans Utilisateurs (Role: Revendeur)
+  userSheet.appendRow([
+    newId, email, storedPassword, '', 'Revendeur', '', '', '', '[]', 'COMPLETED', '', '', '', ''
+  ]);
+
+  // 2. Ajouter dans la feuille Resellers pour le suivi commercial
+  let resellerSheet = ss.getSheetByName('Resellers');
+  if (!resellerSheet) {
+    resellerSheet = ss.insertSheet('Resellers');
+    resellerSheet.appendRow(['Email', 'Nom_Entreprise', 'Contact_Tel', 'Total_Cartes', 'Statut_Partenaire']);
+  }
+  resellerSheet.appendRow([email, name, phone, 0, 'Actif']);
+
+  logAction('adminCreateReseller', 'SUCCESS', `Nouveau revendeur créé : ${email}`, user.Email);
+  return { success: true, message: "Le compte revendeur a été créé avec succès." };
+}
+
+/**
+ * Action : adminDeactivateCard
+ * Désactive une carte (perte/vol).
+ */
+function adminDeactivateCard(payload, user) {
+  checkStaffAccess(user);
+  const { code } = payload;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName("PhysicalCards");
+  const data = sheet.getDataRange().getValues();
+  
+  let rowIndex = -1;
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === code) { rowIndex = i + 1; break; }
+  }
+  
+  if (rowIndex === -1) return { success: false, error: "Code introuvable." };
+  
+  sheet.getRange(rowIndex, 4).setValue("Désactivée"); // Change statut
+  logAction('adminDeactivateCard', 'WARNING', `Carte ${code} désactivée par ${user.Email}`, user.Email);
+  return { success: true, message: "Carte désactivée avec succès." };
+}
+
+/**
+ * Action : adminBroadcastMessage
+ * Envoie un email HTML élégant à TOUS les utilisateurs.
+ */
+function adminBroadcastMessage(payload, user) {
+  const perms = checkStaffAccess(user);
+  if (!perms.isSuper) throw new Error("Action réservée au Super Admin.");
+
+  const { subject, title, message } = payload;
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const userSheet = ss.getSheetByName('Utilisateurs');
+  const data = userSheet.getDataRange().getValues();
+  const emailIdx = data[0].indexOf('Email');
+  
+  // Liste unique d'emails valides
+  const emails = [...new Set(data.slice(1).map(row => row[emailIdx]).filter(e => e && e.includes('@')))];
+  
+  const htmlTemplate = `
+    <div style="font-family: Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee;">
+      <div style="background: #000; padding: 30px; text-align: center;">
+        <img src="https://mahu.cards/r/logo.png" style="height: 50px;">
+      </div>
+      <div style="padding: 40px 30px;">
+        <h1 style="color: #000; font-size: 24px; text-align: center;">${title}</h1>
+        <div style="color: #444; line-height: 1.8; font-size: 16px; margin-top: 20px;">
+          ${message.replace(/\n/g, '<br>')}
+        </div>
+      </div>
+      <div style="background: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #999;">
+        &copy; 2026 Mahu - L'excellence numérique.
+      </div>
+    </div>`;
+
+  let count = 0;
+  emails.forEach(email => {
+    try { sendEmail(email, subject, htmlTemplate); count++; } catch(e){}
+  });
+
+  return { success: true, message: `Message diffusé à ${count} utilisateurs.` };
+}
+
+/**
+ * Action : checkCardStatus
+ * Vérifie si une carte est déjà active pour rediriger vers le profil public.
+ * Action PUBLIQUE (utilisée par ActivationDirecte.html au scan).
+ */
+function checkCardStatus(payload) {
+  const code = (payload.code || "").trim().toUpperCase();
+  if (!code) return { success: false, error: "Code manquant." };
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const cardSheet = ss.getSheetByName("PhysicalCards");
+  if (!cardSheet) return { success: true, active: false };
+
+  const data = cardSheet.getDataRange().getValues();
+  const headers = data[0];
+  const codeIdx = headers.indexOf("Code_Carte");
+  const emailIdx = headers.indexOf("Email_Proprietaire");
+  const statusIdx = headers.indexOf("Statut");
+
+  const row = data.find(r => r[codeIdx] === code);
+
+  // Si la carte est active et liée à un email
+  if (row && row[statusIdx] === "Active" && row[emailIdx]) {
+    const userSheet = ss.getSheetByName("Utilisateurs");
+    const userData = userSheet.getDataRange().getValues();
+    const uHeaders = userData[0];
+    const uEmailIdx = uHeaders.indexOf("Email");
+    const uUrlIdx = uHeaders.indexOf("URL_Profil");
+
+    const user = userData.find(u => u[uEmailIdx] === row[emailIdx]);
+    if (user) {
+      return { success: true, active: true, profileUrl: user[uUrlIdx] };
+    }
+  }
+
+  return { success: true, active: false };
 }

@@ -14,9 +14,17 @@
         .card-id-badge { background: #222; color: var(--blue); padding: 10px 20px; border-radius: 50px; font-family: monospace; font-weight: bold; margin-bottom: 30px; display: inline-block; }
         .form-group { text-align: left; margin-bottom: 20px; }
         label { display: block; color: #aaa; margin-bottom: 8px; font-size: 0.9em; }
+        #loading-overlay { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; transition: opacity 0.5s; }
+        .spin { animation: rotate 2s linear infinite; }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
+    <div id="loading-overlay">
+        <img src="r/logo.png" alt="Mahu" style="height: 60px; margin-bottom: 20px;" class="spin">
+        <p>Vérification de la carte...</p>
+    </div>
+
     <div class="activation-box">
         <img src="r/logo.png" alt="Mahu" class="logo-small">
         <h1>Nouvelle Carte Détectée</h1>
@@ -41,14 +49,40 @@
 
     <script src="config.js"></script>
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const cardCode = urlParams.get('code');
-        
-        if (cardCode) {
+        window.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const cardCode = urlParams.get('code');
+            const overlay = document.getElementById('loading-overlay');
+            
+            if (!cardCode) {
+                window.location.href = "index.html";
+                return;
+            }
+
             document.getElementById('card-display').textContent = "CARTE : " + cardCode.toUpperCase();
-        } else {
-            window.location.href = "index.html";
-        }
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: new URLSearchParams({
+                        'action': 'checkCardStatus',
+                        'payload': JSON.stringify({ code: cardCode })
+                    })
+                }).then(r => r.json());
+
+                if (res.success && res.active && res.profileUrl) {
+                    // CARTE ACTIVE : Redirection immédiate vers le profil public
+                    window.location.href = `ProfilePublic.html?user=${res.profileUrl}&source=NFC`;
+                } else {
+                    // CARTE VIERGE : On cache l'overlay pour montrer le formulaire
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.style.display = 'none', 500);
+                }
+            } catch (err) {
+                console.error("Vérification échouée", err);
+                overlay.style.display = 'none';
+            }
+        });
 
         async function handleQuickActivation(e) {
             e.preventDefault();
