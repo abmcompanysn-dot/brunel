@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comment ça fonctionne ? - Mahu</title>
+    <meta name="description" content="Découvrez comment les cartes de visite numériques Mahu fonctionnent, les différents types de cartes et comment les activer.">
+    <meta name="keywords" content="Mahu, carte de visite numérique, NFC, RFID, comment ça marche, activation carte, vCard, profil numérique">
+    <link rel="icon" href="r/logo.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Styles pour la barre de navigation transparente (copiés de index.html) */
+        header {
+            position: fixed; /* Reste en haut de l'écran */
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: rgba(10, 10, 10, 0.85); /* Fond noir par défaut sur cette page */
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.3s ease;
+        }
+
+        /* Style de l'icône de profil */
+        #login-link .profile-icon {
+            stroke: var(--text-primary);
+            width: 28px;
+            height: 28px;
+            transition: stroke 0.3s ease;
+        }
+
+        /* Style de l'icône de profil pour qu'elle n'ait pas de fond */
+        #login-link {
+            background: transparent;
+            border: none;
+            stroke: var(--text-primary);
+        }
+
+        /* Styles pour le nouveau menu "trois points" */
+        .more-menu-container {
+            position: relative;
+        }
+        .more-menu-icon {
+            cursor: pointer;
+            padding: 5px;
+        }
+        .more-menu-icon svg {
+            stroke: var(--text-primary);
+            width: 28px;
+            height: 28px;
+        }
+
+        .more-menu-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(5px);
+            border-radius: 8px;
+            padding: 10px;
+            min-width: 160px;
+            z-index: 1001;
+            border: 1px solid #333;
+            transform: translateY(10px);
+            opacity: 0;
+            visibility: hidden;
+            transition: transform 0.2s ease, opacity 0.2s ease, visibility 0.2s;
+        }
+        .more-menu-dropdown.visible {
+            transform: translateY(0);
+            opacity: 1;
+            visibility: visible;
+        }
+        .more-menu-dropdown a { display: block; color: white; padding: 10px 15px; border-radius: 5px; transition: background-color 0.2s ease; }
+        .more-menu-dropdown a:hover { background-color: rgba(255, 255, 255, 0.1); }
+
+        /* Cacher les liens du bureau pour simplifier la navigation sur cette page */
+        .desktop-links {
+            display: none;
+        }
+
+        /* Styles spécifiques à la page "Comment ça fonctionne" */
+        .hero-how-it-works {
+            text-align: center;
+            padding: 100px 20px 60px;
+            background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+            color: white;
+            margin-bottom: 40px;
+        }
+        .hero-how-it-works h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+        .hero-how-it-works p {
+            font-size: 1.1em;
+            max-width: 700px;
+            margin: 0 auto;
+            opacity: 0.9;
+        }
+
+        .content-section {
+            padding: 40px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .content-section:last-of-type {
+            border-bottom: none;
+        }
+        .content-section h2 {
+            text-align: center;
+            font-size: 2.2em;
+            margin-bottom: 40px;
+            color: var(--text-primary);
+        }
+        .content-section h3 {
+            font-size: 1.6em;
+            margin-top: 30px;
+            color: var(--blue);
+        }
+        .content-section p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+        .card-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+        .card-type-item {
+            background-color: var(--card-background);
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .card-type-item img {
+            max-width: 80%;
+            height: 180px;
+            object-fit: contain;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        .card-type-item h4 {
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+        .card-type-item ul {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+            color: var(--text-secondary);
+            margin-top: 20px;
+        }
+        .card-type-item ul li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 25px;
+        }
+        .card-type-item ul li::before {
+            content: '✓';
+            color: var(--blue);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        /* Activation Steps (adapted from AideNFC.html) */
+        .activation-steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .step-card {
+            background: var(--card-background);
+            padding: 25px;
+            border-radius: 12px;
+            border-top: 4px solid var(--blue);
+            text-align: left;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .step-num {
+            font-size: 2.5em;
+            font-weight: 800;
+            opacity: 0.1;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+        .step-card h4 {
+            font-size: 1.3em;
+            margin-top: 0;
+            color: var(--text-primary);
+        }
+        .step-card p {
+            font-size: 0.95em;
+            color: var(--text-secondary);
+        }
+
+        .device-compatibility {
+            margin-top: 60px;
+            text-align: center;
+        }
+        .device-compatibility h3 {
+            font-size: 1.8em;
+            margin-bottom: 30px;
+        }
+        .device-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+        }
+        .device-item {
+            background: var(--card-background);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .device-item h4 {
+            color: var(--text-primary);
+            margin-top: 0;
+            font-size: 1.2em;
+        }
+        .device-item p {
+            color: var(--text-secondary);
+            font-size: 0.9em;
+        }
+        .device-item ul {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+            color: var(--text-secondary);
+            margin-top: 15px;
+        }
+        .device-item ul li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 20px;
+        }
+        .device-item ul li::before {
+            content: '•';
+            color: var(--blue);
+            position: absolute;
+            left: 0;
+            font-weight: bold;
+        }
+
+        /* Phone Mockup for NFC scan visual */
+        .phone-mockup-visual {
+            width: 200px; height: 400px; border: 8px solid #333; border-radius: 30px; 
+            margin: 20px auto; position: relative; background: #000; overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .phone-mockup-visual .phone-notch { width: 100px; height: 20px; background: #333; position: absolute; top: 0; left: 50%; transform: translateX(-50%); border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; z-index: 2; }
+        .phone-mockup-visual .phone-screen-content { padding: 40px 10px; text-align: center; font-size: 0.8em; }
+        .phone-mockup-visual .nfc-wave { width: 60px; height: 60px; border: 3px solid var(--blue); border-radius: 50%; margin: 20px auto; animation: pulse-blue 2s infinite; }
+        
+        @keyframes pulse-blue { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+
+        .phone-mockup-visual .nfc-scan-area {
+            position: absolute;
+            bottom: 20px; /* Adjust as needed */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 100px;
+            background: rgba(0, 123, 255, 0.1);
+            border: 2px dashed var(--blue);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--blue);
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 50px;"></a>
+            <ul class="desktop-links">
+                <li><a href="index.html#features">Technologie</a></li>
+                <li><a href="index.html#about">À Propos</a></li>
+                <li><a href="Boutique.html">Boutique</a></li>
+            </ul>
+            <div class="nav-actions">
+                <a href="Connexion.html" class="primary" id="login-link">
+                    <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> 
+                </a> 
+                <div class="more-menu-container">
+                    <div class="more-menu-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg></div>
+                    <div class="more-menu-dropdown">
+                        <a href="index.html#features">Technologie</a>
+                        <a href="index.html#about">À Propos</a>
+                        <a href="Boutique.html">Boutique</a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero-how-it-works">
+            <h1>Comment ça fonctionne ?</h1>
+            <p>Découvrez la simplicité et la puissance des cartes de visite numériques Mahu. Partagez vos informations instantanément, sans contact et sans effort.</p>
+        </section>
+
+        <section class="content-section container">
+            <h2>Les différents types de cartes Mahu</h2>
+            <p>Mahu propose plusieurs types de cartes pour s'adapter à tous vos besoins de networking. Chaque carte utilise la technologie NFC, mais leur fonctionnement peut varier légèrement.</p>
+
+            <div class="card-type-grid">
+                <div class="card-type-item">
+                    <img src="r/cards/card_pro.png" alt="Carte Mahu vCard Directe">
+                    <h4>La Carte Miniature (vCard Directe)</h4>
+                    <p>Idéale pour un partage rapide et hors ligne de vos informations de contact essentielles.</p>
+                    <ul>
+                        <li>Fonctionne sans connexion internet.</li>
+                        <li>Enregistre directement une vCard sur le téléphone du contact.</li>
+                        <li>Contient les informations de base (Nom, Téléphone, Email).</li>
+                        <li>Mises à jour nécessitent une ré-encodage de la carte.</li>
+                    </ul>
+                </div>
+                <div class="card-type-item">
+                    <img src="r/3.svg" alt="Tag Mahu Profil Dynamique">
+                    <h4>Le Tag / Porte-clés (Profil Dynamique)</h4>
+                    <p>Accédez à votre profil numérique complet et toujours à jour, avec tous vos liens et services.</p>
+                    <ul>
+                        <li>Nécessite une connexion internet pour accéder au profil.</li>
+                        <li>Redirige vers votre profil Mahu en ligne.</li>
+                        <li>Informations toujours à jour (modifiables depuis votre tableau de bord).</li>
+                        <li>Peut inclure réseaux sociaux, portfolio, services, etc.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="content-section container">
+            <h2>Comment se connecter et activer votre carte</h2>
+            <p>Que vous ayez une nouvelle carte ou que vous souhaitiez lier une carte existante à votre profil, le processus est simple et rapide.</p>
+
+            <div class="activation-steps-grid">
+                <div class="step-card">
+                    <div class="step-num">01</div>
+                    <h4>Scannez votre carte</h4>
+                    <p>Approchez votre carte Mahu du haut (iPhone) ou du centre du dos (Android) d'un smartphone compatible NFC. Une notification apparaîtra.</p>
+                    <div class="phone-mockup-visual">
+                        <div class="phone-notch"></div>
+                        <div class="phone-screen-content">
+                            <div class="nfc-wave"></div>
+                            <p>Maintenez la carte ici</p>
+                            <div class="nfc-scan-area">Zone de scan NFC</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">02</div>
+                    <h4>Créez ou connectez-vous</h4>
+                    <p>Cliquez sur la notification. Si la carte est vierge, vous serez invité à créer un compte ou à vous connecter à un compte existant. Si vous avez déjà un compte, la carte sera automatiquement liée.</p>
+                    <img src="r/on.svg" alt="Écran de connexion/inscription" style="max-width: 100%; height: 200px; object-fit: contain; margin-top: 20px; border-radius: 8px;">
+                </div>
+                <div class="step-card">
+                    <div class="step-num">03</div>
+                    <h4>Personnalisez votre profil</h4>
+                    <p>Une fois connecté, accédez à votre tableau de bord pour personnaliser votre profil numérique : ajoutez votre photo, vos réseaux sociaux, vos services et bien plus encore !</p>
+                    <img src="r/co.svg" alt="Écran de personnalisation du profil" style="max-width: 100%; height: 200px; object-fit: contain; margin-top: 20px; border-radius: 8px;">
+                </div>
+            </div>
+
+            <div class="device-compatibility">
+                <h3>Compatibilité NFC : Tous les smartphones modernes</h3>
+                <p>La plupart des smartphones récents sont compatibles NFC. Voici un aperçu rapide :</p>
+                <div class="device-grid">
+                    <div class="device-item">
+                        <h4>iPhone </h4>
+                        <p>Le NFC est automatique sur tous les modèles depuis l'iPhone XS. Pour les modèles plus anciens (7, 8, X), activez le "Lecteur de tag NFC" dans le Centre de Contrôle.</p>
+                    </div>
+                    <div class="device-item">
+                        <h4>Android 🤖</h4>
+                        <p>Activez l'option NFC dans les réglages rapides (panneau de notifications). Approchez la carte du centre du dos de votre téléphone.</p>
+                    </div>
+                </div>
+                <p style="margin-top: 30px;">Pour plus de détails sur l'activation NFC, consultez notre <a href="AideNFC.html" class="read-more">guide complet ici</a>.</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col footer-logo-section">
+                    <img src="r/logo.png" alt="Mahu Logo">
+                    <p>Des cartes de visite intelligentes qui révolutionnent vos échanges professionnels.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Produits & Services</h4>
+                    <ul>
+                        <li><a href="Contact.html">Solutions Entreprises</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Blog & Guides</h4>
+                </div>
+                <div class="footer-col">
+                    <h4>Informations</h4>
+                    <ul>
+                        <li><a href="Contact.html">Contact</a></li>
+                        <li><a href="FAQ.html">FAQ</a></li>
+                        <li><a href="ConditionsUtilisation.html">Conditions d'utilisation</a></li>
+                        <li><a href="PolitiqueConfidentialite.html">Politique de confidentialité</a></li>
+                        <li><a href="Livraison.html">Livraison</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col footer-newsletter">
+                    <h4>Restez connecté</h4>
+                    <p style="font-size: 0.9em; color: #888; margin-bottom: 15px;">Recevez nos dernières astuces networking et mises à jour.</p>
+                    <form onsubmit="event.preventDefault(); alert('Merci de votre inscription !');">
+                        <input type="email" placeholder="Votre email" required>
+                        <button type="submit">S'inscrire</button>
+                    </form>
+                    <div class="social-icons-footer">
+                        <a href="#" aria-label="Facebook"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></a>
+                        <a href="#" aria-label="Twitter"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path></svg></a>
+                        <a href="#" aria-label="Instagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
+                        <a href="#" aria-label="LinkedIn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Mahu. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Gestion du menu "trois points"
+        const moreMenuIcon = document.querySelector('.more-menu-icon');
+        if (moreMenuIcon) {
+            moreMenuIcon.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const dropdown = document.querySelector('.more-menu-dropdown');
+                dropdown.classList.toggle('visible');
+            });
+        }
+        document.addEventListener('click', function(event) {
+            const dropdown = document.querySelector('.more-menu-dropdown');
+            const menuContainer = document.querySelector('.more-menu-container');
+            if (dropdown && dropdown.classList.contains('visible') && !menuContainer.contains(event.target)) {
+                dropdown.classList.remove('visible');
+            }
+        });
+    </script>
+</body>
+</html>
+```

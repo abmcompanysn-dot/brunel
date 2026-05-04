@@ -267,7 +267,8 @@
                 </div>
             </div>
         </div>
-    </main>
+        </main>
+    </div>
 
     <script src="config.js"></script>
 
@@ -447,6 +448,9 @@
          * Logique exécutée au chargement du DOM.
          */
         document.addEventListener('DOMContentLoaded', () => { 
+            // Afficher la page une fois que tout est prêt pour éviter le "frot"
+            document.getElementById('auth-page-wrapper').style.opacity = '1';
+
             // Gestion du menu "trois points"
             const moreMenuIcon = document.querySelector('.more-menu-icon');
             if (moreMenuIcon) {

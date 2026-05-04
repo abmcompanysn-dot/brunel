@@ -4,7 +4,7 @@
  * ==================================================================
  */
 const CONFIG = {
-  SENDER_NAME: "MAHU DIGITAL SYSTEM", // Le nom qui apparaîtra comme expéditeur des e-mails.
+  SENDER_NAME: "MAHU DIGITAL SYSTE el personnalise  stsM", // Le nom qui apparaîtra comme expéditeur des e-mails.
   SENDER_EMAIL_ALIAS: "abmcompanysn@gmail.com" // OPTIONNEL: L'alias email à utiliser (ex: "contact@votre-site.com"). Doit être configuré dans Gmail > Paramètres > Comptes.
 };
 
@@ -877,6 +877,14 @@ function getDashboardData(user) {
       };
     }
 
+    // --- Récupérer les cartes physiques liées ---
+    const physicalCardsSheet = ss.getSheetByName('PhysicalCards');
+    const userPhysicalCards = physicalCardsSheet && physicalCardsSheet.getLastRow() > 1
+      ? physicalCardsSheet.getRange(2, 1, physicalCardsSheet.getLastRow() - 1, 4).getValues()
+          .filter(row => row[1] === user.Email)
+          .map(row => ({ code: row[0], status: row[3] }))
+      : [];
+
     // --- Récupérer les statistiques de vues (pour le graphique) ---
     const statsSheet = ss.getSheetByName('Statistiques');
     const allViews = statsSheet.getLastRow() > 1 
@@ -1006,7 +1014,8 @@ function getDashboardData(user) {
       totalViews: totalUserViews, // Nouvelle donnée
       totalProspects: totalProspectsCount,
       team: teamData, // Données de l'équipe
-      onboardingStatus: user.Onboarding_Status, // Ajout du statut d'onboarding
+      onboardingStatus: user.Onboarding_Status, 
+      linkedCards: userPhysicalCards, // Ajout des cartes liées
       enterprise: enterpriseData, // Ajout des infos entreprise
       lastOrder: lastOrder // Ajout de la dernière commande
     };

@@ -2013,6 +2013,28 @@
             document.getElementById('profile-completeness-percent').textContent = `${completeness}%`;
             document.getElementById('profile-completeness-bar').style.width = `${completeness}%`;
 
+            // --- Remplir la liste des cartes physiques liées ---
+            const linkedCardsList = document.getElementById('linked-cards-list');
+            if (linkedCardsList) {
+                linkedCardsList.innerHTML = '';
+                if (data.linkedCards && data.linkedCards.length > 0) {
+                    data.linkedCards.forEach(card => {
+                        linkedCardsList.innerHTML += `
+                            <li style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border-color);">
+                                <div>
+                                    <span style="display: block; font-size: 0.9em; font-weight: bold; color: var(--text-primary);">${card.code}</span>
+                                    <span style="font-size: 0.75em; color: var(--text-secondary);">ID Carte Physique</span>
+                                </div>
+                                <span style="font-size: 0.75em; padding: 4px 10px; border-radius: 20px; background: ${card.status === 'Active' ? 'rgba(40, 167, 69, 0.2)' : 'rgba(108, 117, 125, 0.2)'}; color: ${card.status === 'Active' ? '#28a745' : 'var(--text-secondary)'}; border: 1px solid ${card.status === 'Active' ? '#28a745' : 'var(--border-color)'};">
+                                    ${card.status}
+                                </span>
+                            </li>`;
+                    });
+                } else {
+                    linkedCardsList.innerHTML = '<li style="color: var(--text-secondary); font-size: 0.85em; text-align: center; padding: 20px;">Aucune carte physique liée pour le moment.</li>';
+                }
+            }
+
 
             // Remplir l'éditeur de profil
             // Panneau "À propos"
