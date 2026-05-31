@@ -1806,8 +1806,37 @@ function handleSupportMessage(data, user) {
     sendEmail(email, confirmationSubject, confirmationBody);
   }
 
-  // 2. Envoyer une notification CallMeBot à l'admin
-  const adminMessage = `🔔 *Support Mahu*\n\n👤 De: ${email}\n📞📞📞📞📞📞📞📞 Tel: ${phone}\n📝 Sujet: ${subject}\n💬 Message: ${message}`;
+  // 2. Notifier l'admin par email
+  try {
+    const ADMIN_EMAIL = 'abmcompanysn@gmail.com';
+    const adminEmailBody = `
+    <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #eee;">
+      <div style="background:#000;padding:24px 20px;text-align:center;">
+        <img src="https://mahu.cards/r/logo.png" style="height:40px;">
+      </div>
+      <div style="padding:30px;color:#1a1a1a;">
+        <h2 style="margin:0 0 20px;font-size:18px;color:#000;">${subject}</h2>
+        <table style="width:100%;border-collapse:collapse;font-size:14px;">
+          <tr><td style="padding:10px 8px;border-bottom:1px solid #f0f0f0;color:#888;width:110px;">De</td><td style="padding:10px 8px;border-bottom:1px solid #f0f0f0;">${email}</td></tr>
+          ${phone ? `<tr><td style="padding:10px 8px;border-bottom:1px solid #f0f0f0;color:#888;">Téléphone</td><td style="padding:10px 8px;border-bottom:1px solid #f0f0f0;">${phone}</td></tr>` : ''}
+          <tr><td style="padding:10px 8px;border-bottom:1px solid #f0f0f0;color:#888;">Date</td><td style="padding:10px 8px;border-bottom:1px solid #f0f0f0;">${new Date().toLocaleString('fr-FR')}</td></tr>
+        </table>
+        <div style="margin-top:20px;">
+          <p style="font-size:13px;color:#666;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Message :</p>
+          <div style="background:#f9f9f9;border-left:4px solid #000;padding:16px 18px;border-radius:0 8px 8px 0;font-size:14px;line-height:1.7;">${String(message).replace(/\n/g,'<br>')}</div>
+        </div>
+      </div>
+      <div style="background:#f9f9f9;padding:14px;text-align:center;font-size:11px;color:#999;border-top:1px solid #eee;">
+        Mahu — Notification automatique
+      </div>
+    </div>`;
+    GmailApp.sendEmail(ADMIN_EMAIL, `[Mahu] ${subject} — ${email}`, message, { htmlBody: adminEmailBody, name: CONFIG.SENDER_NAME });
+  } catch(e) {
+    Logger.log("Erreur email admin: " + e.message);
+  }
+
+  // 3. Notification WhatsApp à l'admin
+  const adminMessage = `[Mahu Support]\n\nDe: ${email}\nTel: ${phone || 'N/A'}\nSujet: ${subject}\nMessage: ${message}`;
   sendCallMeBotMessage(adminMessage);
 
   return { success: true, message: "Message envoyé au support." };
