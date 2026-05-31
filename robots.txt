@@ -1,8 +1,34 @@
 User-agent: *
 Allow: /
+
+# Pages privées — ne pas indexer
 Disallow: /Dashboard.html
 Disallow: /Onboarding.html
 Disallow: /Panier.html
+Disallow: /Paiement.html
 Disallow: /ResetPassword.html
 Disallow: /Connexion.html
+Disallow: /AdminDashboard.html
+Disallow: /AdminRegister.html
+Disallow: /Admin.html
+Disallow: /MahuCloud.html
+Disallow: /GuideDashboard.html
+
+# Autoriser les robots sociaux sur les profils publics
+User-agent: facebookexternalhit
+Allow: /ProfilePublic.html
+Allow: /
+
+User-agent: Twitterbot
+Allow: /ProfilePublic.html
+Allow: /
+
+User-agent: WhatsApp
+Allow: /ProfilePublic.html
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /ProfilePublic.html
+Allow: /
+
 Sitemap: https://mahu.cards/sitemap.xml

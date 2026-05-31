@@ -5,7 +5,7 @@
  */
 const CONFIG = {
   SENDER_NAME: "MAHU DIGITAL SYSTE el personnalise  stsM", // Le nom qui apparaîtra comme expéditeur des e-mails.
-  SENDER_EMAIL_ALIAS: "abmcompanysn@gmail.com" // OPTIONNEL: L'alias email à utiliser (ex: "contact@votre-site.com"). Doit être configuré dans Gmail > Paramètres > Comptes.
+  SENDER_EMAIL_ALIAS: "contact@mahu.cards" // OPTIONNEL: L'alias email à utiliser (ex: "contact@votre-site.com"). Doit être configuré dans Gmail > Paramètres > Comptes.
 };
 
 /**
@@ -53,6 +53,7 @@ function doPost(e) {
       case 'handleLeadCapture': result = handleLeadCapture(payload); break;
       case 'getProfileData': result = getProfileData(e.parameter.user || payload.user); break;
       case 'checkCardStatus': result = checkCardStatus(payload); break;
+      case 'quickRegisterAndActivate': result = quickRegisterAndActivate(payload); break;
       case 'saveCustomCardOrder': result = saveCustomCardOrder(payload); break;
       case 'saveStoreOrder': result = saveStoreOrder(payload); break;
       case 'contactSupport': result = handleSupportMessage(payload, user); break;
@@ -1482,18 +1483,17 @@ function saveProfile(data, user) {
       profileDataObject.Email = user.Email;
       profileDataObject.URL_Profil = currentProfileUrl;
 
-      // Mise à jour immédiate du cache
+      // Mise à jour immédiate du cache GAS pour les 3 slugs
       const cacheDuration = parseInt(getConfigValue('CACHE_DURATION')) || 86400;
-      
-      const urlsToCache = [currentProfileUrl];
-      if (user.URL_Profil_2) urlsToCache.push(user.URL_Profil_2);
-      if (user.URL_Profil_3) urlsToCache.push(user.URL_Profil_3);
+
+      const urlsToCache = [currentProfileUrl, user.URL_Profil_2, user.URL_Profil_3].filter(Boolean);
 
       urlsToCache.forEach(url => {
         cache.put(`profile_${url}`, JSON.stringify(profileDataObject), cacheDuration);
       });
 
-      return { success: true, message: "Profil sauvegardé avec succès." };
+      // urlsToPurge est retourné au Worker Cloudflare pour qu'il purge les 3 slugs
+      return { success: true, message: "Profil sauvegardé avec succès.", urlsToPurge: urlsToCache };
     } else {
       // CAS : Profil inexistant (ex: erreur lors de l'inscription). On le crée.
       const newRow = headers.map(header => {
@@ -1562,17 +1562,14 @@ function saveProfileImage(data, user) {
     profileDataObject.URL_Profil = user.URL_Profil;
 
     const cacheDuration = parseInt(getConfigValue('CACHE_DURATION')) || 86400;
-    
-    // Mise à jour du cache pour TOUTES les URLs associées
-    const urlsToCache = [user.URL_Profil];
-    if (user.URL_Profil_2) urlsToCache.push(user.URL_Profil_2);
-    if (user.URL_Profil_3) urlsToCache.push(user.URL_Profil_3);
+
+    const urlsToCache = [user.URL_Profil, user.URL_Profil_2, user.URL_Profil_3].filter(Boolean);
 
     urlsToCache.forEach(url => {
       CacheService.getScriptCache().put(`profile_${url}`, JSON.stringify(profileDataObject), cacheDuration);
     });
 
-    return { success: true, message: "Image sauvegardée avec succès." };
+    return { success: true, message: "Image sauvegardée avec succès.", urlsToPurge: urlsToCache };
   } catch (e) {
     Logger.log(`Erreur dans saveProfileImage: ${e.message}`);
     return { success: false, error: e.message };
@@ -2430,4 +2427,147 @@ function checkCardStatus(payload) {
   }
 
   return { success: true, active: false };
+}
+
+/**
+ * Action : quickRegisterAndActivate
+ * Crée un compte + profil complet + active la carte en un seul appel.
+ * Utilisé par ActivationCarte.html lors du scan QR d'une carte non liée.
+ *
+ * Payload attendu :
+ * {
+ *   slug, nom_complet, profession, compagnie, telephone, email,
+ *   password, liens_sociaux (array), card_code (nullable), lead_capture
+ * }
+ */
+function quickRegisterAndActivate(payload) {
+  if (!payload.slug || !payload.email || !payload.password || !payload.nom_complet) {
+    return { success: false, error: "Champs obligatoires manquants (slug, email, mot de passe, nom)." };
+  }
+
+  const slug = payload.slug.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
+  const email = String(payload.email).trim().toLowerCase();
+  const password = payload.password;
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const userSheet = ss.getSheetByName('Utilisateurs');
+  const profileSheet = ss.getSheetByName('Profils');
+  const usersData = userSheet.getDataRange().getValues();
+  const userHeaders = usersData[0];
+
+  const emailCol = userHeaders.indexOf('Email');
+  const urlCol = userHeaders.indexOf('URL_Profil');
+
+  // 1. Vérifier l'unicité de l'email
+  if (usersData.slice(1).some(row => String(row[emailCol]).toLowerCase() === email)) {
+    return { success: false, error: "Cet email est déjà utilisé. Connectez-vous pour activer votre carte." };
+  }
+
+  // 2. Vérifier l'unicité du slug (URL_Profil)
+  if (usersData.slice(1).some(row => String(row[urlCol]).toLowerCase() === slug)) {
+    return { success: false, error: "Cette adresse profil est déjà prise. Choisissez-en une autre." };
+  }
+
+  // 3. Créer l'utilisateur
+  const newId = 'user_' + Utilities.getUuid();
+  const token = Utilities.getUuid();
+  const expiration = new Date(new Date().getTime() + 7 * 24 * 60 * 60 * 1000);
+
+  const salt = Utilities.getUuid();
+  const passwordHash = Utilities.base64Encode(
+    Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, salt + password)
+  );
+  const storedPassword = salt + '$' + passwordHash;
+
+  // Colonnes : ID_Unique(0), Email(1), Pass(2), ID_Ent(3), Role(4), URL(5), URL2(6), URL3(7), NFC(8), Status(9), Token(10), Exp(11), Reset(12), ResetExp(13)
+  userSheet.appendRow([
+    newId, email, storedPassword, '', 'Entreprise', slug,
+    '', '', '[]', 'COMPLETED', token, expiration, '', ''
+  ]);
+
+  // 4. Créer le profil complet
+  const profileHeaders = profileSheet.getRange(1, 1, 1, profileSheet.getLastColumn()).getValues()[0];
+  const liensJson = JSON.stringify(
+    Array.isArray(payload.liens_sociaux) ? payload.liens_sociaux : []
+  );
+
+  const newProfileRow = profileHeaders.map(header => {
+    switch (header) {
+      case 'ID_Utilisateur': return newId;
+      case 'Email': return email;
+      case 'Nom_Complet': return payload.nom_complet || '';
+      case 'Telephone': return payload.telephone || '';
+      case 'Profession': return payload.profession || '';
+      case 'Compagnie': return payload.compagnie || '';
+      case 'URL_Photo': return payload.url_photo || '';
+      case 'URL_Couverture': return payload.url_couverture || '';
+      case 'Liens_Sociaux_JSON': return liensJson;
+      case 'Lead_Capture_Actif': return payload.lead_capture || 'OUI';
+      case 'Services_JSON': return '[]';
+      case 'Couleur_Theme': return '#4da6ff';
+      default: return '';
+    }
+  });
+  profileSheet.appendRow(newProfileRow);
+
+  // 5. Activer la carte physique si un code est fourni
+  if (payload.card_code) {
+    const code = String(payload.card_code).trim().toUpperCase();
+    try {
+      let cardSheet = ss.getSheetByName('PhysicalCards');
+      if (!cardSheet) {
+        cardSheet = ss.insertSheet('PhysicalCards');
+        cardSheet.appendRow(['Code_Carte', 'Email_Proprietaire', 'Date_Activation', 'Statut', 'Date_Vente', 'Vendeur', 'Commentaire']);
+      }
+      const cardData = cardSheet.getDataRange().getValues();
+      let cardRowIdx = -1;
+      for (let i = 1; i < cardData.length; i++) {
+        if (cardData[i][0] === code) { cardRowIdx = i + 1; break; }
+      }
+      if (cardRowIdx !== -1) {
+        cardSheet.getRange(cardRowIdx, 2, 1, 3).setValues([[email, new Date(), 'Active']]);
+      } else {
+        cardSheet.appendRow([code, email, new Date(), 'Active', '', '', 'Activé via formulaire QR']);
+      }
+    } catch (e) {
+      Logger.log('Erreur activation carte: ' + e.message);
+    }
+  }
+
+  // 6. Vider le cache GAS pour ce profil (le Worker Cloudflare purge de son côté)
+  try {
+    CacheService.getScriptCache().remove('profile_' + slug);
+  } catch (_) {}
+
+  SpreadsheetApp.flush();
+  logAction('quickRegisterAndActivate', 'SUCCESS', `Carte activée pour ${email} (slug: ${slug})`, email);
+
+  // 7. Email de bienvenue (optionnel, ne bloque pas si erreur)
+  try {
+    const loginUrl = 'https://mahu.cards/Dashboard.html';
+    const htmlBody = `
+      <div style="font-family:Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #eee;">
+        <div style="background:#000;padding:30px;text-align:center;">
+          <img src="https://mahu.cards/r/logo.png" style="height:50px;">
+        </div>
+        <div style="padding:40px 30px;color:#1a1a1a;line-height:1.8;font-size:16px;">
+          <h2 style="color:#000;margin-top:0;font-weight:300;text-align:center;">Votre carte est activée !</h2>
+          <p>Bonjour ${payload.nom_complet || ''},</p>
+          <p>Votre profil digital est en ligne à l'adresse :<br>
+          <a href="https://mahu.cards/ProfilePublic.html?user=${slug}" style="color:#4da6ff;">mahu.cards/${slug}</a></p>
+          <p>Votre carte NFC est maintenant opérationnelle. Chaque fois que quelqu'un la scanne, il verra votre profil.</p>
+          <div style="text-align:center;margin:40px 0;">
+            <a href="${loginUrl}" style="background:#000;color:#fff;padding:16px 32px;text-decoration:none;font-weight:500;font-size:14px;display:inline-block;letter-spacing:1px;text-transform:uppercase;">Accéder à mon tableau de bord</a>
+          </div>
+        </div>
+        <div style="background:#f9f9f9;padding:20px;text-align:center;font-size:11px;color:#999;border-top:1px solid #eee;">
+          &copy; ${new Date().getFullYear()} Mahu. L'excellence de la connexion.
+        </div>
+      </div>`;
+    sendEmail(email, 'Votre carte Mahu est activée !', htmlBody);
+  } catch (e) {
+    Logger.log('Email bienvenue non envoyé: ' + e.message);
+  }
+
+  return { success: true, token: token, slug: slug, urlsToPurge: [slug] };
 }

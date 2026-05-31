@@ -2,243 +2,403 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Le titre et la description seront mis à jour par JS -->
-    <title>Détail du Produit</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Détail du Produit — Mahu</title>
     <link rel="icon" href="r/logo.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
     <style>
-        :root {
-            --bg-main: #f4f7f6;
-            --card-bg: #FFFFFF;
-            --text-primary: #212529;
-            --text-secondary: #6c757d;
-            --border-color: #dee2e6;
-            --accent-color: #000000;
+        /* Layout produit */
+        .product-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 50px 20px 80px;
         }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            margin: 0;
-            background-color: var(--bg-main);
-            color: var(--text-primary);
-        }
-        .container {
-            max-width: 900px;
-            margin: 40px auto;
-            padding: 20px;
-        }
+
         .breadcrumb {
-            margin-bottom: 20px;
+            margin-bottom: 28px;
+            font-size: 0.88em;
+            color: var(--text-secondary);
         }
+
         .breadcrumb a {
             color: var(--text-secondary);
             text-decoration: none;
+            transition: color 0.2s;
         }
-        .breadcrumb a:hover {
-            text-decoration: underline;
-        }
+
+        .breadcrumb a:hover { color: var(--blue); }
+        .breadcrumb span { margin: 0 8px; }
+
         .product-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            background-color: var(--card-bg);
-            padding: 30px;
+            gap: 50px;
+            background: #111;
+            border: 1px solid #1e1e1e;
+            border-radius: 20px;
+            padding: 36px;
+        }
+
+        @media (max-width: 768px) {
+            .product-layout { grid-template-columns: 1fr; gap: 28px; padding: 22px; }
+        }
+
+        /* Galerie d'images */
+        .image-gallery { position: relative; }
+
+        .main-image {
+            background: #0d0d0d;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-        /* Carrousel d'images */
-        .image-gallery {
-            position: relative;
-            border-radius: 8px;
             overflow: hidden;
+            border: 1px solid #1e1e1e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1;
         }
+
         .main-image img {
-            width: 100%;
-            height: 400px;
-            object-fit: cover;
-            display: block;
+            width: 85%;
+            height: 85%;
+            object-fit: contain;
+            transition: transform 0.4s ease;
+            filter: drop-shadow(0 8px 24px rgba(77,166,255,0.2));
         }
+
+        .main-image img:hover { transform: scale(1.05); }
+
         .thumbnails {
             display: flex;
             gap: 10px;
-            margin-top: 10px;
-        }
-        .thumbnails img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 4px;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: border-color 0.2s;
-        }
-        .thumbnails img.active {
-            border-color: var(--accent-color);
+            margin-top: 14px;
+            flex-wrap: wrap;
         }
 
-        /* Informations produit */
-        .product-details h1 {
-            margin: 0 0 15px 0;
-            font-size: 2.2em;
+        .thumbnails img {
+            width: 72px;
+            height: 72px;
+            object-fit: contain;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid #2a2a2a;
+            background: #0d0d0d;
+            padding: 6px;
+            transition: border-color 0.2s ease;
         }
-        .product-details .price {
+
+        .thumbnails img.active,
+        .thumbnails img:hover { border-color: var(--blue); }
+
+        /* Détails produit */
+        .product-details { display: flex; flex-direction: column; justify-content: flex-start; }
+
+        .product-category-label {
+            font-size: 0.72em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--blue);
+            margin-bottom: 10px;
+        }
+
+        #product-name {
+            font-size: 1.9em;
+            font-weight: 800;
+            margin: 0 0 16px;
+            line-height: 1.2;
+        }
+
+        #product-price {
             font-size: 2em;
-            font-weight: bold;
-            color: var(--accent-color);
+            font-weight: 800;
+            color: var(--text-primary);
             margin-bottom: 20px;
         }
-        .product-details .description {
-            line-height: 1.6;
-            color: var(--text-secondary);
-            margin-bottom: 30px;
+
+        .product-divider {
+            height: 1px;
+            background: #1e1e1e;
+            margin: 20px 0;
         }
-        .btn-add-to-cart {
+
+        #product-description {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 0.95em;
+            margin-bottom: 28px;
+        }
+
+        .product-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 28px;
+        }
+
+        .product-features li {
+            padding: 8px 0;
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+
+        .product-features li::before {
+            content: "✓";
+            color: var(--blue);
+            font-weight: 700;
+            font-size: 0.85em;
+        }
+
+        /* BOUTON : Ajouter au panier */
+        #add-to-cart-btn {
             width: 100%;
             padding: 15px;
+            background: var(--blue);
+            color: #000;
             border: none;
-            background-color: var(--accent-color);
-            color: var(--card-bg);
-            font-weight: bold;
-            font-size: 1.1em;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1.05em;
             cursor: pointer;
-            border-radius: 5px;
-            transition: opacity 0.2s;
+            transition: background 0.2s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
-        .btn-add-to-cart:hover {
-            opacity: 0.8;
+
+        #add-to-cart-btn:hover {
+            background: #78beff;
+            transform: scale(1.02);
+        }
+
+        #add-to-cart-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         /* Squelette de chargement */
         .skeleton {
-            background-color: #e0e0e0;
-            border-radius: 4px;
-            animation: pulse 1.5s infinite ease-in-out;
+            background: linear-gradient(90deg, #1a1a1a 25%, #222 50%, #1a1a1a 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 6px;
+            color: transparent !important;
         }
-        @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
 
-        @media (max-width: 768px) {
-            .product-layout {
-                grid-template-columns: 1fr;
-            }
-            .container {
-                margin: 20px auto;
-            }
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <div class="breadcrumb">
-            <a id="back-to-shop" href="BoutiquePublique.html">Retour à la boutique</a>
-        </div>
+    <!-- ===== HEADER ===== -->
+    <header>
+        <nav class="container">
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 40px;"></a>
+            <ul class="desktop-links">
+                <li><a href="index.html#features">Technologie</a></li>
+                <li><a href="index.html#about">À Propos</a></li>
+                <li><a href="Boutique.html">Boutique</a></li>
+            </ul>
+            <div class="nav-actions">
+                <!-- BOUTON : Icône profil — redirige vers Connexion -->
+                <a href="Connexion.html" class="primary" id="login-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </a>
+                <div class="menu-burger">☰</div>
+            </div>
+        </nav>
+    </header>
 
-        <div id="product-layout" class="product-layout">
-            <!-- Colonne Images -->
-            <div class="image-gallery">
-                <div class="main-image skeleton" style="height: 400px;">
-                    <img id="main-product-image" src="" alt="Image principale du produit">
+    <main>
+        <div class="product-wrapper">
+
+            <!-- Fil d'Ariane -->
+            <div class="breadcrumb">
+                <a id="back-to-shop" href="Boutique.html">← Retour à la boutique</a>
+                <span>/</span>
+                <span id="breadcrumb-name">Produit</span>
+            </div>
+
+            <!-- Layout produit -->
+            <div id="product-layout" class="product-layout">
+
+                <!-- Colonne gauche : Images -->
+                <div class="image-gallery">
+                    <div class="main-image skeleton" id="main-image-wrap">
+                        <img id="main-product-image" src="" alt="Image principale du produit" style="display:none;">
+                    </div>
+                    <div id="product-thumbnails" class="thumbnails">
+                        <div class="skeleton" style="width:72px; height:72px; border-radius:8px;"></div>
+                        <div class="skeleton" style="width:72px; height:72px; border-radius:8px;"></div>
+                    </div>
                 </div>
-                <div id="product-thumbnails" class="thumbnails">
-                    <div class="skeleton" style="width: 80px; height: 80px;"></div>
-                    <div class="skeleton" style="width: 80px; height: 80px;"></div>
-                    <div class="skeleton" style="width: 80px; height: 80px;"></div>
+
+                <!-- Colonne droite : Détails -->
+                <div class="product-details">
+                    <div class="product-category-label" id="product-category">Carte NFC</div>
+                    <h1 id="product-name" class="skeleton" style="height:44px; width:80%; margin-bottom:16px;"></h1>
+                    <p id="product-price" class="skeleton" style="height:36px; width:40%; margin-bottom:20px;"></p>
+                    <div class="product-divider"></div>
+                    <div id="product-description" class="skeleton" style="height:80px; margin-bottom:28px;"></div>
+                    <ul class="product-features" id="product-features"></ul>
+                    <!-- BOUTON : Ajouter au panier -->
+                    <button id="add-to-cart-btn" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                        Ajouter au panier
+                    </button>
                 </div>
             </div>
 
-            <!-- Colonne Détails -->
-            <div class="product-details">
-                <h1 id="product-name" class="skeleton" style="height: 40px; width: 80%;"></h1>
-                <p id="product-price" class="price skeleton" style="height: 36px; width: 40%;"></p>
-                <div id="product-description" class="description">
-                    <p class="skeleton" style="height: 18px;"></p>
-                    <p class="skeleton" style="height: 18px; width: 90%;"></p>
-                    <p class="skeleton" style="height: 18px; width: 70%;"></p>
-                </div>
-                <button id="add-to-cart-btn" class="btn-add-to-cart">Ajouter au panier</button>
-            </div>
         </div>
-    </div>
+    </main>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col footer-logo-section"><img src="r/logo.png" alt="Mahu Logo"><p>Des cartes de visite intelligentes qui révolutionnent vos échanges professionnels.</p></div>
+                <div class="footer-col"><h4>Produits</h4><ul><li><a href="Boutique.html">Catalogue</a></li></ul></div>
+                <div class="footer-col"><h4>Informations</h4><ul>
+                    <li><a href="Contact.html">Contact</a></li>
+                    <li><a href="FAQ.html">FAQ</a></li>
+                    <li><a href="Livraison.html">Livraison</a></li>
+                </ul></div>
+            </div>
+            <div class="footer-bottom"><p>&copy; 2026 Mahu. Tous droits réservés.</p></div>
+        </div>
+    </footer>
 
     <script src="config.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const params = new URLSearchParams(window.location.search);
-            const productId = params.get('id');
-            const userUrl = params.get('user');
+        // Données statiques des produits (synchronisées avec Boutique.html)
+        const PRODUCTS = [
+            { name: "Black Edition",       category: "Premium NFC",         price: 25000,  desc: "Notre design signature. Fond noir satiné avec gravure laser. La carte qui marque les esprits lors de chaque rencontre.", images: ["r/1.svg"], features: ["PVC Premium", "Gravure laser", "Puce NFC intégrée", "Profil numérique activé"] },
+            { name: "White Clean",         category: "Classique NFC",       price: 13900,  desc: "Minimaliste et élégante. Design blanc épuré avec vos coordonnées en typographie soignée.", images: ["r/2.svg"], features: ["PVC Blanc", "Impression nette", "Puce NFC intégrée"] },
+            { name: "Gold Metal",          category: "Métal NFC",           price: 28000,  desc: "Carte en métal brossé finition dorée. Impression UV résistante. Une présence physique qui impressionne.", images: ["r/3.svg"], features: ["Métal brossé", "Finition or", "Puce NFC", "Impression UV"] },
+            { name: "Custom Design",       category: "Personnalisable NFC", price: 20000,  desc: "Votre propre design sur votre carte. Téléchargez votre logo, choisissez vos couleurs.", images: ["r/4.svg"], features: ["Design libre", "Votre logo", "Puce NFC", "Éditeur en ligne"] },
+            { name: "Blue Wave",           category: "Premium NFC",         price: 13900,  desc: "Design dynamique avec dégradé bleu électrique. Parfaite pour les profils tech et startups.", images: ["r/5.svg"], features: ["PVC Premium", "Dégradé UV", "Puce NFC intégrée"] },
+            { name: "Token RFID UID — Bleu", category: "Porte-clé RFID 13.56MHz", price: 5000, desc: "Porte-clé RFID 13.56MHz UID modifiable (Mifare 1K S50). Copiable et réinscriptible 100 000 fois. Idéal pour accès, présence et gestion. Puce T5577/EM4305.", images: [
+                "https://ae-pic-a1.aliexpress-media.com/kf/S4fe03eb7aa2e461787dde561a2ad0339U.jpg_220x220q75.jpg_.avif",
+                "https://ae-pic-a1.aliexpress-media.com/kf/S4a6607506ac34a6ba435d7851af44891S.jpg_220x220q75.jpg_.avif",
+                "https://ae-pic-a1.aliexpress-media.com/kf/S17676e009b4d4189b4b01bfcee3c25c7b.jpg_220x220q75.jpg_.avif",
+                "https://ae-pic-a1.aliexpress-media.com/kf/Sf5e22821b85046ff9bd5db96ebc81a45I.jpg_220x220q75.jpg_.avif"
+            ], features: ["13.56 MHz", "UID changeable", "Puce T5577 / EM4305", "100 000 réécritures", "Couleur bleue"] },
+            { name: "Token RFID UID — Noir", category: "Porte-clé RFID 13.56MHz", price: 5000, desc: "Porte-clé RFID 13.56MHz version noire. UID modifiable, compatible tous lecteurs Mifare. Discret et robuste pour usage professionnel quotidien.", images: [
+                "https://ae-pic-a1.aliexpress-media.com/kf/Sb56d9288c42949268532f100d8a01d6ac.jpg_220x220q75.jpg_.avif"
+            ], features: ["13.56 MHz", "UID changeable", "Couleur noire", "Compatible Mifare"] },
+            { name: "Carte RFID Vierge",   category: "Carte RFID 125KHz",   price: 5000,   desc: "Carte PVC vierge 125KHz réinscriptible. Puce T5577/5200/EM4305. Compatible copieur RFID 125KHz. Utilisation : accès, parking, pointage. Portée 0–10 cm. Lot de 10 pcs.", images: [
+                "https://ae-pic-a1.aliexpress-media.com/kf/S05de3c4cc2db45bba044151ec9cc733ed.jpg_220x220q75.jpg_.avif",
+                "https://ae-pic-a1.aliexpress-media.com/kf/Sdb65a9392c264098b023aff9e37cacd2e.jpg_220x220q75.jpg_.avif",
+                "https://ae-pic-a1.aliexpress-media.com/kf/Sa6427ac2c14e4ab28a5ed1b7c0d14869O.jpg",
+                "https://ae-pic-a1.aliexpress-media.com/kf/S80e1c7bd60b04e9a8b5bd0a8bb14b7dfj.jpg"
+            ], features: ["125 KHz", "PVC standard", "T5577 / 5200 / EM4305", "Lot de 10 pcs", "Portée 0–10 cm", "100 000 réécritures"] },
+            { name: "Carte Métal Premium", category: "Carte Métal NFC",     price: 50000,  desc: "Carte de visite NFC en métal massif. Finition brossée, poids premium, gravure laser de vos informations. L'accessoire de networking qui impose le respect dès le premier contact.", images: [
+                "https://ae-pic-a1.aliexpress-media.com/kf/S3cedfa22ccef48c9b13e034ea04fc79bF.jpg",
+                "https://ae-pic-a1.aliexpress-media.com/kf/S3e727ca2556542559d85ab5932518fb5x.jpg_220x220q75.jpg_.avif",
+                "https://ae-pic-a1.aliexpress-media.com/kf/Sdc72592485e34d1e82e0742a1e150f1bC.jpg_220x220q75.jpg_.avif",
+                "https://ae-pic-a1.aliexpress-media.com/kf/S2d6300c83e634815ad6d2972b0258d6aQ.jpg_220x220q75.jpg_.avif"
+            ], features: ["Métal massif", "Finition brossée", "Gravure laser", "Puce NFC intégrée", "Profil numérique activé"] },
+            { name: "Carte en Bois",       category: "Carte Bois NFC",      price: 22000,  desc: "Carte de visite NFC en bois naturel. Unique, écologique et mémorable. Gravure laser de votre nom et informations. Pour ceux qui veulent se distinguer.", images: [
+                "https://ae-pic-a1.aliexpress-media.com/kf/S8f937e50a9d74eedbdbceb1ea40d17a1f.jpg_220x220q75.jpg_.avif",
+                "https://ae-pic-a1.aliexpress-media.com/kf/S0e959d779c7249248bdd15985630340cY.jpg_220x220q75.jpg_.avif",
+                "https://ae-pic-a1.aliexpress-media.com/kf/Sb6b5fa3bdcd04a03b13fbe64b5c1b750S.jpg_220x220q75.jpg_.avif",
+                "https://ae-pic-a1.aliexpress-media.com/kf/Sb674e7c8f6cb4df0810223cca6399264C.jpg_220x220q75.jpg_.avif"
+            ], features: ["Bois naturel", "Gravure laser", "Puce NFC intégrée", "Écologique", "Unique"] }
+        ];
 
-            if (!productId || !userUrl) {
-                document.body.innerHTML = '<h1>Produit ou utilisateur non spécifié.</h1>';
+        document.addEventListener('DOMContentLoaded', () => {
+            const params  = new URLSearchParams(window.location.search);
+            const id      = parseInt(params.get('id'));
+            const product = PRODUCTS[id];
+
+            // Lien retour boutique
+            const backLink = document.getElementById('back-to-shop');
+            backLink.href = 'Boutique.html';
+
+            if (!product) {
+                document.querySelector('.product-wrapper').innerHTML = '<p style="text-align:center;padding:80px 0;color:#888;">Produit introuvable. <a href="Boutique.html" style="color:var(--blue)">Retour au catalogue</a></p>';
                 return;
             }
-            
-            document.getElementById('back-to-shop').href = `BoutiquePublique.html?user=${userUrl}`;
-            fetchProductData(productId, userUrl);
+
+            // Remplir les infos
+            document.title = `${product.name} — Mahu`;
+            document.getElementById('breadcrumb-name').textContent = product.name;
+            document.getElementById('product-category').textContent = product.category;
+
+            const nameEl = document.getElementById('product-name');
+            nameEl.textContent = product.name;
+            nameEl.classList.remove('skeleton');
+            nameEl.style = '';
+
+            const priceEl = document.getElementById('product-price');
+            priceEl.textContent = product.price.toLocaleString('fr-FR') + ' FCFA';
+            priceEl.classList.remove('skeleton');
+            priceEl.style = '';
+
+            const descEl = document.getElementById('product-description');
+            descEl.textContent = product.desc;
+            descEl.classList.remove('skeleton');
+            descEl.style = '';
+
+            // Caractéristiques
+            const featList = document.getElementById('product-features');
+            product.features.forEach(f => {
+                const li = document.createElement('li');
+                li.textContent = f;
+                featList.appendChild(li);
+            });
+
+            // Images
+            const wrap = document.getElementById('main-image-wrap');
+            wrap.classList.remove('skeleton');
+            const mainImg = document.getElementById('main-product-image');
+            mainImg.src = product.images[0];
+            mainImg.style.display = '';
+            mainImg.alt = product.name;
+
+            const thumbs = document.getElementById('product-thumbnails');
+            thumbs.innerHTML = '';
+            product.images.forEach((src, i) => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.alt = `Aperçu ${i + 1}`;
+                if (i === 0) img.classList.add('active');
+                img.onclick = () => {
+                    mainImg.src = src;
+                    thumbs.querySelectorAll('img').forEach(t => t.classList.remove('active'));
+                    img.classList.add('active');
+                };
+                thumbs.appendChild(img);
+            });
+
+            // Activer le bouton panier
+            const btn = document.getElementById('add-to-cart-btn');
+            btn.disabled = false;
+            btn.onclick = () => {
+                btn.textContent = '✓ Ajouté au panier !';
+                btn.disabled = true;
+                setTimeout(() => {
+                    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg> Ajouter au panier';
+                    btn.disabled = false;
+                }, 2000);
+            };
+
+            // Menu burger mobile
+            const burger = document.querySelector('.menu-burger');
+            const mobileNav = document.querySelector('.nav-links-mobile');
+            if (burger && mobileNav) {
+                burger.addEventListener('click', () => {
+                    mobileNav.classList.toggle('active');
+                    document.body.classList.toggle('no-scroll');
+                });
+            }
         });
-
-        function fetchProductData(productId, userUrl) {
-            // On appelle une nouvelle action API 'getPublicProductData'
-            callApi('getPublicProductData', { payload: { productId, userUrl } })
-                .then(data => {
-                    if (data.error) {
-                        document.body.innerHTML = `<h1>Erreur: ${data.error}</h1>`;
-                    } else {
-                        populateProductDetails(data);
-                    }
-                })
-                .catch(err => {
-                    document.body.innerHTML = `<h1>Erreur de chargement.</h1>`;
-                });
-        }
-
-        function populateProductDetails(product) {
-            // SEO et titre de la page
-            document.title = `${product.Nom} - Mahu`;
-            
-            // Enlever les classes skeleton
-            document.querySelectorAll('.skeleton').forEach(el => el.classList.remove('skeleton'));
-
-            // Remplir les informations
-            document.getElementById('product-name').textContent = product.Nom;
-            document.getElementById('product-price').textContent = `${product.Prix} €`;
-            document.getElementById('product-description').textContent = product.Description || "Aucune description disponible.";
-
-            // Gérer la galerie d'images
-            const images = JSON.parse(product.Images_JSON || '[]');
-            const mainImage = document.getElementById('main-product-image');
-            const thumbnailsContainer = document.getElementById('product-thumbnails');
-            thumbnailsContainer.innerHTML = '';
-
-            if (images.length > 0) {
-                mainImage.src = images[0];
-                images.forEach((imgUrl, index) => {
-                    const thumb = document.createElement('img');
-                    thumb.src = imgUrl;
-                    thumb.alt = `Aperçu ${index + 1}`;
-                    if (index === 0) thumb.classList.add('active');
-                    thumb.onclick = () => {
-                        mainImage.src = imgUrl;
-                        document.querySelectorAll('.thumbnails img').forEach(t => t.classList.remove('active'));
-                        thumb.classList.add('active');
-                    };
-                    thumbnailsContainer.appendChild(thumb);
-                });
-            } else {
-                mainImage.src = 'https://placehold.co/400x400/eee/999?text=Image';
-            }
-        }
-
-        // La fonction callApi doit être définie ici ou dans config.js
-        // On la copie ici pour que la page soit autonome
-        function callApi(action, data = {}) {
-            const formData = new FormData();
-            formData.append('action', action);
-            if (data.payload) {
-                formData.append('payload', JSON.stringify(data.payload));
-            }
-            return fetch(API_URL, { method: 'POST', body: formData }).then(res => res.json());
-        }
     </script>
-
 </body>
 </html>
-

@@ -2,336 +2,989 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="description" content="Explorez notre boutique spécialisée en technologies NFC et RFID. Trouvez des lecteurs, cartes, tags, et solutions complètes pour vos projets.">
-    <meta name="keywords" content="boutique RFID, acheter NFC, lecteur RFID, tag NFC, carte RFID, solution identification, matériel RFID">
-    <meta property="og:title" content="Boutique RFID & NFC - Mahu">
-    <meta property="og:description" content="Votre fournisseur expert en matériel et solutions RFID/NFC.">
-    <meta property="og:url" content="https://mahu.cards/Boutique.html">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Boutique RFID & NFC - Mahu</title>
+
+    <!-- SEO Boutique -->
+    <title>Catalogue Cartes NFC — Mahu | Abidjan & Dakar | Dès 13 900 FCFA</title>
+    <meta name="description" content="Commandez votre carte de visite NFC Mahu. PVC, métal, bois ou personnalisée — 9 modèles disponibles. Livraison Abidjan, Dakar et Afrique de l'Ouest. Paiement à la livraison.">
+    <meta name="keywords" content="acheter carte NFC, carte de visite NFC Abidjan, carte de visite NFC Dakar, catalogue carte NFC, carte métal NFC, carte bois NFC, RFID Afrique, Mahu boutique">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://mahu.cards/Boutique.html">
+    <meta property="og:type"        content="website">
+    <meta property="og:url"         content="https://mahu.cards/Boutique.html">
+    <meta property="og:title"       content="Catalogue Cartes NFC Mahu — 9 modèles dès 13 900 FCFA">
+    <meta property="og:description" content="PVC, métal, bois ou personnalisée. Livraison Abidjan & Dakar. Paiement à la livraison.">
+    <meta property="og:image"       content="https://mahu.cards/r/og-image.png">
+    <meta name="twitter:card"       content="summary_large_image">
+
+    <!-- Schema.org — Produits -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Catalogue Cartes NFC Mahu",
+      "url": "https://mahu.cards/Boutique.html",
+      "numberOfItems": 9,
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Black Edition — Carte NFC", "url": "https://mahu.cards/ProduitDetail.html?id=0" },
+        { "@type": "ListItem", "position": 2, "name": "White Clean — Carte NFC",   "url": "https://mahu.cards/ProduitDetail.html?id=1" },
+        { "@type": "ListItem", "position": 3, "name": "Gold Metal — Carte NFC",    "url": "https://mahu.cards/ProduitDetail.html?id=2" },
+        { "@type": "ListItem", "position": 4, "name": "Carte Métal Premium",        "url": "https://mahu.cards/ProduitDetail.html?id=8" },
+        { "@type": "ListItem", "position": 5, "name": "Carte en Bois",              "url": "https://mahu.cards/ProduitDetail.html?id=9" }
+      ]
+    }
+    </script>
+
+    <title>Catalogue Cartes NFC — Mahu | Abidjan & Dakar | Dès 13 900 FCFA</title>
+    <link rel="icon" href="r/logo.png" type="image/png">
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Styles pour la barre de navigation (copiés de index.html pour la cohérence) */
+
+        /* ===== RESET PAGE ===== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: #0a0a0a;
+            color: #f0f0f0;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* ===== HEADER ===== */
         header {
-            position: sticky; /* Reste en haut lors du défilement */
+            position: sticky;
             top: 0;
-            left: 0;
-            width: 100%;
             z-index: 1000;
-            background-color: rgba(10, 10, 10, 0.85); /* Fond noir par défaut sur cette page */
-            backdrop-filter: blur(5px);
-            border-bottom: 1px solid var(--border-color);
-            transition: background-color 0.3s ease;
+            background: rgba(10,10,10,0.92);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #222;
         }
 
-        /* Style de l'icône de profil */
-        #login-link .profile-icon {
-            stroke: var(--text-primary);
-            width: 28px;
-            height: 28px;
-            transition: stroke 0.3s ease;
-        }
-
-        /* Style de l'icône de profil pour qu'elle n'ait pas de fond */
-        #login-link {
-            background: transparent;
-            border: none;
-            stroke: var(--text-primary);
-        }
-
-        /* Styles pour le nouveau menu "trois points" */
-        .more-menu-container {
+        /* ===== HERO BANNER ===== */
+        .catalogue-hero {
             position: relative;
-        }
-        .more-menu-icon {
-            cursor: pointer;
-            padding: 5px;
-        }
-        .more-menu-icon svg {
-            stroke: var(--text-primary);
-            width: 28px;
-            height: 28px;
-        }
-
-        .more-menu-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background-color: rgba(10, 10, 10, 0.95);
-            backdrop-filter: blur(5px);
-            border-radius: 8px;
-            padding: 10px;
-            min-width: 160px;
-            z-index: 1001;
-            border: 1px solid #333;
-            transform: translateY(10px);
-            opacity: 0;
-            visibility: hidden;
-            transition: transform 0.2s ease, opacity 0.2s ease, visibility 0.2s;
-        }
-        .more-menu-dropdown.visible { transform: translateY(0); opacity: 1; visibility: visible; }
-        .more-menu-dropdown a { display: block; color: white; padding: 10px 15px; border-radius: 5px; transition: background-color 0.2s ease; text-decoration: none; }
-        .more-menu-dropdown a:hover { background-color: rgba(255, 255, 255, 0.1); }
-
-        /* Cacher les liens du bureau pour simplifier la navigation sur cette page */
-        .desktop-links {
-            display: none;
-        }
-
-        /* Nouvelle grille de produits */
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-        }
-
-        .product-card {
-            background-color: var(--card-background);
-            border-radius: 12px;
             overflow: hidden;
-            border: 1px solid var(--border-color);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            animation: fadeIn 0.5s ease-out forwards;
-            opacity: 0;
-            transform: translateY(20px);
+            padding: 100px 20px 80px;
+            text-align: center;
+            background: linear-gradient(135deg, #0d0d1a 0%, #0a1628 50%, #0d0d1a 100%);
         }
 
-        @keyframes fadeIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        /* Fond animé — grille décorative */
+        .catalogue-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,123,255,0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,123,255,0.08) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            to { background-position: 60px 60px; }
+        }
+
+        .catalogue-hero .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .catalogue-hero .badge {
+            display: inline-block;
+            background: rgba(0,123,255,0.15);
+            border: 1px solid rgba(0,123,255,0.4);
+            color: #4da6ff;
+            padding: 6px 18px;
+            border-radius: 50px;
+            font-size: 0.8em;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .catalogue-hero h1 {
+            font-size: clamp(2.2em, 5vw, 4em);
+            font-weight: 800;
+            letter-spacing: -1px;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #fff 30%, #4da6ff 70%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .catalogue-hero p {
+            font-size: 1.1em;
+            color: #888;
+            max-width: 600px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat .number {
+            font-size: 1.8em;
+            font-weight: 800;
+            color: #4da6ff;
+        }
+
+        .hero-stat .label {
+            font-size: 0.75em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ===== FILTRES / CATÉGORIES ===== */
+        .filters-bar {
+            background: #111;
+            border-bottom: 1px solid #1e1e1e;
+            padding: 20px;
+            position: sticky;
+            top: 65px;
+            z-index: 900;
+        }
+
+        .filters-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .filter-label {
+            font-size: 0.8em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-right: 5px;
+        }
+
+        /* BOUTON : Filtre de catégorie — active la classe .active au clic */
+        .filter-btn {
+            background: transparent;
+            border: 1px solid #2a2a2a;
+            color: #888;
+            padding: 8px 18px;
+            border-radius: 50px;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            border-color: #4da6ff;
+            color: #4da6ff;
+        }
+
+        .filter-btn.active {
+            background: #4da6ff;
+            border-color: #4da6ff;
+            color: #000;
+            font-weight: 600;
+        }
+
+        /* ===== GRILLE CATALOGUE ===== */
+        .catalogue-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 40px;
+        }
+
+        .section-header h2 {
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .section-header span {
+            font-size: 0.85em;
+            color: #555;
+        }
+
+        /* Grille principale — 3 colonnes sur desktop */
+        .catalogue-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 28px;
+        }
+
+        /* ===== CARTE PRODUIT ===== */
+        .product-card {
+            background: #111;
+            border: 1px solid #1e1e1e;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            animation: cardIn 0.5s ease-out both;
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
         .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px rgba(0, 100, 255, 0.15);
+            border-color: #2a2a2a;
         }
 
-        .product-image-container {
+        /* Image produit — ratio 3/2 */
+        .product-img-wrap {
             position: relative;
-            height: 220px;
-            background-color: #e9ecef;
-        }
-
-        .product-image-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .product-info {
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            min-height: 160px; /* Hauteur minimale pour l'alignement */
-        }
-
-        .product-info h3 {
-            margin: 0 0 10px 0;
-            font-size: 1.2em;
-            flex-grow: 1; /* Pousse le prix vers le bas */
-        }
-
-        .product-info .price {
-            font-size: 1.4em;
-            font-weight: bold;
-            color: var(--blue);
-            margin-top: 15px;
-        }
-
-        .product-info .btn {
-            margin-top: 15px;
-        }
-
-        /* Hero Section pour la boutique */
-        .shop-hero {
-            padding: 80px 20px;
-            text-align: center;
-            background: linear-gradient(45deg, var(--blue), var(--purple));
-            color: white;
-            border-radius: 12px;
-            margin-bottom: 40px;
-            animation: backgroundPan 10s ease-in-out infinite;
-            background-size: 200% 200%;
-        }
-
-        @keyframes backgroundPan {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .shop-hero h1 {
-            font-size: 3em;
-            margin: 0 0 10px 0;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-
-        .shop-hero p {
-            font-size: 1.2em;
-            max-width: 700px;
-            margin: 0 auto;
-            opacity: 0.9;
-        }
-
-        /* Bouton Retour en Haut */
-        #back-to-top {
-            position: fixed;
-            bottom: 30px;
-            right: 20px;
-            background-color: var(--blue);
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            text-align: center;
-            font-size: 24px;
-            line-height: 50px;
-            cursor: pointer;
-            display: none; /* Caché par défaut */
-            z-index: 999;
-        }
-
-        /* Responsive */
-        @media (max-width: 992px) {
-            .section-title {
-                font-size: 2.2em;
-            }
-            .modal-content {
-                flex-direction: column;
-                margin: 10% auto;
-                width: 95%;
-            }
-            .modal-gallery {
-                height: 300px;
-            }
-        }
-
-        /* Styles pour la section "Pourquoi nous choisir" */
-        .why-us-section { padding: 60px 0; text-align: center; }
-        .why-us-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 40px; }
-        .feature-box { background: var(--card-background); padding: 30px; border-radius: 12px; border: 1px solid var(--border-color); transition: transform 0.3s; }
-        .feature-box:hover { transform: translateY(-5px); }
-        .feature-icon { font-size: 2em; margin-bottom: 15px; color: var(--blue); }
-        
-        /* Styles pour les caractéristiques dans la modale */
-        .features-list {
-            list-style: none;
-            padding: 0;
-            margin: 20px 0;
-            text-align: left;
-        }
-        .features-list li {
-            margin-bottom: 8px;
-            color: #ccc;
+            aspect-ratio: 3 / 2;
+            background: #0d0d0d;
+            overflow: hidden;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
         }
-        .features-list li::before {
-            content: "✓";
-            color: var(--blue);
-            font-weight: bold;
+
+        .product-img-wrap img {
+            width: 85%;
+            height: 85%;
+            object-fit: contain;
+            transition: transform 0.4s ease;
+            filter: drop-shadow(0 10px 30px rgba(0,100,255,0.2));
         }
-        
-        /* Styles pour le conteneur du configurateur */
-        #modal-customizer-container {
-            width: 100%;
-            height: 650px; /* Hauteur suffisante pour le configurateur */
-            display: none;
-            position: relative;
-            background: #0f172a; /* Fond sombre pour correspondre au customizer */
+
+        .product-card:hover .product-img-wrap img {
+            transform: scale(1.07);
         }
-        #customizer-frame {
-            width: 100%;
-            height: 100%;
+
+        /* Badge sur l'image */
+        .product-badge {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.7em;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .badge-new    { background: #00c896; color: #000; }
+        .badge-pop    { background: #ff6b35; color: #fff; }
+        .badge-pro    { background: #4da6ff; color: #000; }
+        .badge-custom { background: #9b59b6; color: #fff; }
+
+        /* Corps de la carte */
+        .product-body {
+            padding: 22px;
+        }
+
+        .product-category {
+            font-size: 0.7em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #4da6ff;
+            margin-bottom: 8px;
+        }
+
+        .product-name {
+            font-size: 1.15em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .product-desc {
+            font-size: 0.85em;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+
+        /* Tags des caractéristiques */
+        .product-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .tag {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            color: #888;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.72em;
+        }
+
+        /* Prix et bouton */
+        .product-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 18px;
+            border-top: 1px solid #1a1a1a;
+        }
+
+        .product-price {
+            font-size: 1.3em;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .product-price small {
+            font-size: 0.55em;
+            color: #555;
+            font-weight: 400;
+            display: block;
+            line-height: 1;
+        }
+
+        /* BOUTON : Voir détails produit — redirige vers ProduitDetail.html */
+        .btn-detail {
+            background: #4da6ff;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.85em;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s ease, transform 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-detail:hover {
+            background: #78beff;
+            transform: scale(1.04);
+        }
+
+        /* ===== CARTE VEDETTE (grande) ===== */
+        .product-card.featured {
+            grid-column: span 2;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .product-card.featured .product-img-wrap {
+            aspect-ratio: unset;
+            min-height: 320px;
+        }
+
+        @media (max-width: 768px) {
+            .product-card.featured {
+                grid-column: span 1;
+                display: block;
+            }
+            .product-card.featured .product-img-wrap {
+                aspect-ratio: 3/2;
+                min-height: unset;
+            }
+        }
+
+        /* ===== SECTION CTA ===== */
+        .cta-section {
+            background: linear-gradient(135deg, #0d1b3e, #0a0f1e);
+            border: 1px solid #1a2a4a;
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            margin: 0 20px 60px;
+            max-width: 1160px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-section h2 {
+            font-size: 2em;
+            margin-bottom: 15px;
+        }
+
+        .cta-section p {
+            color: #666;
+            margin-bottom: 30px;
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        /* BOUTON : CTA principal — commande personnalisée */
+        .btn-cta-primary {
+            background: #4da6ff;
+            color: #000;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1em;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cta-primary:hover {
+            background: #78beff;
+            transform: scale(1.04);
+        }
+
+        /* BOUTON : CTA secondaire — contacter l'équipe */
+        .btn-cta-secondary {
+            background: transparent;
+            color: #f0f0f0;
+            border: 1px solid #333;
+            padding: 14px 32px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1em;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cta-secondary:hover {
+            border-color: #4da6ff;
+            color: #4da6ff;
+        }
+
+        /* ===== HEADER NAVIGATION ===== */
+        #login-link {
+            background: transparent;
             border: none;
         }
-        .back-to-details-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 50;
-            background: rgba(0,0,0,0.6);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 8px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-            backdrop-filter: blur(5px);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 0.9em;
+
+        #login-link .profile-icon {
+            stroke: var(--text-primary);
+            width: 26px;
+            height: 26px;
         }
-        .back-to-details-btn:hover {
-            background: rgba(0,0,0,0.8);
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .catalogue-hero { padding: 70px 16px 60px; }
+            .hero-stats { gap: 25px; }
+            .filters-inner { gap: 8px; }
+            .catalogue-section { padding: 40px 16px; }
         }
 
     </style>
 </head>
 <body>
+
+    <!-- ===== HEADER ===== -->
     <header>
         <nav class="container">
-            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 40px;"></a>
+            <!-- LIEN : Logo — retour à l'accueil -->
+            <a href="index.html" class="logo">
+                <img src="r/logo.png" alt="Logo Mahu" style="height: 38px;">
+            </a>
+
+            <!-- LIENS NAV DESKTOP -->
             <ul class="desktop-links">
                 <li><a href="index.html#features">Technologie</a></li>
                 <li><a href="index.html#about">À Propos</a></li>
+                <li><a href="Boutique.html" style="color: #4da6ff;">Boutique</a></li>
             </ul>
+
             <div class="nav-actions">
+                <!-- BOUTON : Icône profil — redirige vers la page de connexion -->
                 <a href="Connexion.html" class="primary" id="login-link">
-                    <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> 
-                </a> 
-                <div class="more-menu-container">
-                    <div class="more-menu-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg></div>
-                    <div class="more-menu-dropdown">
-                        <a href="index.html#features">Technologie</a>
-                        <a href="index.html#about">À Propos</a>
-                        <!-- <a href="Boutique.html" class="active">Boutique</a> -->
-                    </div>
-                </div>
+                    <svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </a>
+                <!-- BOUTON : Menu burger mobile -->
+                <div class="menu-burger">☰</div>
             </div>
         </nav>
     </header>
 
-    <main>
-        <section class="container">
-            <div class="shop-hero">
-                <h1>CATALOGUE DE CARTES PHYSIQUES</h1>
-                <p>Découvrez notre gamme complète de cartes de visite NFC physiques, allant des solutions abordables aux cartes premium haut de gamme.</p>
+    <!-- ===== HERO ===== -->
+    <section class="catalogue-hero">
+        <div class="hero-content">
+            <span class="badge">Catalogue 2026</span>
+            <h1>Cartes de Visite<br>NFC Professionnelles</h1>
+            <p>Choisissez votre design parmi notre collection. Chaque carte est livrée avec votre profil numérique activé, prête à partager.</p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="number">5+</div>
+                    <div class="label">Designs</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="number">NFC</div>
+                    <div class="label">Technologie</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="number">48h</div>
+                    <div class="label">Livraison</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="number">100%</div>
+                    <div class="label">Personnalisable</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== SECTION : ENTREPRISES PARTENAIRES ===== -->
+    <section id="clients-section" style="background:#080808; padding:60px 20px 50px; border-bottom:1px solid #111;">
+        <div style="text-align:center; margin-bottom:14px;">
+            <p style="font-size:0.72em; color:#4da6ff; text-transform:uppercase; letter-spacing:3px; margin:0 0 10px;">Ils nous font confiance</p>
+            <h2 style="font-size:1.6em; font-weight:800; color:#fff; margin:0 0 8px;">Nos entreprises partenaires</h2>
+            <p style="font-size:0.9em; color:#666; max-width:480px; margin:0 auto 40px;">Des marques qui ont choisi Mahu pour connecter leurs équipes avec style et efficacité.</p>
+        </div>
+
+        <!-- Grille de cartes logos -->
+        <div class="entreprise-grid">
+
+            <div class="entreprise-card">
+                <div class="entreprise-logo-wrap">
+                    <img src="r/ENTREPRISE/1.svg" alt="Entreprise partenaire 1">
+                </div>
             </div>
 
-            <div id="product-grid" class="product-grid">
-                <!-- Les produits seront injectés ici par JavaScript -->
+            <div class="entreprise-card">
+                <div class="entreprise-logo-wrap">
+                    <img src="r/ENTREPRISE/2.svg" alt="Entreprise partenaire 2">
+                </div>
             </div>
 
-            <!-- Section Pourquoi choisir nos cartes -->
-            <div class="why-us-section">
-                <h2 class="section-title">Pourquoi choisir nos cartes ?</h2>
-                <p class="section-subtitle">Nos cartes physiques NFC combinent l'élégance traditionnelle et la technologie moderne pour une expérience de networking inégalée.</p>
-                
-                <div class="why-us-grid">
-                    <div class="feature-box">
-                        <div class="feature-icon">📡</div>
-                        <h3>Partage Instantané</h3>
-                        <p>Un simple scan NFC partage votre profil digital complet avec vos contacts.</p>
+            <div class="entreprise-card">
+                <div class="entreprise-logo-wrap">
+                    <img src="r/ENTREPRISE/3.svg" alt="Entreprise partenaire 3">
+                </div>
+            </div>
+
+            <div class="entreprise-card">
+                <div class="entreprise-logo-wrap">
+                    <img src="r/ENTREPRISE/4.svg" alt="Entreprise partenaire 4">
+                </div>
+            </div>
+
+            <div class="entreprise-card">
+                <div class="entreprise-logo-wrap">
+                    <img src="r/ENTREPRISE/5.svg" alt="Entreprise partenaire 5">
+                </div>
+            </div>
+
+            <div class="entreprise-card">
+                <div class="entreprise-logo-wrap">
+                    <img src="r/ENTREPRISE/6.svg" alt="Entreprise partenaire 6">
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Lien vers la collection boutique -->
+        <div style="text-align:center; margin-top:44px;">
+            <p style="font-size:0.83em; color:#555; margin-bottom:16px;">Équipez votre équipe avec nos cartes NFC professionnelles</p>
+            <a href="#nos-produits" class="btn-voir-collection">
+                Voir notre collection
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+        </div>
+    </section>
+
+    <style>
+        .entreprise-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 860px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 640px) {
+            .entreprise-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 14px;
+            }
+        }
+
+        .entreprise-card {
+            background: #0e0e0e;
+            border: 1px solid #1c1c1c;
+            border-radius: 16px;
+            padding: 28px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+            cursor: default;
+        }
+
+        .entreprise-card:hover {
+            border-color: rgba(77,166,255,0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(77,166,255,0.08);
+        }
+
+        .entreprise-logo-wrap {
+            width: 100%;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .entreprise-logo-wrap img {
+            max-width: 100%;
+            max-height: 80px;
+            object-fit: contain;
+            filter: brightness(0.85) saturate(0.9);
+            transition: filter 0.25s ease;
+        }
+
+        .entreprise-card:hover .entreprise-logo-wrap img {
+            filter: brightness(1) saturate(1);
+        }
+
+        .btn-voir-collection {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #4da6ff, #0066cc);
+            color: #fff;
+            font-size: 0.88em;
+            font-weight: 700;
+            padding: 13px 28px;
+            border-radius: 50px;
+            text-decoration: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-voir-collection:hover {
+            opacity: 0.88;
+            transform: translateY(-2px);
+        }
+    </style>
+
+    <!-- ===== FILTRES ===== -->
+    <div class="filters-bar">
+        <div class="filters-inner">
+            <span class="filter-label">Filtrer :</span>
+            <!-- BOUTONS : Filtres de catégorie — modifient l'affichage de la grille -->
+            <button class="filter-btn active" data-filter="all">Tous</button>
+            <button class="filter-btn" data-filter="classique">Classique</button>
+            <button class="filter-btn" data-filter="premium">Premium</button>
+            <button class="filter-btn" data-filter="metal">Métal</button>
+            <button class="filter-btn" data-filter="bois">Bois</button>
+            <button class="filter-btn" data-filter="rfid">RFID</button>
+            <button class="filter-btn" data-filter="custom">Personnalisable</button>
+        </div>
+    </div>
+
+    <!-- ===== GRILLE PRODUITS ===== -->
+    <section class="catalogue-section" id="nos-produits">
+        <div class="section-header">
+            <h2>Notre Collection</h2>
+            <span id="count-label">9 produits</span>
+        </div>
+
+        <div class="catalogue-grid" id="catalogue-grid">
+            <!-- Produit 1 — VEDETTE -->
+            <div class="product-card featured" data-cat="premium">
+                <div class="product-img-wrap">
+                    <img src="r/1.svg" alt="Carte NFC Black Edition">
+                    <span class="product-badge badge-pop">Populaire</span>
+                </div>
+                <div class="product-body">
+                    <div class="product-category">Premium</div>
+                    <h3 class="product-name">Black Edition — Carte NFC</h3>
+                    <p class="product-desc">Notre design signature. Fond noir satiné avec gravure laser de vos informations. La carte qui marque les esprits lors de chaque rencontre professionnelle.</p>
+                    <div class="product-tags">
+                        <span class="tag">PVC Premium</span>
+                        <span class="tag">Gravure laser</span>
+                        <span class="tag">Puce NFC</span>
+                        <span class="tag">Profil activé</span>
                     </div>
-                    <div class="feature-box">
-                        <div class="feature-icon">🔄</div>
-                        <h3>Toujours à jour</h3>
-                        <p>Mettez à jour vos informations de contact à tout moment sans avoir à réimprimer.</p>
-                    </div>
-                    <div class="feature-box">
-                        <div class="feature-icon">💎</div>
-                        <h3>Matériaux Premium</h3>
-                        <p>Du PVC standard au métal premium, nos cartes sont conçues pour impressionner.</p>
+                    <div class="product-footer">
+                        <div class="product-price">
+                            <small>À partir de</small>
+                            25 000 FCFA
+                        </div>
+                        <!-- BOUTON : Voir détails Black Edition -->
+                        <a href="ProduitDetail.html?id=0" class="btn-detail">
+                            Voir les détails
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                        </a>
                     </div>
                 </div>
             </div>
-        </section>
-    </main>
 
+            <!-- Produit 2 -->
+            <div class="product-card" data-cat="classique">
+                <div class="product-img-wrap">
+                    <img src="r/2.svg" alt="Carte NFC White Clean">
+                    <span class="product-badge badge-new">Nouveau</span>
+                </div>
+                <div class="product-body">
+                    <div class="product-category">Classique</div>
+                    <h3 class="product-name">White Clean — Carte NFC</h3>
+                    <p class="product-desc">Minimaliste et élégante. Design blanc épuré avec vos coordonnées en typographie soignée. Idéale pour les professions libérales.</p>
+                    <div class="product-tags">
+                        <span class="tag">PVC Blanc</span>
+                        <span class="tag">Impression nette</span>
+                        <span class="tag">Puce NFC</span>
+                    </div>
+                    <div class="product-footer">
+                        <div class="product-price">
+                            <small>À partir de</small>
+                            13 900 FCFA
+                        </div>
+                        <!-- BOUTON : Voir détails White Clean -->
+                        <a href="ProduitDetail.html?id=1" class="btn-detail">
+                            Voir les détails
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 19"></polyline></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produit 3 -->
+            <div class="product-card" data-cat="metal">
+                <div class="product-img-wrap">
+                    <img src="r/3.svg" alt="Carte NFC Gold Metal">
+                    <span class="product-badge badge-pro">Pro</span>
+                </div>
+                <div class="product-body">
+                    <div class="product-category">Métal</div>
+                    <h3 class="product-name">Gold Metal — Carte NFC</h3>
+                    <p class="product-desc">Carte en métal brossé finition dorée. Impression UV résistante. Une présence physique qui ne laisse personne indifférent.</p>
+                    <div class="product-tags">
+                        <span class="tag">Métal brossé</span>
+                        <span class="tag">Finition or</span>
+                        <span class="tag">Puce NFC</span>
+                        <span class="tag">Impression UV</span>
+                    </div>
+                    <div class="product-footer">
+                        <div class="product-price">
+                            <small>À partir de</small>
+                            28 000 FCFA
+                        </div>
+                        <!-- BOUTON : Voir détails Gold Metal -->
+                        <a href="ProduitDetail.html?id=2" class="btn-detail">
+                            Voir les détails
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 19"></polyline></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produit 4 -->
+            <div class="product-card" data-cat="custom">
+                <div class="product-img-wrap">
+                    <img src="r/4.svg" alt="Carte NFC Custom">
+                    <span class="product-badge badge-custom">Personnalisable</span>
+                </div>
+                <div class="product-body">
+                    <div class="product-category">Personnalisable</div>
+                    <h3 class="product-name">Custom Design — Carte NFC</h3>
+                    <p class="product-desc">Votre propre design sur votre carte. Téléchargez votre logo, choisissez vos couleurs et créez une carte 100% à votre image.</p>
+                    <div class="product-tags">
+                        <span class="tag">Design libre</span>
+                        <span class="tag">Votre logo</span>
+                        <span class="tag">Puce NFC</span>
+                        <span class="tag">Éditeur en ligne</span>
+                    </div>
+                    <div class="product-footer">
+                        <div class="product-price">
+                            <small>À partir de</small>
+                            20 000 FCFA
+                        </div>
+                        <!-- BOUTON : Voir détails Custom Design -->
+                        <a href="ProduitDetail.html?id=3" class="btn-detail">
+                            Voir les détails
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 19"></polyline></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produit 5 -->
+            <div class="product-card" data-cat="premium">
+                <div class="product-img-wrap">
+                    <img src="r/5.svg" alt="Carte NFC Blue Wave">
+                    <span class="product-badge badge-new">Nouveau</span>
+                </div>
+                <div class="product-body">
+                    <div class="product-category">Premium</div>
+                    <h3 class="product-name">Blue Wave — Carte NFC</h3>
+                    <p class="product-desc">Design dynamique avec dégradé bleu électrique. Parfaite pour les profils tech, startups et créatifs qui veulent se démarquer.</p>
+                    <div class="product-tags">
+                        <span class="tag">PVC Premium</span>
+                        <span class="tag">Dégradé UV</span>
+                        <span class="tag">Puce NFC</span>
+                    </div>
+                    <div class="product-footer">
+                        <div class="product-price"><small>À partir de</small>13 900 FCFA</div>
+                        <a href="ProduitDetail.html?id=4" class="btn-detail">Voir les détails <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 19"></polyline></svg></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===================================================
+                 NOUVEAUX PRODUITS
+            =================================================== -->
+
+            <!-- Produit 6 — Token RFID UID Bleu -->
+            <div class="product-card" data-cat="rfid">
+                <div class="product-img-wrap" style="background:#0a1020;">
+                    <img src="https://ae-pic-a1.aliexpress-media.com/kf/S4fe03eb7aa2e461787dde561a2ad0339U.jpg_220x220q75.jpg_.avif" alt="Token RFID UID Bleu" style="object-fit:cover; width:100%; height:100%;">
+                    <span class="product-badge badge-new">Nouveau</span>
+                </div>
+                <div class="product-body">
+                    <div class="product-category">Porte-clé RFID 13.56MHz</div>
+                    <h3 class="product-name">Token RFID UID — Bleu</h3>
+                    <p class="product-desc">Porte-clé RFID 13.56MHz UID modifiable (Mifare 1K S50). Copiable, réinscriptible 100 000 fois. Idéal pour access control, présence et gestion.</p>
+                    <div class="product-tags">
+                        <span class="tag">13.56 MHz</span>
+                        <span class="tag">UID modifiable</span>
+                        <span class="tag">T5577 / EM4305</span>
+                        <span class="tag">Couleur bleue</span>
+                    </div>
+                    <div class="product-footer">
+                        <div class="product-price"><small>Prix</small>5 000 FCFA</div>
+                        <a href="ProduitDetail.html?id=5" class="btn-detail">Voir les détails <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 19"></polyline></svg></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produit 7 — Token RFID UID Noir -->
+            <div class="product-card" data-cat="rfid">
+                <div class="product-img-wrap" style="background:#0a0a0a;">
+                    <img src="https://ae-pic-a1.aliexpress-media.com/kf/Sb56d9288c42949268532f100d8a01d6ac.jpg_220x220q75.jpg_.avif" alt="Token RFID UID Noir" style="object-fit:cover; width:100%; height:100%;">
+                    <span class="product-badge badge-pro">Pro</span>
+                </div>
+                <div class="product-body">
+                    <div class="product-category">Porte-clé RFID 13.56MHz</div>
+                    <h3 class="product-name">Token RFID UID — Noir</h3>
+                    <p class="product-desc">Porte-clé RFID 13.56MHz version noire. UID modifiable, compatible tous lecteurs Mifare. Discret et robuste pour usage professionnel.</p>
+                    <div class="product-tags">
+                        <span class="tag">13.56 MHz</span>
+                        <span class="tag">UID modifiable</span>
+                        <span class="tag">Couleur noire</span>
+                    </div>
+                    <div class="product-footer">
+                        <div class="product-price"><small>Prix</small>5 000 FCFA</div>
+                        <a href="ProduitDetail.html?id=6" class="btn-detail">Voir les détails <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 19"></polyline></svg></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produit 8 — Carte RFID Vierge Mifare Classic -->
+            <div class="product-card" data-cat="rfid">
+                <div class="product-img-wrap" style="background:#0a120a;">
+                    <img src="https://ae-pic-a1.aliexpress-media.com/kf/S05de3c4cc2db45bba044151ec9cc733ed.jpg_220x220q75.jpg_.avif" alt="Carte RFID Vierge Mifare Classic" style="object-fit:cover; width:100%; height:100%;">
+                    <span class="product-badge badge-new">Nouveau</span>
+                </div>
+                <div class="product-body">
+                    <div class="product-category">Carte RFID 125KHz</div>
+                    <h3 class="product-name">Carte RFID Vierge — Mifare Classic</h3>
+                    <p class="product-desc">Carte PVC vierge 125KHz réinscriptible. Puce T5577/EM4305. Compatible tous copieur RFID 125KHz. Utilisation : accès, parking, pointage. Lot de 10 pcs.</p>
+                    <div class="product-tags">
+                        <span class="tag">125 KHz</span>
+                        <span class="tag">PVC</span>
+                        <span class="tag">T5577 / EM4305</span>
+                        <span class="tag">Lot 10 pcs</span>
+                    </div>
+                    <div class="product-footer">
+                        <div class="product-price"><small>Prix</small>5 000 FCFA</div>
+                        <a href="ProduitDetail.html?id=7" class="btn-detail">Voir les détails <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 19"></polyline></svg></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produit 9 — Carte Métal Premium -->
+            <div class="product-card" data-cat="metal">
+                <div class="product-img-wrap" style="background:#111008;">
+                    <img src="https://ae-pic-a1.aliexpress-media.com/kf/S3cedfa22ccef48c9b13e034ea04fc79bF.jpg" alt="Carte NFC Métal Premium" style="object-fit:cover; width:100%; height:100%;">
+                    <span class="product-badge badge-pro">Premium</span>
+                </div>
+                <div class="product-body">
+                    <div class="product-category">Carte Métal NFC</div>
+                    <h3 class="product-name">Carte Métal Premium</h3>
+                    <p class="product-desc">Carte de visite NFC en métal massif. Finition brossée, poids premium, gravure laser. L'accessoire de networking qui impose le respect dès le premier contact.</p>
+                    <div class="product-tags">
+                        <span class="tag">Métal massif</span>
+                        <span class="tag">Gravure laser</span>
+                        <span class="tag">Puce NFC</span>
+                        <span class="tag">Finition brossée</span>
+                    </div>
+                    <div class="product-footer">
+                        <div class="product-price"><small>Prix</small>50 000 FCFA</div>
+                        <a href="ProduitDetail.html?id=8" class="btn-detail">Voir les détails <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 19"></polyline></svg></a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produit 10 — Carte en Bois -->
+            <div class="product-card" data-cat="bois">
+                <div class="product-img-wrap" style="background:#100c06;">
+                    <img src="https://ae-pic-a1.aliexpress-media.com/kf/S8f937e50a9d74eedbdbceb1ea40d17a1f.jpg_220x220q75.jpg_.avif" alt="Carte NFC Bois" style="object-fit:cover; width:100%; height:100%;">
+                    <span class="product-badge badge-new">Éco</span>
+                </div>
+                <div class="product-body">
+                    <div class="product-category">Carte Bois NFC</div>
+                    <h3 class="product-name">Carte en Bois — NFC</h3>
+                    <p class="product-desc">Carte de visite NFC fabriquée en bois naturel. Unique, écologique et mémorable. Gravure laser de votre nom et informations. Pour ceux qui veulent sortir du lot.</p>
+                    <div class="product-tags">
+                        <span class="tag">Bois naturel</span>
+                        <span class="tag">Gravure laser</span>
+                        <span class="tag">Puce NFC</span>
+                        <span class="tag">Écologique</span>
+                    </div>
+                    <div class="product-footer">
+                        <div class="product-price"><small>Prix</small>22 000 FCFA</div>
+                        <a href="ProduitDetail.html?id=9" class="btn-detail">Voir les détails <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 19"></polyline></svg></a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ===== CTA SECTION ===== -->
+    <div class="cta-section">
+        <h2>Vous avez un projet d'équipe ?</h2>
+        <p>Commandez des cartes NFC en lot pour toute votre équipe avec votre identité visuelle commune.</p>
+        <div class="cta-buttons">
+            <!-- BOUTON CTA : Commande sur mesure -->
+            <a href="Contact.html" class="btn-cta-primary">Demander un devis</a>
+            <!-- BOUTON CTA : Voir comment ça marche -->
+            <a href="CommentCaMarche.html" class="btn-cta-secondary">Comment ça marche ?</a>
+        </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
     <footer class="main-footer">
         <div class="container">
             <div class="footer-grid">
@@ -339,14 +992,11 @@
                     <img src="r/logo.png" alt="Mahu Logo">
                     <p>Des cartes de visite intelligentes qui révolutionnent vos échanges professionnels.</p>
                 </div>
-                <!-- <div class="footer-col">
+                <div class="footer-col">
                     <h4>Produits & Services</h4>
                     <ul>
                         <li><a href="Contact.html">Solutions Entreprises</a></li>
                     </ul>
-                </div> -->
-                <div class="footer-col">
-                    <h4>Blog & Guides</h4>
                 </div>
                 <div class="footer-col">
                     <h4>Informations</h4>
@@ -365,113 +1015,44 @@
         </div>
     </footer>
 
-    <div id="back-to-top" onclick="scrollToTop()">&#8679;</div>
-
     <script src="config.js"></script>
-
     <script>
-        /**
-         * Données des produits Mahu
-         */
-        const products = [
-            { 
-                name: "Carte NFC PVC Personnalisable", 
-                price: 15000, 
-                desc: "Carte de visite connectée en PVC durable. Disponible en Noir, Blanc ou avec le Motif Mahu exclusif.", 
-                images: ["r/cards/card_pro.png", "r/1.svg"], 
-                features: ["PVC Haute Qualité", "Puce NFC Intégrée", "QR Code Dynamique", "Finitions : Noir, Blanc, Motif Mahu"],
-                customizable: true
-            },
-            { 
-                name: "Carte NFC Métal Prestige", 
-                price: 45000, 
-                desc: "L'élégance ultime. Une carte en métal lourd avec puce NFC intégrée pour une première impression inoubliable.", 
-                images: ["r/cards/card_metal.png", "r/2.svg"], 
-                features: ["Métal Inoxydable", "Gravure Laser", "Puce NFC Haute Portée", "Finitions : Gold, Silver, Black"],
-                customizable: true
-            },
-            { 
-                name: "Carte NFC Bois Écologique", 
-                price: 20000, 
-                desc: "Alliez technologie et nature. Une carte en bois véritable (Bambou, Noyer ou Cerisier) avec puce intégrée.", 
-                images: ["r/1.svg", "r/3.svg"], 
-                features: ["Bois Véritable", "Éco-responsable", "Design Unique", "Finitions : Bambou, Noyer"],
-                customizable: true
-            },
-            { 
-                name: "Sticker NFC Universel", 
-                price: 5000, 
-                desc: "Transformez n'importe quel objet en point de contact intelligent. Idéal pour coller au dos de votre téléphone.", 
-                images: ["r/3.svg", "r/4.svg"], 
-                features: ["Adhésif 3M Puissant", "Discret et Résistant", "Compatible tout smartphone", "Diamètre 30mm"],
-                customizable: false
-            }
-        ];
+        // ===== FILTRES CATALOGUE =====
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const cards = document.querySelectorAll('.product-card');
+        const countLabel = document.getElementById('count-label');
 
-        function displayProducts() {
-            const grid = document.getElementById('product-grid');
-            grid.innerHTML = ''; // Vider la grille
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Mettre à jour le bouton actif
+                filterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
 
-            products.forEach((product, index) => {
-                // Lien vers la page de détail au lieu d'ouvrir une modale
-                const detailLink = `ProduitDetail.html?id=${index}&user=demo`; // ID simulé pour l'exemple
+                const filter = btn.dataset.filter;
+                let visible = 0;
 
-                const card = document.createElement('div');
-                card.className = 'product-card';
-                card.style.animationDelay = `${index * 50}ms`; // Délai pour l'animation d'apparition
-
-                card.innerHTML = `
-                    <div class="product-image-container">
-                        <img src="${product.images[0]}" alt="${product.name}">
-                    </div>
-                    <div class="product-info">
-                        <h3>${product.name}</h3>
-                        <p class="price">${product.price.toLocaleString('fr-FR')} FCFA</p>
-                        <a href="${detailLink}" class="btn">Voir les détails</a>
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
-        }
-
-        // Logique pour le bouton "Retour en Haut"
-        const backToTopButton = document.getElementById('back-to-top');
-        window.onscroll = function() {
-            if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
-                backToTopButton.style.display = "block";
-            } else {
-                backToTopButton.style.display = "none";
-            }
-        };
-        function scrollToTop() {
-            window.scrollTo({top: 0, behavior: 'smooth'});
-        }
-
-        /**
-         * Logique exécutée au chargement du DOM.
-         */
-        document.addEventListener('DOMContentLoaded', () => {
-            displayProducts();
-            // Gestion du menu "trois points"
-            const moreMenuIcon = document.querySelector('.more-menu-icon');
-            if (moreMenuIcon) {
-                moreMenuIcon.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    const dropdown = document.querySelector('.more-menu-dropdown');
-                    dropdown.classList.toggle('visible');
+                cards.forEach(card => {
+                    const match = filter === 'all' || card.dataset.cat === filter;
+                    card.style.display = match ? '' : 'none';
+                    if (match) visible++;
                 });
-            }
 
-            // Fermer le menu si on clique ailleurs
-            document.addEventListener('click', function(event) {
-                const dropdown = document.querySelector('.more-menu-dropdown');
-                const menuContainer = document.querySelector('.more-menu-container');
-                if (dropdown && dropdown.classList.contains('visible') && !menuContainer.contains(event.target)) {
-                    dropdown.classList.remove('visible');
-                }
+                // Mettre à jour le compteur
+                countLabel.textContent = visible + ' produit' + (visible > 1 ? 's' : '');
             });
         });
 
+        // ===== MENU BURGER MOBILE =====
+        document.addEventListener('DOMContentLoaded', () => {
+            const burger = document.querySelector('.menu-burger');
+            const mobileNav = document.querySelector('.nav-links-mobile');
+            if (burger && mobileNav) {
+                burger.addEventListener('click', () => {
+                    mobileNav.classList.toggle('active');
+                    document.body.classList.toggle('no-scroll');
+                });
+            }
+        });
     </script>
 </body>
 </html>

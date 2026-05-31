@@ -12,67 +12,56 @@
     <meta property="og:url" content="https://mahu.cards/Guide.html">
     <link rel="stylesheet" href="style.css">
     <style>
-        header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background-color: rgba(10, 10, 10, 0.85); backdrop-filter: blur(5px); border-bottom: 1px solid var(--border-color); }
-        #login-link .profile-icon { stroke: #f0f0f0; width: 28px; height: 28px; }
-        #login-link { background: transparent; border: none; stroke: #f0f0f0; }
-        .content-container { max-width: 1200px; margin: 120px auto 60px; padding: 20px; color: #f0f0f0; }
-        h1 { text-align: center; margin-bottom: 40px; }
-        .hero-blog { text-align: center; margin-bottom: 60px; }
-        .hero-blog p { max-width: 600px; margin: 0 auto; color: #aaa; font-size: 1.1em; }
-        
-        /* Section Article à la une */
         .featured-article-section { margin-bottom: 60px; }
         .featured-card {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            background: var(--card-background);
-            border-radius: 12px;
+            gap: 0;
+            background: #111;
+            border-radius: 16px;
             overflow: hidden;
             text-decoration: none;
             color: inherit;
-            border: 1px solid var(--border-color);
-            transition: box-shadow 0.3s;
+            border: 1px solid #1e1e1e;
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
         }
-        .featured-card:hover { box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .featured-image img { width: 100%; height: 100%; object-fit: cover; }
-        .featured-content { padding: 30px; }
-        .featured-content .tag { background: var(--blue); color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.8em; display: inline-block; }
-        .featured-content h2 { font-size: 1.8em; margin: 15px 0; }
-        .featured-content p { color: #ccc; }
-
-        .more-menu-container { position: relative; }
-        .more-menu-icon { cursor: pointer; padding: 5px; }
-        .more-menu-icon svg { stroke: #f0f0f0; width: 28px; height: 28px; }
-        .more-menu-dropdown { position: absolute; top: 100%; right: 0; background-color: rgba(10, 10, 10, 0.95); backdrop-filter: blur(5px); border-radius: 8px; padding: 10px; min-width: 160px; z-index: 1001; border: 1px solid #333; transform: translateY(10px); opacity: 0; visibility: hidden; transition: all 0.2s ease; }
-        .more-menu-dropdown.visible { transform: translateY(0); opacity: 1; visibility: visible; }
-        .more-menu-dropdown a { display: block; color: white; padding: 10px 15px; text-decoration: none; }
-        .more-menu-dropdown a:hover { background-color: rgba(255, 255, 255, 0.1); }
-        .desktop-links { display: none; }
-
-        @media (max-width: 768px) {
-            .featured-card { grid-template-columns: 1fr; }
-        }
+        .featured-card:hover { box-shadow: 0 12px 40px rgba(77,166,255,0.15); border-color: rgba(77,166,255,0.3); }
+        .featured-image img { width: 100%; height: 100%; object-fit: cover; min-height: 280px; }
+        .featured-content { padding: 36px; display: flex; flex-direction: column; justify-content: center; }
+        .featured-content .tag { background: var(--blue); color: #000; padding: 4px 12px; border-radius: 50px; font-size: 0.75em; font-weight: 700; display: inline-block; margin-bottom: 16px; }
+        .featured-content h2 { font-size: 1.6em; margin: 0 0 14px; line-height: 1.3; }
+        .featured-content p { color: var(--text-secondary); line-height: 1.7; }
+        @media (max-width: 768px) { .featured-card { grid-template-columns: 1fr; } }
     </style>
 </head>
-<body style="background-color: #000;">
+<body>
     <header>
         <nav class="container">
-            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 50px;"></a>
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 40px;"></a>
+            <ul class="desktop-links">
+                <li><a href="index.html#features">Technologie</a></li>
+                <li><a href="index.html#about">À Propos</a></li>
+                <li><a href="Boutique.html">Boutique</a></li>
+            </ul>
             <div class="nav-actions">
-                <a href="Connexion.html" class="primary" id="login-link"><svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></a> 
-                <div class="more-menu-container">
-                    <div class="more-menu-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg></div>
-                    <div class="more-menu-dropdown"><a href="index.html">Accueil</a><!-- <a href="Boutique.html">Boutique</a> --></div>
-                </div>
+                <a href="Connexion.html" class="primary" id="login-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </a>
+                <div class="menu-burger">☰</div>
             </div>
         </nav>
     </header>
-    <div class="content-container">
-        <div class="hero-blog">
+
+    <section class="page-hero">
+        <div class="hero-content">
+            <span class="section-badge">Blog & Ressources</span>
             <h1>Le Blog Mahu</h1>
-            <p>Explorez nos ressources pour maîtriser l'art du networking à l'ère du digital. Conseils, astuces et actualités sur la technologie NFC.</p>
+            <p>Maîtrisez l'art du networking à l'ère du digital. Conseils, astuces et actualités NFC.</p>
         </div>
+    </section>
+
+    <div class="container" style="padding-bottom: 80px;">
+        <div>
 
         <!-- Section Article à la une -->
         <section id="featured-article" class="featured-article-section">
@@ -122,21 +111,22 @@
             </article>
         </div>
     </div>
+    </div>
     <footer class="main-footer">
         <div class="container">
             <div class="footer-grid">
-                <div class="footer-col footer-logo-section"><img src="r/logo.png" alt="Mahu Logo"><p>Des cartes de visite intelligentes.</p></div>
-                <!-- <div class="footer-col"><h4>Produits</h4><ul><li><a href="Boutique.html">Catalogue</a></li></ul></div> -->
-                <div class="footer-col"><h4>Guides</h4><ul><li><a href="Guide.html">Blog</a></li></ul></div>
-                <div class="footer-col"><h4>Infos</h4><ul><li><a href="Contact.html">Contact</a></li><li><a href="FAQ.html">FAQ</a></li></ul></div>
+                <div class="footer-col footer-logo-section"><img src="r/logo.png" alt="Mahu Logo"><p>Des cartes de visite intelligentes qui révolutionnent vos échanges professionnels.</p></div>
+                <div class="footer-col"><h4>Produits</h4><ul><li><a href="Boutique.html">Catalogue</a></li></ul></div>
+                <div class="footer-col"><h4>Informations</h4><ul>
+                    <li><a href="Contact.html">Contact</a></li>
+                    <li><a href="FAQ.html">FAQ</a></li>
+                    <li><a href="ConditionsUtilisation.html">Conditions d'utilisation</a></li>
+                    <li><a href="Livraison.html">Livraison</a></li>
+                </ul></div>
             </div>
-            <div class="footer-bottom"><p>&copy; 2026 Mahu.</p></div>
+            <div class="footer-bottom"><p>&copy; 2026 Mahu. Tous droits réservés.</p></div>
         </div>
     </footer>
-    <script>
-        const moreMenuIcon = document.querySelector('.more-menu-icon');
-        if (moreMenuIcon) { moreMenuIcon.addEventListener('click', (e) => { e.stopPropagation(); document.querySelector('.more-menu-dropdown').classList.toggle('visible'); }); }
-        document.addEventListener('click', (e) => { const d = document.querySelector('.more-menu-dropdown'); if (d && d.classList.contains('visible') && !document.querySelector('.more-menu-container').contains(e.target)) d.classList.remove('visible'); });
-    </script>
+    <script src="config.js"></script>
 </body>
 </html>

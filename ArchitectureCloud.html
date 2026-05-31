@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architecture Cloud – Mahu</title>
+    <style>
+        :root {
+            --blue: #4da6ff;
+            --bg: #0a0a0a;
+            --card: #111;
+            --border: #1e1e1e;
+            --text: #e8e8e8;
+            --muted: #666;
+            --green: #28a745;
+            --orange: #fd7e14;
+            --purple: #7c3aed;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 24px 16px 60px;
+            line-height: 1.6;
+        }
+        .page { max-width: 860px; margin: 0 auto; }
+
+        /* Header */
+        .top-bar {
+            display: flex; align-items: center; gap: 16px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 32px;
+        }
+        .top-bar img { height: 32px; filter: invert(1); }
+        .top-bar h1 { font-size: 1.3em; font-weight: 700; }
+        .top-bar .badge {
+            margin-left: auto;
+            background: rgba(77,166,255,0.1);
+            border: 1px solid rgba(77,166,255,0.3);
+            color: var(--blue);
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.75em;
+        }
+
+        /* Sections */
+        h2 {
+            font-size: 1em;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 36px 0 16px;
+        }
+
+        /* Architecture flow */
+        .flow {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            overflow-x: auto;
+            padding: 4px 0 12px;
+        }
+        .flow-node {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 18px;
+            text-align: center;
+            min-width: 130px;
+            flex-shrink: 0;
+        }
+        .flow-node .icon {
+            font-size: 1.6em;
+            margin-bottom: 6px;
+        }
+        .flow-node .name {
+            font-size: 0.8em;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .flow-node .sub {
+            font-size: 0.7em;
+            color: var(--muted);
+            margin-top: 3px;
+        }
+        .flow-node.highlight { border-color: var(--blue); background: rgba(77,166,255,0.06); }
+        .flow-arrow {
+            flex-shrink: 0;
+            color: var(--muted);
+            padding: 0 6px;
+            font-size: 1.2em;
+        }
+        .flow-arrow-label {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 0 4px;
+            flex-shrink: 0;
+        }
+        .flow-arrow-label .arrow { color: var(--muted); font-size: 1.1em; }
+        .flow-arrow-label .label { font-size: 0.62em; color: var(--muted); white-space: nowrap; }
+
+        /* Cards grid */
+        .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+        }
+        .card-header {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 10px;
+        }
+        .card-icon {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.9em;
+            flex-shrink: 0;
+        }
+        .card-title { font-size: 0.85em; font-weight: 700; }
+        .card-sub { font-size: 0.72em; color: var(--muted); }
+        .card p { font-size: 0.78em; color: var(--muted); }
+        .card ul { font-size: 0.76em; color: var(--muted); padding-left: 14px; }
+        .card li { margin-bottom: 3px; }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8em;
+        }
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            background: #141414;
+            color: var(--muted);
+            font-size: 0.75em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+            vertical-align: top;
+        }
+        tr:last-child td { border-bottom: none; }
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 50px;
+            font-size: 0.72em;
+            font-weight: 600;
+        }
+        .tag-read { background: rgba(77,166,255,0.15); color: var(--blue); }
+        .tag-write { background: rgba(253,126,20,0.15); color: var(--orange); }
+        .tag-auth { background: rgba(124,58,237,0.15); color: var(--purple); }
+        .tag-new { background: rgba(40,167,69,0.15); color: var(--green); }
+
+        /* Flow diagram for QR */
+        .qr-flow {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr auto 1fr;
+            align-items: center;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .qr-box {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            font-size: 0.78em;
+        }
+        .qr-box .em { font-size: 1.4em; margin-bottom: 4px; }
+        .qr-box strong { display: block; margin-bottom: 3px; }
+        .qr-box span { color: var(--muted); }
+        .qr-box.new-box { border-color: var(--green); background: rgba(40,167,69,0.06); }
+        .qr-arrow { text-align: center; color: var(--muted); font-size: 1.1em; }
+
+        /* Worker section */
+        .worker-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 14px;
+        }
+        .worker-section h3 {
+            font-size: 0.88em;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .worker-section h3 .dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--blue);
+            display: inline-block;
+        }
+        code {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 0.82em;
+            font-family: "SF Mono", "Consolas", monospace;
+            color: var(--blue);
+        }
+        pre {
+            background: #0d0d0d;
+            border: 1px solid #1e1e1e;
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-size: 0.78em;
+            font-family: "SF Mono", "Consolas", monospace;
+            color: #ccc;
+            overflow-x: auto;
+            line-height: 1.6;
+        }
+        pre .c { color: #555; }
+        pre .k { color: var(--blue); }
+        pre .s { color: #98c379; }
+
+        .note {
+            background: rgba(77,166,255,0.06);
+            border-left: 3px solid var(--blue);
+            padding: 12px 14px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.8em;
+            color: var(--muted);
+            margin: 12px 0;
+        }
+        .note strong { color: var(--blue); }
+
+        .footer {
+            margin-top: 48px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            font-size: 0.75em;
+            color: var(--muted);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <div class="top-bar">
+        <img src="r/logo.png" alt="Mahu">
+        <div>
+            <h1>Architecture Cloud – Mahu</h1>
+            <div style="font-size:0.78em; color:var(--muted);">Document de suivi technique</div>
+        </div>
+        <span class="badge">v1.2 – Mai 2026</span>
+    </div>
+
+    <!-- ─────────────────────────────────────────────
+         1. FLUX GLOBAL
+    ───────────────────────────────────────────── -->
+    <h2>1. Flux global de l'architecture</h2>
+
+    <div class="flow">
+        <div class="flow-node">
+            <div class="icon">📱</div>
+            <div class="name">Utilisateur</div>
+            <div class="sub">Navigateur / NFC / QR</div>
+        </div>
+        <div class="flow-arrow-label">
+            <span class="arrow">→</span>
+            <span class="label">HTTPS</span>
+        </div>
+        <div class="flow-node highlight">
+            <div class="icon">☁️</div>
+            <div class="name">Cloudflare Worker</div>
+            <div class="sub">mahuprofile.abmcompanysn<br>.workers.dev</div>
+        </div>
+        <div class="flow-arrow-label">
+            <span class="arrow">→</span>
+            <span class="label">Proxy POST</span>
+        </div>
+        <div class="flow-node">
+            <div class="icon">⚙️</div>
+            <div class="name">Google Apps Script</div>
+            <div class="sub">Web App déployée</div>
+        </div>
+        <div class="flow-arrow-label">
+            <span class="arrow">→</span>
+            <span class="label">API Sheets</span>
+        </div>
+        <div class="flow-node">
+            <div class="icon">📊</div>
+            <div class="name">Google Sheets</div>
+            <div class="sub">Base de données</div>
+        </div>
+    </div>
+
+    <div class="note">
+        <strong>Cache Cloudflare :</strong> Les lectures (profils publics) sont mises en cache pendant <strong>24h</strong> sur les serveurs Cloudflare. Le cache est automatiquement purgé lors de toute écriture (modification de profil, activation de carte). Les écritures vont toujours directement à Google Apps Script.
+    </div>
+
+    <!-- ─────────────────────────────────────────────
+         2. PAGES DU SITE
+    ───────────────────────────────────────────── -->
+    <h2>2. Pages du site et leurs rôles</h2>
+
+    <div class="cards">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon" style="background:rgba(77,166,255,0.1); color:var(--blue);">🏠</div>
+                <div><div class="card-title">index.html</div><div class="card-sub">Page d'accueil</div></div>
+            </div>
+            <p>Landing page marketing avec animation canvas, carousel de cartes, démo dashboard, section fonctionnalités.</p>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon" style="background:rgba(40,167,69,0.1); color:var(--green);">👤</div>
+                <div><div class="card-title">ProfilePublic.html</div><div class="card-sub">?user=SLUG</div></div>
+            </div>
+            <p>Profil public visible lors du scan NFC/QR. Si le profil n'existe pas → redirige automatiquement vers <strong>ActivationCarte.html</strong>.</p>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon" style="background:rgba(40,167,69,0.1); color:var(--green);">✅</div>
+                <div><div class="card-title">ActivationCarte.html</div><div class="card-sub">?slug= ou ?code=</div></div>
+            </div>
+            <p>Formulaire complet en 3 étapes pour activer une carte avec QR code non liée. Collecte : nom, profession, réseaux, mot de passe → profil opérationnel immédiatement.</p>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon" style="background:rgba(124,58,237,0.1); color:var(--purple);">📊</div>
+                <div><div class="card-title">Dashboard.html</div><div class="card-sub">Privé (token)</div></div>
+            </div>
+            <p>Tableau de bord utilisateur : statistiques vues, prospects, contacts, éditeur de profil, téléchargement QR code.</p>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon" style="background:rgba(253,126,20,0.1); color:var(--orange);">🛒</div>
+                <div><div class="card-title">Boutique</div><div class="card-sub">Boutique.html + Panier + Paiement</div></div>
+            </div>
+            <p>Catalogue de 9 modèles de cartes NFC, panier et checkout.</p>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon" style="background:rgba(220,53,69,0.1); color:#f87171;">🔐</div>
+                <div><div class="card-title">Auth</div><div class="card-sub">Connexion + Onboarding</div></div>
+            </div>
+            <p>Connexion / inscription + flux d'onboarding pour les nouveaux utilisateurs.</p>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon" style="background:#141414; color:var(--muted);">⚙️</div>
+                <div><div class="card-title">MahuCloud.html</div><div class="card-sub">Admin uniquement</div></div>
+            </div>
+            <p>Gestion du stock de cartes, attribution aux revendeurs, génération en lot, suivi des statuts.</p>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon" style="background:#141414; color:var(--muted);">🎨</div>
+                <div><div class="card-title">Customizer.html</div><div class="card-sub">Designer de cartes</div></div>
+            </div>
+            <p>Éditeur 3D de cartes NFC avec aperçu en temps réel et animations. Utilise Tailwind CSS.</p>
+        </div>
+    </div>
+
+    <!-- ─────────────────────────────────────────────
+         3. FLUX QR CODE / NFC
+    ───────────────────────────────────────────── -->
+    <h2>3. Flux QR Code / NFC</h2>
+
+    <div class="qr-flow">
+        <div class="qr-box">
+            <div class="em">📱</div>
+            <strong>Scan QR/NFC</strong>
+            <span>mahu.cards/{slug}</span>
+        </div>
+        <div class="qr-arrow">→</div>
+        <div class="qr-box">
+            <div class="em">👤</div>
+            <strong>ProfilePublic.html</strong>
+            <span>Chargement profil</span>
+        </div>
+        <div class="qr-arrow">→</div>
+        <div class="qr-box">
+            <div class="em">❓</div>
+            <strong>Profil existant ?</strong>
+            <span>API getProfileData</span>
+        </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:8px 0;">
+        <div class="qr-box">
+            <div class="em">✅</div>
+            <strong>OUI → Profil affiché</strong>
+            <span>Nom, contact, QR, liens sociaux, formulaire prospect</span>
+        </div>
+        <div class="qr-box new-box">
+            <div class="em">⚡</div>
+            <strong>NON → Activation</strong>
+            <span>Redirige vers <code>ActivationCarte.html?slug={slug}</code> — formulaire 3 étapes</span>
+        </div>
+    </div>
+
+    <!-- ─────────────────────────────────────────────
+         4. CLOUDFLARE WORKER – ACTIONS API
+    ───────────────────────────────────────────── -->
+    <h2>4. Actions API (Cloudflare Worker)</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Action</th>
+                <th>Type</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>getProfileData</code></td>
+                <td><span class="tag tag-read">CACHE</span></td>
+                <td>Charge le profil public (mis en cache 24h)</td>
+            </tr>
+            <tr>
+                <td><code>getPublicProfile</code></td>
+                <td><span class="tag tag-read">CACHE</span></td>
+                <td>Alias lecture profil</td>
+            </tr>
+            <tr>
+                <td><code>checkCardStatus</code></td>
+                <td><span class="tag tag-read">CACHE</span></td>
+                <td>Vérifie si une carte est déjà activée</td>
+            </tr>
+            <tr>
+                <td><code>getBlogPosts</code> / <code>getProducts</code></td>
+                <td><span class="tag tag-read">CACHE</span></td>
+                <td>Blog et catalogue produits</td>
+            </tr>
+            <tr>
+                <td><code>quickRegisterAndActivate</code></td>
+                <td><span class="tag tag-new">NOUVEAU</span> <span class="tag tag-write">ÉCRITURE</span></td>
+                <td>Inscription + création profil + activation carte en une seule requête (utilisé par ActivationCarte.html)</td>
+            </tr>
+            <tr>
+                <td><code>saveProfile</code> / <code>updateProfile</code></td>
+                <td><span class="tag tag-write">ÉCRITURE</span></td>
+                <td>Modification du profil → purge cache</td>
+            </tr>
+            <tr>
+                <td><code>activateCard</code> / <code>activatePhysicalCard</code></td>
+                <td><span class="tag tag-write">ÉCRITURE</span></td>
+                <td>Lier une carte physique à un compte</td>
+            </tr>
+            <tr>
+                <td><code>registerUser</code></td>
+                <td><span class="tag tag-write">ÉCRITURE</span></td>
+                <td>Créer un compte utilisateur</td>
+            </tr>
+            <tr>
+                <td><code>trackView</code> / <code>handleLeadCapture</code></td>
+                <td><span class="tag tag-auth">DIRECT</span></td>
+                <td>Statistiques et leads → passe directement à Google</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ─────────────────────────────────────────────
+         5. STRATÉGIE DE CACHE
+    ───────────────────────────────────────────── -->
+    <h2>5. Stratégie de cache Cloudflare</h2>
+
+    <div class="worker-section">
+        <h3><span class="dot"></span> Durées de cache</h3>
+        <table>
+            <thead>
+                <tr><th>Paramètre</th><th>Valeur</th><th>Effet</th></tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>s-maxage</code></td>
+                    <td>86 400s (24h)</td>
+                    <td>Le profil est servi depuis Cloudflare sans appeler Google</td>
+                </tr>
+                <tr>
+                    <td><code>max-age</code></td>
+                    <td>3 600s (1h)</td>
+                    <td>Cache navigateur</td>
+                </tr>
+                <tr>
+                    <td><code>stale-while-revalidate</code></td>
+                    <td>604 800s (7 jours)</td>
+                    <td>Sert le cache périmé immédiatement + revalide en arrière-plan</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="worker-section">
+        <h3><span class="dot"></span> Purge du cache après modification</h3>
+        <p style="font-size:0.8em; color:var(--muted); margin-bottom:10px;">
+            Quand un profil est modifié (écriture), le Worker supprime automatiquement les entrées en cache pour les actions <code>getProfileData</code> et <code>getPublicProfile</code> du slug concerné.
+        </p>
+        <pre><span class="c">// Clé de cache construite :</span>
+<span class="s">/cache/getProfileData?u=jean-dupont</span>
+<span class="s">/cache/getPublicProfile?u=jean-dupont</span>
+
+<span class="c">// Purge immédiate après saveProfile / quickRegisterAndActivate</span>
+caches.default.<span class="k">delete</span>(cacheKey)</pre>
+    </div>
+
+    <!-- ─────────────────────────────────────────────
+         6. FICHIERS CLÉS
+    ───────────────────────────────────────────── -->
+    <h2>6. Fichiers clés</h2>
+
+    <table>
+        <thead>
+            <tr><th>Fichier</th><th>Rôle</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><code>config.js</code></td>
+                <td>URL de l'API</td>
+                <td>Pointe sur le Worker Cloudflare</td>
+            </tr>
+            <tr>
+                <td><code>cloudflare_worker.js</code></td>
+                <td>Proxy + Cache</td>
+                <td>À déployer sur <a href="https://dash.cloudflare.com/" style="color:var(--blue);">dash.cloudflare.com</a></td>
+            </tr>
+            <tr>
+                <td><code>style.css</code></td>
+                <td>Styles globaux</td>
+                <td>Variables CSS, dark theme, composants</td>
+            </tr>
+            <tr>
+                <td><code>ProfilePublic.html</code></td>
+                <td>Profil public</td>
+                <td>Si profil inexistant → redirige vers ActivationCarte.html</td>
+            </tr>
+            <tr>
+                <td><code>ActivationCarte.html</code></td>
+                <td>Activation carte QR</td>
+                <td>Formulaire 3 étapes — rend la carte opérationnelle immédiatement</td>
+            </tr>
+            <tr>
+                <td><code>Dashboard.html</code></td>
+                <td>Espace utilisateur</td>
+                <td>Stats, éditeur profil, QR download</td>
+            </tr>
+            <tr>
+                <td><code>MahuCloud.html</code></td>
+                <td>Admin stock</td>
+                <td>Gestion inventaire cartes, revendeurs</td>
+            </tr>
+            <tr>
+                <td><code>ActivationDirecte.html</code></td>
+                <td>Activation code</td>
+                <td>Activation via <code>?code=</code> pour les cartes avec code imprimé</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- ─────────────────────────────────────────────
+         7. À FAIRE CÔTÉ GOOGLE APPS SCRIPT
+    ───────────────────────────────────────────── -->
+    <h2>7. Ce qu'il faut ajouter côté Google Apps Script</h2>
+
+    <div class="note">
+        <strong>Important :</strong> Le frontend appelle maintenant <code>quickRegisterAndActivate</code>. Cette action doit être implémentée dans votre Google Apps Script pour traiter le formulaire d'activation complet.
+    </div>
+
+    <div class="worker-section">
+        <h3><span class="dot" style="background:var(--green);"></span> Action à implémenter : <code>quickRegisterAndActivate</code></h3>
+        <p style="font-size:0.8em; color:var(--muted); margin-bottom:12px;">Cette fonction reçoit un payload JSON et doit :</p>
+        <pre><span class="c">// Payload reçu depuis ActivationCarte.html :</span>
+{
+  <span class="s">"slug"</span>: <span class="s">"jean-dupont"</span>,          <span class="c">// URL du profil</span>
+  <span class="s">"nom_complet"</span>: <span class="s">"Jean Dupont"</span>,
+  <span class="s">"profession"</span>: <span class="s">"Directeur Commercial"</span>,
+  <span class="s">"compagnie"</span>: <span class="s">"Acme Corp"</span>,
+  <span class="s">"telephone"</span>: <span class="s">"+33 6 00 00 00 00"</span>,
+  <span class="s">"email"</span>: <span class="s">"jean@acme.com"</span>,
+  <span class="s">"password"</span>: <span class="s">"•••••••••"</span>,         <span class="c">// À hasher côté GAS</span>
+  <span class="s">"liens_sociaux"</span>: [              <span class="c">// Array des réseaux</span>
+    { <span class="s">"type"</span>: <span class="s">"linkedin"</span>, <span class="s">"url"</span>: <span class="s">"..."</span> }
+  ],
+  <span class="s">"card_code"</span>: <span class="s">"MAHU-XXXX"</span>,       <span class="c">// Null si pas de code</span>
+  <span class="s">"lead_capture"</span>: <span class="s">"OUI"</span>
+}
+
+<span class="c">// Réponse attendue si succès :</span>
+{ <span class="s">"success"</span>: <span class="k">true</span>, <span class="s">"token"</span>: <span class="s">"..."</span> }
+
+<span class="c">// Réponse si erreur :</span>
+{ <span class="s">"success"</span>: <span class="k">false</span>, <span class="s">"error"</span>: <span class="s">"Cet email est déjà utilisé"</span> }</pre>
+
+        <p style="font-size:0.8em; color:var(--muted); margin-top:12px;">Étapes côté GAS :</p>
+        <ul style="font-size:0.78em; color:var(--muted); padding-left:16px; margin-top:6px; line-height:1.8;">
+            <li>Vérifier que le <code>slug</code> n'est pas déjà pris</li>
+            <li>Vérifier que l'<code>email</code> n'est pas déjà enregistré</li>
+            <li>Hasher le mot de passe (bcrypt ou SHA-256 avec sel)</li>
+            <li>Créer la ligne utilisateur dans Google Sheets</li>
+            <li>Créer la ligne profil (slug, nom, profession, liens…)</li>
+            <li>Si <code>card_code</code> fourni : lier la carte au profil dans la feuille Cards</li>
+            <li>Générer et retourner un token de session</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        Document généré automatiquement · Mahu NFC Platform · <a href="Dashboard.html" style="color:var(--blue);">Dashboard</a> · <a href="MahuCloud.html" style="color:var(--blue);">Admin Cloud</a>
+    </div>
+
+</div>
+</body>
+</html>

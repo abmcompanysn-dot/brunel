@@ -2,64 +2,127 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Livraison - Mahu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Livraison — Mahu</title>
+    <link rel="icon" href="r/logo.png" type="image/png">
     <link rel="stylesheet" href="style.css">
     <style>
-        header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background-color: rgba(10, 10, 10, 0.85); backdrop-filter: blur(5px); border-bottom: 1px solid var(--border-color); }
-        #login-link .profile-icon { stroke: #f0f0f0; width: 28px; height: 28px; }
-        #login-link { background: transparent; border: none; stroke: #f0f0f0; }
-        .content-container { max-width: 800px; margin: 120px auto 60px; padding: 20px; color: #f0f0f0; }
-        h1 { text-align: center; margin-bottom: 40px; }
-        h2 { color: var(--blue); margin-top: 30px; }
-        p { line-height: 1.6; color: #ccc; }
-        .more-menu-container { position: relative; }
-        .more-menu-icon { cursor: pointer; padding: 5px; }
-        .more-menu-icon svg { stroke: #f0f0f0; width: 28px; height: 28px; }
-        .more-menu-dropdown { position: absolute; top: 100%; right: 0; background-color: rgba(10, 10, 10, 0.95); backdrop-filter: blur(5px); border-radius: 8px; padding: 10px; min-width: 160px; z-index: 1001; border: 1px solid #333; transform: translateY(10px); opacity: 0; visibility: hidden; transition: all 0.2s ease; }
-        .more-menu-dropdown.visible { transform: translateY(0); opacity: 1; visibility: visible; }
-        .more-menu-dropdown a { display: block; color: white; padding: 10px 15px; text-decoration: none; }
-        .more-menu-dropdown a:hover { background-color: rgba(255, 255, 255, 0.1); }
-        .desktop-links { display: none; }
+        .livraison-body { max-width: 900px; margin: 0 auto; padding: 60px 20px; }
+
+        .livraison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            margin-bottom: 50px;
+        }
+
+        .livraison-card {
+            background: #111;
+            border: 1px solid #1e1e1e;
+            border-radius: 14px;
+            padding: 28px;
+            transition: border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .livraison-card:hover {
+            border-color: rgba(77,166,255,0.3);
+            transform: translateY(-4px);
+        }
+
+        .livraison-card .icon { font-size: 2em; margin-bottom: 14px; }
+        .livraison-card h3 { font-size: 1.1em; margin: 0 0 10px; color: var(--text-primary); }
+        .livraison-card p { color: var(--text-secondary); font-size: 0.9em; line-height: 1.6; margin: 0; }
+        .livraison-card .delai { font-size: 1.3em; font-weight: 800; color: var(--blue); margin: 10px 0 6px; }
+
+        .livraison-body h2 { color: var(--blue); margin: 40px 0 20px; font-size: 1.3em; border-bottom: 1px solid #1e1e1e; padding-bottom: 10px; }
+        .livraison-body p { color: var(--text-secondary); line-height: 1.8; }
     </style>
 </head>
-<body style="background-color: #000;">
+<body>
     <header>
         <nav class="container">
-            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 50px;"></a>
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 40px;"></a>
+            <ul class="desktop-links">
+                <li><a href="index.html#features">Technologie</a></li>
+                <li><a href="index.html#about">À Propos</a></li>
+                <li><a href="Boutique.html">Boutique</a></li>
+            </ul>
             <div class="nav-actions">
-                <a href="Connexion.html" class="primary" id="login-link"><svg class="profile-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></a> 
-                <div class="more-menu-container">
-                    <div class="more-menu-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg></div>
-                    <div class="more-menu-dropdown"><a href="index.html">Accueil</a><!-- <a href="Boutique.html">Boutique</a> --></div>
-                </div>
+                <a href="Connexion.html" class="primary" id="login-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </a>
+                <div class="menu-burger">☰</div>
             </div>
         </nav>
     </header>
-    <div class="content-container">
-        <h1>Informations de Livraison</h1>
-        <h2>Zones de livraison</h2>
-        <p>Nous livrons actuellement en Côte d'Ivoire (Abidjan et intérieur) et au Sénégal (Dakar).</p>
-        <h2>Délais</h2>
-        <p>Abidjan : 24h à 48h ouvrables.<br>Intérieur : 3 à 5 jours ouvrables.<br>International : Sur devis.</p>
-        <h2>Frais</h2>
-        <p>Les frais de livraison sont calculés au moment de la commande en fonction de votre localisation.</p>
-    </div>
+
+    <section class="page-hero">
+        <div class="hero-content">
+            <span class="section-badge">Logistique</span>
+            <h1>Livraison</h1>
+            <p>Délais, zones et frais de livraison pour vos cartes Mahu.</p>
+        </div>
+    </section>
+
+    <main>
+        <div class="livraison-body">
+
+            <!-- Cartes de zones -->
+            <div class="livraison-grid">
+                <div class="livraison-card">
+                    <div class="icon">🏙️</div>
+                    <h3>Abidjan</h3>
+                    <div class="delai">24 – 48h</div>
+                    <p>Livraison express en ville, du lundi au samedi.</p>
+                </div>
+                <div class="livraison-card">
+                    <div class="icon">🗺️</div>
+                    <h3>Intérieur Côte d'Ivoire</h3>
+                    <div class="delai">3 – 5 jours</div>
+                    <p>Livraison sur tout le territoire national via transporteur partenaire.</p>
+                </div>
+                <div class="livraison-card">
+                    <div class="icon">🌍</div>
+                    <h3>Dakar & Sénégal</h3>
+                    <div class="delai">3 – 7 jours</div>
+                    <p>Livraison disponible. Frais calculés selon le poids et la destination.</p>
+                </div>
+                <div class="livraison-card">
+                    <div class="icon">✈️</div>
+                    <h3>International</h3>
+                    <div class="delai">Sur devis</div>
+                    <p>Contactez-nous pour une livraison hors Afrique de l'Ouest.</p>
+                </div>
+            </div>
+
+            <h2>Frais de livraison</h2>
+            <p>Les frais de livraison sont calculés au moment de la commande en fonction de votre localisation et du poids total de la commande. Un récapitulatif précis vous sera présenté avant confirmation du paiement.</p>
+
+            <h2>Suivi de commande</h2>
+            <p>Un email de confirmation avec numéro de suivi vous sera envoyé dès l'expédition de votre commande. Vous pouvez également suivre votre colis depuis votre espace client Mahu.</p>
+
+            <h2>Questions</h2>
+            <p>Pour toute question sur la livraison, contactez-nous via le <a href="Contact.html" style="color: var(--blue);">formulaire de contact</a> ou par email à support@mahu.cards.</p>
+
+        </div>
+    </main>
+
     <footer class="main-footer">
         <div class="container">
             <div class="footer-grid">
-                <div class="footer-col footer-logo-section"><img src="r/logo.png" alt="Mahu Logo"><p>Des cartes de visite intelligentes.</p></div>
-                <!-- <div class="footer-col"><h4>Produits</h4><ul><li><a href="Boutique.html">Catalogue</a></li></ul></div> -->
-                <div class="footer-col"><h4>Guides</h4><ul><li><a href="Guide.html">Guide 2025</a></li></ul></div>
-                <div class="footer-col"><h4>Infos</h4><ul><li><a href="Contact.html">Contact</a></li><li><a href="FAQ.html">FAQ</a></li></ul></div>
+                <div class="footer-col footer-logo-section"><img src="r/logo.png" alt="Mahu Logo"><p>Des cartes de visite intelligentes qui révolutionnent vos échanges professionnels.</p></div>
+                <div class="footer-col"><h4>Produits</h4><ul><li><a href="Boutique.html">Catalogue</a></li></ul></div>
+                <div class="footer-col"><h4>Informations</h4><ul>
+                    <li><a href="Contact.html">Contact</a></li>
+                    <li><a href="FAQ.html">FAQ</a></li>
+                    <li><a href="ConditionsUtilisation.html">Conditions d'utilisation</a></li>
+                    <li><a href="PolitiqueConfidentialite.html">Politique de confidentialité</a></li>
+                    <li><a href="Livraison.html">Livraison</a></li>
+                </ul></div>
             </div>
-            <div class="footer-bottom"><p>&copy; 2026 Mahu.</p></div>
+            <div class="footer-bottom"><p>&copy; 2026 Mahu. Tous droits réservés.</p></div>
         </div>
     </footer>
-    <script>
-        const moreMenuIcon = document.querySelector('.more-menu-icon');
-        if (moreMenuIcon) { moreMenuIcon.addEventListener('click', (e) => { e.stopPropagation(); document.querySelector('.more-menu-dropdown').classList.toggle('visible'); }); }
-        document.addEventListener('click', (e) => { const d = document.querySelector('.more-menu-dropdown'); if (d && d.classList.contains('visible') && !document.querySelector('.more-menu-container').contains(e.target)) d.classList.remove('visible'); });
-    </script>
+    <script src="config.js"></script>
 </body>
 </html>

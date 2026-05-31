@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activer votre carte Mahu</title>
+    <style>
+        :root {
+            --blue: #4da6ff;
+            --bg: #0a0a0a;
+            --card-bg: #111;
+            --border: #222;
+            --text: #fff;
+            --muted: #888;
+            --success: #28a745;
+            --error: #dc3545;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            padding: 20px 16px 40px;
+            display: flex;
+            justify-content: center;
+        }
+        .container { width: 100%; max-width: 520px; }
+
+        /* Header */
+        .header { text-align: center; padding: 24px 0 20px; }
+        .logo { height: 36px; filter: invert(1); margin-bottom: 18px; }
+        .card-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(77,166,255,0.1);
+            border: 1px solid rgba(77,166,255,0.3);
+            color: var(--blue);
+            padding: 7px 16px;
+            border-radius: 50px;
+            font-family: monospace;
+            font-size: 0.85em;
+            margin-bottom: 18px;
+        }
+        .header h1 { font-size: 1.55em; margin-bottom: 8px; }
+        .header p { color: var(--muted); font-size: 0.9em; line-height: 1.5; }
+
+        /* Steps */
+        .steps {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 0;
+            margin: 24px 0;
+            position: relative;
+        }
+        .steps::before {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 25%;
+            right: 25%;
+            height: 2px;
+            background: var(--border);
+        }
+        .step { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; position: relative; z-index: 1; }
+        .step-dot {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: var(--bg);
+            border: 2px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.78em; font-weight: 700;
+            color: var(--muted);
+            transition: all 0.3s;
+        }
+        .step.active .step-dot { background: var(--blue); border-color: var(--blue); color: #fff; }
+        .step.done .step-dot { background: var(--success); border-color: var(--success); color: #fff; }
+        .step-label { font-size: 0.68em; color: var(--muted); }
+        .step.active .step-label { color: var(--blue); }
+        .step.done .step-label { color: var(--success); }
+
+        /* Form card */
+        .form-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+        }
+        .section-title {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.95em; font-weight: 600;
+            color: var(--text);
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+        .section-title svg { color: var(--blue); flex-shrink: 0; }
+
+        /* Form elements */
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-size: 0.8em; color: var(--muted); margin-bottom: 5px; }
+        label .req { color: var(--blue); }
+        label .opt { color: #444; font-size: 0.85em; }
+        input[type="text"], input[type="email"], input[type="tel"], input[type="url"], input[type="password"], select, textarea {
+            width: 100%;
+            padding: 11px 13px;
+            background: #161616;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.9em;
+            transition: border-color 0.2s, background 0.2s;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--blue);
+            background: #1a1a28;
+        }
+        input::placeholder { color: #3a3a3a; }
+
+        .slug-wrap {
+            display: flex; align-items: center;
+            background: #161616;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .slug-wrap:focus-within { border-color: var(--blue); background: #1a1a28; }
+        .slug-prefix { padding: 11px 0 11px 13px; color: #444; font-size: 0.82em; white-space: nowrap; user-select: none; }
+        .slug-wrap input { border: none; background: transparent; padding-left: 4px; }
+        .slug-wrap input:focus { background: transparent; border: none; }
+        .help { font-size: 0.74em; color: #444; margin-top: 4px; }
+
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        /* Social rows */
+        .social-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .social-icon {
+            width: 34px; height: 34px; flex-shrink: 0;
+            background: #161616;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .social-row input { margin-bottom: 0; }
+
+        /* Buttons */
+        .btn-row { display: flex; gap: 10px; margin-top: 20px; }
+        .btn {
+            flex: 1; padding: 13px;
+            border: none; border-radius: 10px;
+            font-size: 0.92em; font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-back { background: #1a1a1a; border: 1px solid var(--border); color: var(--muted); }
+        .btn-back:hover { background: #222; color: var(--text); }
+        .btn-next { background: var(--blue); color: #fff; }
+        .btn-next:hover { background: #3d96ef; }
+        .btn-submit { background: linear-gradient(135deg, var(--blue), #7c3aed); color: #fff; }
+        .btn-submit:hover { opacity: 0.9; }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* Password strength */
+        .pwd-bar-wrap { height: 3px; background: var(--border); border-radius: 2px; margin-top: 7px; }
+        .pwd-bar { height: 100%; border-radius: 2px; width: 0; transition: width 0.3s, background 0.3s; }
+
+        /* Error */
+        .error-box {
+            background: rgba(220,53,69,0.1);
+            border: 1px solid rgba(220,53,69,0.3);
+            color: #f87171;
+            padding: 10px 13px;
+            border-radius: 8px;
+            font-size: 0.82em;
+            margin-top: 12px;
+            display: none;
+        }
+
+        /* CGU */
+        .cgu {
+            background: rgba(77,166,255,0.05);
+            border: 1px solid rgba(77,166,255,0.15);
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 0.78em;
+            color: var(--muted);
+            line-height: 1.5;
+            margin-top: 16px;
+        }
+        .cgu a { color: var(--blue); text-decoration: none; }
+
+        /* Divider */
+        .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+        /* Success */
+        .success-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(40,167,69,0.3);
+            border-radius: 14px;
+            padding: 36px 24px;
+            text-align: center;
+        }
+        .success-icon {
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: rgba(40,167,69,0.12);
+            border: 2px solid var(--success);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 18px;
+            color: var(--success);
+        }
+        .success-card h2 { color: var(--success); margin-bottom: 10px; }
+        .success-card p { color: var(--muted); font-size: 0.9em; line-height: 1.6; margin-bottom: 24px; }
+        .btn-profile {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--blue); color: #fff;
+            padding: 13px 24px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.92em;
+        }
+        .btn-dashboard { color: var(--muted); font-size: 0.82em; text-decoration: none; display: block; margin-top: 16px; }
+        .btn-dashboard:hover { color: var(--text); }
+
+        /* Photo upload */
+        .cover-zone {
+            width: 100%;
+            height: 110px;
+            background: #161616;
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            flex-direction: column; gap: 6px;
+            cursor: pointer;
+            overflow: hidden;
+            transition: border-color 0.2s;
+            position: relative;
+        }
+        .cover-zone:hover { border-color: var(--blue); }
+        .cover-zone.uploading { opacity: 0.5; pointer-events: none; }
+        .cover-zone img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+        .cover-placeholder { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #444; font-size: 0.75em; z-index: 1; }
+
+        .photo-zone {
+            width: 72px; height: 72px; flex-shrink: 0;
+            background: #161616;
+            border: 2px dashed var(--border);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            transition: border-color 0.2s;
+            position: relative;
+        }
+        .photo-zone:hover { border-color: var(--blue); }
+        .photo-zone.uploading { opacity: 0.5; pointer-events: none; }
+        .photo-zone img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-placeholder { color: #444; }
+
+        .upload-spinner {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.6); border-radius: inherit; z-index: 2;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin { animation: spin 0.8s linear infinite; }
+
+        @media (max-width: 480px) {
+            .two-col { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="r/logo.png" alt="Mahu" class="logo">
+            <div id="card-badge" class="card-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                <span id="badge-text">Chargement...</span>
+            </div>
+            <h1>Activez votre carte</h1>
+            <p>Créez votre profil digital en quelques secondes.<br>Votre carte sera opérationnelle immédiatement.</p>
+        </div>
+
+        <!-- Progress indicator -->
+        <div class="steps">
+            <div class="step active" id="si-1">
+                <div class="step-dot">1</div>
+                <div class="step-label">Identité</div>
+            </div>
+            <div class="step" id="si-2">
+                <div class="step-dot">2</div>
+                <div class="step-label">Réseaux</div>
+            </div>
+            <div class="step" id="si-3">
+                <div class="step-dot">3</div>
+                <div class="step-label">Compte</div>
+            </div>
+        </div>
+
+        <!-- ÉTAPE 1 : Identité -->
+        <div id="step-1" class="form-card">
+            <div class="section-title">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Informations personnelles
+            </div>
+
+            <div class="form-group">
+                <label>Adresse de votre profil <span class="req">*</span></label>
+                <div class="slug-wrap">
+                    <span class="slug-prefix">mahu.cards/</span>
+                    <input type="text" id="slug" placeholder="votre-nom" required autocomplete="off">
+                </div>
+                <div class="help">Lettres minuscules, chiffres, tirets uniquement</div>
+            </div>
+
+            <div class="two-col">
+                <div class="form-group">
+                    <label>Prénom <span class="req">*</span></label>
+                    <input type="text" id="prenom" placeholder="Jean" required autocomplete="given-name">
+                </div>
+                <div class="form-group">
+                    <label>Nom <span class="req">*</span></label>
+                    <input type="text" id="nom" placeholder="Dupont" required autocomplete="family-name">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Titre / Profession <span class="req">*</span></label>
+                <input type="text" id="profession" placeholder="Directeur Commercial" required>
+            </div>
+
+            <div class="form-group">
+                <label>Entreprise <span class="opt">(optionnel)</span></label>
+                <input type="text" id="entreprise" placeholder="Acme Corp" autocomplete="organization">
+            </div>
+
+            <div class="two-col">
+                <div class="form-group">
+                    <label>Téléphone <span class="opt">(optionnel)</span></label>
+                    <input type="tel" id="telephone" placeholder="+33 6 00 00 00 00" autocomplete="tel">
+                </div>
+                <div class="form-group">
+                    <label>Email professionnel <span class="req">*</span></label>
+                    <input type="email" id="email" placeholder="jean@entreprise.com" required autocomplete="email">
+                </div>
+            </div>
+
+            <hr class="divider">
+
+            <!-- Photo de couverture -->
+            <div class="form-group">
+                <label>Photo de couverture <span class="opt">(optionnel)</span></label>
+                <div class="cover-zone" id="cover-zone" onclick="document.getElementById('cover-input').click()">
+                    <div class="cover-placeholder" id="cover-placeholder">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <span>Cliquer pour ajouter une bannière</span>
+                    </div>
+                    <img id="cover-preview" style="display:none;">
+                </div>
+                <input type="file" id="cover-input" accept="image/*" style="display:none" onchange="handleUpload(this,'cover')">
+            </div>
+
+            <!-- Photo de profil -->
+            <div class="form-group">
+                <label>Photo de profil <span class="opt">(optionnel)</span></label>
+                <div style="display:flex; align-items:center; gap:14px;">
+                    <div class="photo-zone" id="photo-zone" onclick="document.getElementById('photo-input').click()">
+                        <div class="photo-placeholder" id="photo-placeholder">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <img id="photo-preview" style="display:none;">
+                    </div>
+                    <div style="font-size:0.78em; color:var(--muted); line-height:1.5;">
+                        Votre photo apparaîtra<br>sur votre profil public
+                    </div>
+                </div>
+                <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="handleUpload(this,'photo')">
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-next" onclick="goToStep(2)">Suivant →</button>
+            </div>
+        </div>
+
+        <!-- ÉTAPE 2 : Réseaux sociaux -->
+        <div id="step-2" class="form-card" style="display:none;">
+            <div class="section-title">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                Réseaux & liens <span style="font-weight:400; font-size:0.82em; color:#444;">&nbsp;— tout optionnel</span>
+            </div>
+
+            <div class="social-row">
+                <div class="social-icon" style="color:#0077b5;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+                </div>
+                <input type="url" id="linkedin" placeholder="https://linkedin.com/in/votre-profil">
+            </div>
+
+            <div class="social-row">
+                <div class="social-icon" style="color:#25d366;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                </div>
+                <input type="text" id="whatsapp" placeholder="+33 6 00 00 00 00 ou lien WhatsApp">
+            </div>
+
+            <div class="social-row">
+                <div class="social-icon" style="color:#e4405f;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+                </div>
+                <input type="text" id="instagram" placeholder="@votre-compte ou lien Instagram">
+            </div>
+
+            <div class="social-row">
+                <div class="social-icon" style="color:var(--blue);">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                </div>
+                <input type="url" id="website" placeholder="https://votre-site.com">
+            </div>
+
+            <div class="social-row">
+                <div class="social-icon" style="color:#1877f2;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+                </div>
+                <input type="url" id="facebook" placeholder="https://facebook.com/votre-profil">
+            </div>
+
+            <div class="social-row">
+                <div class="social-icon">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+                </div>
+                <input type="text" id="tiktok" placeholder="@votre-compte TikTok">
+            </div>
+
+            <div class="btn-row">
+                <button class="btn btn-back" onclick="goToStep(1)">← Retour</button>
+                <button class="btn btn-next" onclick="goToStep(3)">Suivant →</button>
+            </div>
+        </div>
+
+        <!-- ÉTAPE 3 : Compte -->
+        <div id="step-3" class="form-card" style="display:none;">
+            <div class="section-title">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Sécuriser votre compte
+            </div>
+
+            <div class="form-group">
+                <label>Mot de passe <span class="req">*</span></label>
+                <input type="password" id="password" placeholder="Minimum 8 caractères" required autocomplete="new-password" oninput="updatePwdStrength(this.value)">
+                <div class="pwd-bar-wrap"><div class="pwd-bar" id="pwd-bar"></div></div>
+                <div class="help" id="pwd-hint">Minimum 8 caractères</div>
+            </div>
+
+            <div class="form-group">
+                <label>Confirmer le mot de passe <span class="req">*</span></label>
+                <input type="password" id="password2" placeholder="••••••••" required autocomplete="new-password">
+            </div>
+
+            <hr class="divider">
+
+            <div class="cgu">
+                En créant votre compte, vous acceptez les
+                <a href="ConditionsUtilisation.html" target="_blank">Conditions d'utilisation</a>
+                et la
+                <a href="PolitiqueConfidentialite.html" target="_blank">Politique de confidentialité</a> de Mahu.
+            </div>
+
+            <div id="error-box" class="error-box"></div>
+
+            <div class="btn-row">
+                <button class="btn btn-back" onclick="goToStep(2)">← Retour</button>
+                <button class="btn btn-submit" id="btn-submit" onclick="submitForm()">Activer ma carte ✓</button>
+            </div>
+        </div>
+
+        <!-- SUCCÈS -->
+        <div id="step-success" style="display:none;">
+            <div class="success-card">
+                <div class="success-icon">
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <h2>Carte activée !</h2>
+                <p>Votre profil est en ligne et votre carte est opérationnelle.<br>Partagez-le ou personnalisez-le depuis le tableau de bord.</p>
+                <a id="profile-link" href="#" class="btn-profile">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    Voir mon profil
+                </a>
+                <a href="Dashboard.html" class="btn-dashboard">Aller au tableau de bord →</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        let cardCode = null;
+        let uploadedPhotoUrl = '';
+        let uploadedCoverUrl = '';
+
+        // ── Upload direct vers Cloudinary ──
+        async function uploadToCloudinary(file) {
+            const fd = new FormData();
+            fd.append('file', file);
+            fd.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            const res = await fetch(
+                `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+                { method: 'POST', body: fd }
+            );
+            if (!res.ok) throw new Error('Upload échoué');
+            const data = await res.json();
+            return data.secure_url;
+        }
+
+        async function handleUpload(input, type) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const zone = document.getElementById(type + '-zone');
+            const spinner = document.createElement('div');
+            spinner.className = 'upload-spinner';
+            spinner.innerHTML = '<svg class="spin" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>';
+            zone.appendChild(spinner);
+            zone.classList.add('uploading');
+
+            try {
+                const url = await uploadToCloudinary(file);
+
+                if (type === 'photo') {
+                    uploadedPhotoUrl = url;
+                    const img = document.getElementById('photo-preview');
+                    img.src = url;
+                    img.style.display = 'block';
+                    document.getElementById('photo-placeholder').style.display = 'none';
+                } else {
+                    uploadedCoverUrl = url;
+                    const img = document.getElementById('cover-preview');
+                    img.src = url;
+                    img.style.display = 'block';
+                    document.getElementById('cover-placeholder').style.display = 'none';
+                }
+            } catch (e) {
+                alert('Erreur lors de l\'upload. Vérifiez votre connexion ou la configuration Cloudinary.');
+            } finally {
+                zone.classList.remove('uploading');
+                spinner.remove();
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const p = new URLSearchParams(window.location.search);
+            cardCode = p.get('code') || p.get('card') || null;
+            const slugParam = p.get('slug') || p.get('user') || null;
+
+            const badgeText = document.getElementById('badge-text');
+
+            if (cardCode) {
+                badgeText.textContent = 'CARTE : ' + cardCode.toUpperCase();
+                if (!slugParam) {
+                    document.getElementById('slug').value = cardCode.toLowerCase().replace(/[^a-z0-9]/g, '-');
+                }
+            } else if (slugParam) {
+                badgeText.textContent = slugParam;
+            } else {
+                document.getElementById('card-badge').style.display = 'none';
+            }
+
+            if (slugParam) {
+                document.getElementById('slug').value = slugParam;
+            }
+
+            document.getElementById('slug').addEventListener('input', function () {
+                this.value = this.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
+            });
+        });
+
+        function setStep(n) {
+            [1, 2, 3].forEach(i => {
+                const el = document.getElementById('step-' + i);
+                if (el) el.style.display = i === n ? 'block' : 'none';
+                const si = document.getElementById('si-' + i);
+                if (si) si.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function goToStep(n) {
+            if (n === 2 && !validateStep1()) return;
+            setStep(n);
+        }
+
+        function validateStep1() {
+            const slug = document.getElementById('slug').value.trim();
+            const prenom = document.getElementById('prenom').value.trim();
+            const nom = document.getElementById('nom').value.trim();
+            const profession = document.getElementById('profession').value.trim();
+            const email = document.getElementById('email').value.trim();
+
+            if (!slug || !prenom || !nom || !profession || !email) {
+                alert('Veuillez remplir tous les champs obligatoires (marqués *).');
+                return false;
+            }
+            if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(slug) && slug.length > 1) {
+                alert('L\'adresse profil ne peut contenir que des lettres minuscules, chiffres et tirets.');
+                return false;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                alert('Veuillez entrer une adresse email valide.');
+                return false;
+            }
+            return true;
+        }
+
+        function updatePwdStrength(v) {
+            const bar = document.getElementById('pwd-bar');
+            const hint = document.getElementById('pwd-hint');
+            let s = 0;
+            if (v.length >= 8) s++;
+            if (/[A-Z]/.test(v)) s++;
+            if (/[0-9]/.test(v)) s++;
+            if (/[^A-Za-z0-9]/.test(v)) s++;
+            const colors = ['#dc3545', '#fd7e14', '#ffc107', '#28a745'];
+            const labels = ['Très faible', 'Faible', 'Correct', 'Fort'];
+            bar.style.width = (s * 25) + '%';
+            bar.style.background = colors[s - 1] || '#333';
+            hint.textContent = v.length === 0 ? 'Minimum 8 caractères' : (labels[s - 1] || '');
+        }
+
+        function buildSocialLinks() {
+            const fields = [
+                { id: 'linkedin', type: 'linkedin' },
+                { id: 'whatsapp', type: 'whatsapp' },
+                { id: 'instagram', type: 'instagram' },
+                { id: 'website', type: 'website' },
+                { id: 'facebook', type: 'facebook' },
+                { id: 'tiktok', type: 'tiktok' },
+            ];
+            return fields.reduce((acc, f) => {
+                let val = document.getElementById(f.id).value.trim();
+                if (!val) return acc;
+                if (f.type === 'whatsapp' && !val.startsWith('http')) {
+                    val = 'https://wa.me/' + val.replace(/\D/g, '');
+                }
+                if (f.type === 'instagram' && val.startsWith('@')) {
+                    val = 'https://instagram.com/' + val.slice(1);
+                }
+                if (f.type === 'tiktok' && val.startsWith('@')) {
+                    val = 'https://tiktok.com/@' + val.slice(1);
+                }
+                acc.push({ type: f.type, url: val });
+                return acc;
+            }, []);
+        }
+
+        async function submitForm() {
+            const pwd = document.getElementById('password').value;
+            const pwd2 = document.getElementById('password2').value;
+            const errBox = document.getElementById('error-box');
+            const btn = document.getElementById('btn-submit');
+
+            errBox.style.display = 'none';
+
+            if (pwd.length < 8) {
+                errBox.textContent = 'Le mot de passe doit contenir au moins 8 caractères.';
+                errBox.style.display = 'block';
+                return;
+            }
+            if (pwd !== pwd2) {
+                errBox.textContent = 'Les mots de passe ne correspondent pas.';
+                errBox.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Activation en cours…';
+
+            const payload = {
+                slug: document.getElementById('slug').value.trim(),
+                nom_complet: (document.getElementById('prenom').value.trim() + ' ' + document.getElementById('nom').value.trim()).trim(),
+                profession: document.getElementById('profession').value.trim(),
+                compagnie: document.getElementById('entreprise').value.trim(),
+                telephone: document.getElementById('telephone').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                password: pwd,
+                liens_sociaux: buildSocialLinks(),
+                card_code: cardCode,
+                lead_capture: 'OUI',
+                url_photo: uploadedPhotoUrl || '',
+                url_couverture: uploadedCoverUrl || ''
+            };
+
+            try {
+                const fd = new FormData();
+                fd.append('action', 'quickRegisterAndActivate');
+                fd.append('payload', JSON.stringify(payload));
+
+                const res = await fetch(API_URL, { method: 'POST', body: fd }).then(r => r.json());
+
+                if (res.success) {
+                    if (res.token) localStorage.setItem('authToken', res.token);
+
+                    const profileHref = `ProfilePublic.html?user=${payload.slug}&source=QR`;
+                    document.getElementById('profile-link').href = profileHref;
+
+                    [1, 2, 3].forEach(i => {
+                        const si = document.getElementById('si-' + i);
+                        if (si) si.className = 'step done';
+                        const s = document.getElementById('step-' + i);
+                        if (s) s.style.display = 'none';
+                    });
+                    document.getElementById('step-success').style.display = 'block';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    errBox.textContent = res.error || 'Une erreur est survenue. Veuillez réessayer.';
+                    errBox.style.display = 'block';
+                    btn.disabled = false;
+                    btn.textContent = 'Activer ma carte ✓';
+                }
+            } catch (err) {
+                errBox.textContent = 'Erreur de connexion. Vérifiez votre connexion internet.';
+                errBox.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Activer ma carte ✓';
+            }
+        }
+    </script>
+</body>
+</html>
