@@ -150,7 +150,7 @@
             font-size: 0.85em;
         }
 
-        /* BOUTON : Ajouter au panier */
+        /* BOUTON : Commander */
         #add-to-cart-btn {
             width: 100%;
             padding: 15px;
@@ -178,6 +178,30 @@
             cursor: not-allowed;
             transform: none;
         }
+
+        /* Modal commande */
+        .order-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.78); z-index:9000; align-items:center; justify-content:center; padding:20px; }
+        .order-modal.open { display:flex; }
+        .order-box { background:#111; border:1px solid #222; border-radius:16px; max-width:460px; width:100%; padding:30px 26px; position:relative; animation:mIn .22s ease-out; }
+        @keyframes mIn { from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);} }
+        .order-close { position:absolute;top:14px;right:16px;background:transparent;border:none;color:#555;font-size:1.5em;cursor:pointer;line-height:1; }
+        .order-close:hover{color:#fff;}
+        .order-tag { display:inline-block;background:rgba(77,166,255,.1);border:1px solid rgba(77,166,255,.2);color:#4da6ff;font-size:.72em;padding:3px 12px;border-radius:50px;margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px; }
+        .order-box h3 { font-size:1.15em;margin:0 0 3px; }
+        .order-ref { font-size:.85em;color:#555;margin:0 0 20px; }
+        .order-form { display:flex;flex-direction:column;gap:11px; }
+        .order-row { display:grid;grid-template-columns:1fr 1fr;gap:10px; }
+        @media(max-width:400px){.order-row{grid-template-columns:1fr;}}
+        .order-form input,.order-form textarea,.order-form select { background:#161616;border:1px solid #222;color:#f0f0f0;border-radius:8px;padding:11px 13px;font-size:.88em;outline:none;transition:border-color .2s;width:100%;box-sizing:border-box; }
+        .order-form input::placeholder,.order-form textarea::placeholder{color:#333;}
+        .order-form input:focus,.order-form textarea:focus,.order-form select:focus{border-color:#4da6ff;}
+        .order-form textarea{min-height:80px;resize:vertical;}
+        .order-submit { background:#4da6ff;color:#000;border:none;border-radius:8px;padding:13px;font-weight:700;font-size:.9em;cursor:pointer;transition:background .2s,transform .2s;margin-top:2px; }
+        .order-submit:hover{background:#78beff;transform:scale(1.02);}
+        .order-submit:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+        .order-done{text-align:center;padding:16px 0;}
+        .order-done h3{margin-bottom:8px;}
+        .order-done p{color:#666;font-size:.88em;line-height:1.6;}
 
         /* Squelette de chargement */
         .skeleton {
@@ -247,10 +271,10 @@
                     <div class="product-divider"></div>
                     <div id="product-description" class="skeleton" style="height:80px; margin-bottom:28px;"></div>
                     <ul class="product-features" id="product-features"></ul>
-                    <!-- BOUTON : Ajouter au panier -->
+                    <!-- BOUTON : Commander -->
                     <button id="add-to-cart-btn" disabled>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-                        Ajouter au panier
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        Commander ce produit
                     </button>
                 </div>
             </div>
@@ -377,19 +401,59 @@
                 thumbs.appendChild(img);
             });
 
-            // Activer le bouton panier
+            // Bouton commander — ouvre le modal
             const btn = document.getElementById('add-to-cart-btn');
             btn.disabled = false;
             btn.onclick = () => {
-                btn.textContent = '✓ Ajouté au panier !';
-                btn.disabled = true;
-                setTimeout(() => {
-                    btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg> Ajouter au panier';
-                    btn.disabled = false;
-                }, 2000);
+                document.getElementById('om-name').textContent  = product.name;
+                document.getElementById('om-price').textContent = product.price.toLocaleString('fr-FR') + ' FCFA';
+                document.getElementById('om-msg').value = 'Bonjour,\nJe souhaite commander : ' + product.name + '.\nMerci de me contacter pour finaliser.';
+                document.getElementById('order-body').style.display = 'block';
+                document.getElementById('order-done').style.display = 'none';
+                document.getElementById('order-modal').classList.add('open');
+                document.body.style.overflow = 'hidden';
             };
+        });
 
-            // Menu burger mobile
+        function closeOrder() {
+            document.getElementById('order-modal').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        function submitOrder(e) {
+            e.preventDefault();
+            const btn = document.getElementById('om-btn');
+            btn.disabled = true; btn.textContent = 'Envoi...';
+            const name  = document.getElementById('om-fullname').value.trim();
+            const phone = document.getElementById('om-phone').value.trim();
+            const email = document.getElementById('om-email').value.trim() || 'non fourni';
+            const city  = document.getElementById('om-city').value.trim();
+            const msg   = document.getElementById('om-msg').value.trim();
+            const pname = document.getElementById('om-name').textContent;
+            const price = document.getElementById('om-price').textContent;
+            const fd = new FormData();
+            fd.append('action', 'contactSupport');
+            fd.append('payload', JSON.stringify({
+                email:   email,
+                phone:   phone,
+                subject: 'Commande : ' + pname,
+                message: name + ' — ' + phone + (city ? ' — ' + city : '') + '\n\n' + msg + '\n\nProduit : ' + pname + ' — ' + price + '\nPage : ' + window.location.href
+            }));
+            fetch(API_URL, {method:'POST', body:fd})
+                .then(r => r.json())
+                .then(() => {
+                    document.getElementById('order-body').style.display = 'none';
+                    document.getElementById('order-done').style.display  = 'block';
+                    setTimeout(closeOrder, 3500);
+                })
+                .catch(() => {
+                    btn.disabled = false; btn.textContent = 'Envoyer ma commande';
+                    alert('Erreur réseau. Appelez le +221 76 904 79 99.');
+                });
+        }
+
+        // Menu burger mobile
+        document.addEventListener('DOMContentLoaded', () => {
             const burger = document.querySelector('.menu-burger');
             const mobileNav = document.querySelector('.nav-links-mobile');
             if (burger && mobileNav) {
@@ -400,5 +464,32 @@
             }
         });
     </script>
+
+    <!-- Modal commande -->
+    <div class="order-modal" id="order-modal" onclick="if(event.target===this)closeOrder()">
+        <div class="order-box">
+            <button class="order-close" onclick="closeOrder()">&times;</button>
+            <div id="order-body">
+                <span class="order-tag">Commander</span>
+                <h3 id="om-name"></h3>
+                <p class="order-ref" id="om-price"></p>
+                <form class="order-form" onsubmit="submitOrder(event)">
+                    <div class="order-row">
+                        <input type="text"  id="om-fullname" placeholder="Nom complet *" required>
+                        <input type="tel"   id="om-phone"    placeholder="Telephone *"   required>
+                    </div>
+                    <input type="email" id="om-email" placeholder="Email (optionnel)">
+                    <input type="text"  id="om-city"  placeholder="Ville de livraison">
+                    <textarea id="om-msg" placeholder="Informations supplémentaires..."></textarea>
+                    <button type="submit" class="order-submit" id="om-btn">Envoyer ma commande</button>
+                </form>
+            </div>
+            <div class="order-done" id="order-done" style="display:none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#28a745" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <h3>Commande envoyée</h3>
+                <p>Nous vous contactons rapidement.<br>Tel : +221 76 904 79 99</p>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
