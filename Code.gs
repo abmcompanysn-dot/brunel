@@ -2542,29 +2542,60 @@ function quickRegisterAndActivate(payload) {
   SpreadsheetApp.flush();
   logAction('quickRegisterAndActivate', 'SUCCESS', `Carte activée pour ${email} (slug: ${slug})`, email);
 
-  // 7. Email de bienvenue (optionnel, ne bloque pas si erreur)
+  const profilePublicUrl = `https://mahu.cards/ProfilePublic.html?user=${slug}`;
+  const dashboardUrl = 'https://mahu.cards/Dashboard.html';
+
+  // 7. Notification WhatsApp (CallMeBot) à l'admin
   try {
-    const loginUrl = 'https://mahu.cards/Dashboard.html';
+    const botMsg =
+      `🎉 *Nouvelle carte activée !*\n\n` +
+      `👤 *${payload.nom_complet || email}*\n` +
+      `📧 ${email}\n` +
+      (payload.telephone ? `📞 ${payload.telephone}\n` : '') +
+      (payload.profession ? `💼 ${payload.profession}` + (payload.compagnie ? ` — ${payload.compagnie}` : '') + '\n' : '') +
+      `\n🔗 ${profilePublicUrl}`;
+    sendCallMeBotMessage(botMsg);
+  } catch (e) {
+    Logger.log('Notif WhatsApp activation: ' + e.message);
+  }
+
+  // 8. Email de bienvenue au nouvel utilisateur
+  try {
     const htmlBody = `
       <div style="font-family:Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #eee;">
         <div style="background:#000;padding:30px;text-align:center;">
           <img src="https://mahu.cards/r/logo.png" style="height:50px;">
         </div>
         <div style="padding:40px 30px;color:#1a1a1a;line-height:1.8;font-size:16px;">
-          <h2 style="color:#000;margin-top:0;font-weight:300;text-align:center;">Votre carte est activée !</h2>
-          <p>Bonjour ${payload.nom_complet || ''},</p>
-          <p>Votre profil digital est en ligne à l'adresse :<br>
-          <a href="https://mahu.cards/ProfilePublic.html?user=${slug}" style="color:#4da6ff;">mahu.cards/${slug}</a></p>
-          <p>Votre carte NFC est maintenant opérationnelle. Chaque fois que quelqu'un la scanne, il verra votre profil.</p>
-          <div style="text-align:center;margin:40px 0;">
-            <a href="${loginUrl}" style="background:#000;color:#fff;padding:16px 32px;text-decoration:none;font-weight:500;font-size:14px;display:inline-block;letter-spacing:1px;text-transform:uppercase;">Accéder à mon tableau de bord</a>
+          <h2 style="color:#000;margin-top:0;font-weight:300;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-bottom:8px;">Votre carte est activée !</h2>
+          <p style="text-align:center;color:#555;margin-top:0;">Bienvenue sur Mahu, ${payload.nom_complet || ''} 👋</p>
+          <p>Votre carte de visite NFC est maintenant opérationnelle. Voici votre lien de profil :</p>
+          <div style="background:#f9f9f9;border-left:4px solid #000;padding:18px 20px;margin:25px 0;border-radius:0 8px 8px 0;word-break:break-all;">
+            <a href="${profilePublicUrl}" style="color:#000;font-weight:600;font-size:15px;text-decoration:none;">${profilePublicUrl}</a>
           </div>
+          <p>Chaque fois que quelqu'un scanne votre carte NFC, il sera automatiquement redirigé vers cette page.</p>
+          <p>Depuis votre tableau de bord, vous pouvez :</p>
+          <ul style="color:#444;line-height:2;">
+            <li>Modifier vos informations et photo</li>
+            <li>Activer la capture de prospects</li>
+            <li>Consulter vos statistiques de vues</li>
+            <li>Gérer vos documents</li>
+          </ul>
+          <div style="text-align:center;margin:40px 0;">
+            <a href="${profilePublicUrl}" style="background:#000;color:#fff;padding:16px 32px;text-decoration:none;font-weight:600;font-size:14px;display:inline-block;letter-spacing:1px;text-transform:uppercase;border-radius:4px;">Voir mon profil</a>
+            <p style="margin-top:16px;font-size:12px;color:#999;">
+              <a href="${dashboardUrl}" style="color:#555;text-decoration:underline;">Accéder au tableau de bord</a>
+            </p>
+          </div>
+          <p style="font-size:12px;color:#999;text-align:center;">Des questions ? Contactez-nous :<br>
+          📞 <a href="tel:+221769047999" style="color:#000;">+221 76 904 79 99</a> &nbsp;|&nbsp;
+          ✉️ <a href="mailto:contact@mahu.cards" style="color:#000;">contact@mahu.cards</a></p>
         </div>
         <div style="background:#f9f9f9;padding:20px;text-align:center;font-size:11px;color:#999;border-top:1px solid #eee;">
-          &copy; ${new Date().getFullYear()} Mahu. L'excellence de la connexion.
+          &copy; ${new Date().getFullYear()} Mahu Digital System — L'excellence de la connexion.
         </div>
       </div>`;
-    sendEmail(email, 'Votre carte Mahu est activée !', htmlBody);
+    sendEmail(email, `✅ Votre carte Mahu est activée — ${payload.nom_complet || email}`, htmlBody);
   } catch (e) {
     Logger.log('Email bienvenue non envoyé: ' + e.message);
   }

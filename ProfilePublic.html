@@ -259,76 +259,28 @@
             animation: spin 1s linear infinite;
         }
         
-        /* Language toggle */
-        .lang-toggle {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            z-index: 10;
-            background: rgba(0,0,0,0.35);
-            border: 1px solid rgba(255,255,255,0.25);
-            border-radius: 20px;
-            padding: 5px 13px;
-            color: var(--text-light);
-            cursor: pointer;
-            font-size: 0.72em;
-            font-weight: 700;
-            letter-spacing: 1px;
-            transition: background 0.2s;
-        }
-        .lang-toggle:hover { background: rgba(0,0,0,0.6); }
-
-        /* Field icon on copyable fields */
-        .field-icon {
-            color: var(--accent-color);
-            flex-shrink: 0;
-            margin-right: 6px;
-            opacity: 0.85;
-        }
-
         /* Styles pour les champs du formulaire (Déplacé ici pour éviter le FOUC) */
-        #lead-capture-module .form-label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.8em;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin: 14px 0 5px;
-            letter-spacing: 0.4px;
-            text-transform: uppercase;
-        }
-        #lead-capture-module .form-label:first-child { margin-top: 0; }
-        #lead-capture-module .form-label svg { flex-shrink: 0; opacity: 0.8; }
-        #lead-capture-module .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        @media (max-width: 380px) {
-            #lead-capture-module .form-row { grid-template-columns: 1fr; }
-        }
         #lead-capture-module .form-control {
             width: 100%;
-            padding: 12px 14px;
+            padding: 12px;
+            margin-bottom: 15px;
             border-radius: 8px;
-            border: 1px solid rgba(255,255,255,0.12);
-            background-color: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            background-color: rgba(255,255,255,0.05);
             color: var(--text-light);
-            font-size: 0.95em;
-            transition: all 0.25s ease;
+            font-size: 1em;
+            transition: all 0.3s ease;
             box-sizing: border-box;
         }
-        #lead-capture-module .form-control::placeholder { color: rgba(255,255,255,0.3); }
         #lead-capture-module .form-control:focus {
             outline: none;
             border-color: var(--accent-color);
             background-color: rgba(255,255,255,0.1);
-            box-shadow: 0 0 0 3px rgba(255,255,255,0.08);
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
         }
         #lead-capture-module .btn-submit {
             width: 100%;
-            padding: 15px;
+            padding: 14px;
             border: none;
             border-radius: 8px;
             background-color: var(--text-light);
@@ -336,32 +288,24 @@
             font-weight: 800;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
-            margin-top: 18px;
+            margin-top: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-size: 0.88em;
+            letter-spacing: 1px;
+            font-size: 0.9em;
         }
         #lead-capture-module .btn-submit:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
-        #lead-capture-module .btn-submit:active { transform: translateY(0); }
-        #lead-capture-module h3 {
-            font-size: 1.1em;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            margin-bottom: 18px;
-            margin-top: 0;
-            padding-bottom: 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+        #lead-capture-module .btn-submit:active {
+            transform: translateY(0);
         }
 
     </style>
 </head>
 <body>
     <div class="profile-card loading">
-        <button class="lang-toggle" id="lang-toggle-btn" onclick="toggleLanguage()" title="Switch language">EN</button>
         <div class="profile-cover skeleton"></div>
         <div class="profile-header">
             <div class="skeleton skeleton-img" style="width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 15px;"></div>
@@ -379,18 +323,16 @@
         </div>
 
         <div class="copyable-field">
-            <svg class="field-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-            <span id="phone-number" class="real-text" style="display:none;">+221 77 000 00 00</span>
+            <span id="phone-number" class="real-text" style="display:none;">+33 6 01 02 03 04</span>
             <span class="skeleton skeleton-text" style="width: 70%; height: 20px;"></span>
-            <button class="copy-icon" data-copy="phone-number" data-msg-fr="Numéro copié !" data-msg-en="Number copied!" onclick="copyField(this)" title="Copier">
+            <button class="copy-icon" onclick="copyToClipboard('phone-number', 'Numéro copié !')" title="Copier le numéro">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
             </button>
         </div>
         <div class="copyable-field">
-            <svg class="field-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-            <span id="email-address" class="real-text" style="display:none;">contact@mahu.cards</span>
+            <span id="email-address" class="real-text" style="display:none;">email@example.com</span>
             <span class="skeleton skeleton-text" style="width: 80%; height: 20px;"></span>
-            <button class="copy-icon" data-copy="email-address" data-msg-fr="Email copié !" data-msg-en="Email copied!" onclick="copyField(this)" title="Copier">
+            <button class="copy-icon" onclick="copyToClipboard('email-address', 'Email copié !')" title="Copier l'email">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
             </button>
         </div>
@@ -398,19 +340,19 @@
         <div class="action-buttons">
             <a href="#" id="save-contact-btn" class="action-btn" title="Enregistrer le contact" style="background-color: var(--text-light); color: var(--accent-color);">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-                <span data-i18n="btnSave">Enregistrer</span>
+                <span>Enregistrer</span>
             </a>
             <a href="#" id="call-btn" class="action-btn" title="Appeler">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                <span data-i18n="btnCall">Appeler</span>
+                <span>Appeler</span>
             </a>
-            <a href="mailto:contact@mahu.cards" id="email-action-btn" class="action-btn" title="Envoyer un email">
+            <a href="mailto:email@example.com" class="action-btn" title="Envoyer un email">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                <span data-i18n="btnEmail">Email</span>
+                <span>Email</span>
             </a>
             <a href="#" id="download-card-btn" class="action-btn download-btn" title="Télécharger la carte">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                <span data-i18n="btnDownload">Télécharger la carte</span>
+                <span>Télécharger la carte</span>
             </a>
         </div>
         <div class="social-links">
@@ -424,40 +366,13 @@
         <div id="services-section" class="services-section" style="display: none;"></div>
 
         <!-- Formulaire de contact directement sur la carte -->
-        <div id="lead-capture-module" style="text-align: left; margin-top: 30px; display:none;">
-            <h3 data-i18n="contactTitle">Entrons en contact</h3>
+        <div id="lead-capture-module" style="text-align: left; margin-top: 30px;">
+            <h3 style="margin-bottom: 15px; margin-top: 0;">Entrons en contact</h3>
             <form id="lead-form" onsubmit="submitLead(event)">
-
-                <label class="form-label" for="lead-name">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                    <span data-i18n="nameLabel">Nom complet *</span>
-                </label>
-                <input type="text" id="lead-name" required class="form-control" data-i18n-ph="namePh" placeholder="Votre nom complet">
-
-                <div class="form-row">
-                    <div>
-                        <label class="form-label" for="lead-phone">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                            <span data-i18n="phoneLabel">Téléphone</span>
-                        </label>
-                        <input type="tel" id="lead-phone" class="form-control" data-i18n-ph="phonePh" placeholder="+221 77 000 00 00">
-                    </div>
-                    <div>
-                        <label class="form-label" for="lead-email">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-                            <span data-i18n="emailLabel">Email</span>
-                        </label>
-                        <input type="email" id="lead-email" class="form-control" data-i18n-ph="emailPh" placeholder="votre@email.com">
-                    </div>
-                </div>
-
-                <label class="form-label" for="lead-message">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                    <span data-i18n="messageLabel">Message</span>
-                </label>
-                <textarea id="lead-message" class="form-control" data-i18n-ph="messagePh" placeholder="Votre message (optionnel)" style="min-height: 80px; resize: vertical;"></textarea>
-
-                <button type="submit" id="lead-submit-btn" class="btn-submit" data-i18n="submitBtn">Laisser mes coordonnées</button>
+                <input type="text" id="lead-name" placeholder="Votre nom complet" required class="form-control">
+                <input type="text" id="lead-contact" placeholder="Email ou N° de téléphone" required class="form-control">
+                <textarea id="lead-message" placeholder="Votre message (optionnel)" class="form-control" style="min-height: 80px;"></textarea>
+                <button type="submit" id="lead-submit-btn" class="btn-submit">Laissez mon contact</button>
             </form>
         </div>
 
@@ -479,63 +394,6 @@
     <script src="config.js"></script>
 
     <script>
-        /* ===================== INTERNATIONALISATION ===================== */
-        const i18n = {
-            fr: {
-                contactTitle: 'Entrons en contact',
-                nameLabel: 'Nom complet *',  namePh: 'Votre nom complet',
-                phoneLabel: 'Téléphone',     phonePh: '+221 76 904 79 99',
-                emailLabel: 'Email',         emailPh: 'votre@email.com',
-                messageLabel: 'Message',     messagePh: 'Votre message (optionnel)',
-                submitBtn: 'Laisser mes coordonnées',
-                btnSave: 'Enregistrer', btnCall: 'Appeler',
-                btnEmail: 'Email',      btnDownload: 'Télécharger la carte',
-                sending: 'Envoi…',      thankYou: 'Merci ! Vos infos ont bien été transmises.',
-            },
-            en: {
-                contactTitle: "Let's Connect",
-                nameLabel: 'Full name *',    namePh: 'Your full name',
-                phoneLabel: 'Phone',         phonePh: '+1 234 567 8900',
-                emailLabel: 'Email',         emailPh: 'your@email.com',
-                messageLabel: 'Message',     messagePh: 'Your message (optional)',
-                submitBtn: 'Leave my contact',
-                btnSave: 'Save',   btnCall: 'Call',
-                btnEmail: 'Email', btnDownload: 'Download card',
-                sending: 'Sending…', thankYou: 'Thank you! Your info has been sent.',
-            }
-        };
-
-        let currentLang = localStorage.getItem('mahu_lang') || 'fr';
-
-        function applyLanguage(lang) {
-            const t = i18n[lang];
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (t[key] !== undefined) el.textContent = t[key];
-            });
-            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
-                const key = el.getAttribute('data-i18n-ph');
-                if (t[key] !== undefined) el.placeholder = t[key];
-            });
-            const btn = document.getElementById('lang-toggle-btn');
-            if (btn) btn.textContent = lang === 'fr' ? 'EN' : 'FR';
-        }
-
-        function toggleLanguage() {
-            currentLang = currentLang === 'fr' ? 'en' : 'fr';
-            localStorage.setItem('mahu_lang', currentLang);
-            applyLanguage(currentLang);
-        }
-
-        /* Copie un champ copiable et affiche le bon message selon la langue */
-        function copyField(btn) {
-            const id = btn.getAttribute('data-copy');
-            const msg = currentLang === 'fr' ? btn.getAttribute('data-msg-fr') : btn.getAttribute('data-msg-en');
-            navigator.clipboard.writeText(document.getElementById(id).innerText)
-                .then(() => showToast(msg))
-                .catch(() => showToast('Erreur'));
-        }
-
         /**
          * Fonction centralisée pour appeler l'API backend via POST.
          */
