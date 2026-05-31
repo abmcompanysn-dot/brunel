@@ -571,7 +571,7 @@
             }
 
             if (slugParam) {
-                document.getElementById('slug').value = slugParam;
+                document.getElementById('slug').value = slugParam.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-');
             }
 
             document.getElementById('slug').addEventListener('input', function () {
@@ -680,7 +680,7 @@
             btn.textContent = 'Activation en cours…';
 
             const payload = {
-                slug: document.getElementById('slug').value.trim(),
+                slug: document.getElementById('slug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-'),
                 nom_complet: (document.getElementById('prenom').value.trim() + ' ' + document.getElementById('nom').value.trim()).trim(),
                 profession: document.getElementById('profession').value.trim(),
                 compagnie: document.getElementById('entreprise').value.trim(),
@@ -704,8 +704,20 @@
                 if (res.success) {
                     if (res.token) localStorage.setItem('authToken', res.token);
 
-                    const profileHref = `ProfilePublic.html?user=${payload.slug}&source=QR`;
-                    document.getElementById('profile-link').href = profileHref;
+                    const profileHref = `https://mahu.cards/ProfilePublic.html?user=${payload.slug}`;
+                    const profileLinkEl = document.getElementById('profile-link');
+                    profileLinkEl.href = profileHref;
+                    profileLinkEl.setAttribute('target', '_blank');
+
+                    // Affiche l'URL complète sous le bouton
+                    const existingUrl = document.getElementById('profile-url-display');
+                    if (!existingUrl) {
+                        const urlDisplay = document.createElement('p');
+                        urlDisplay.id = 'profile-url-display';
+                        urlDisplay.style.cssText = 'font-size:0.75em;color:#555;word-break:break-all;margin-top:10px;';
+                        urlDisplay.textContent = profileHref;
+                        profileLinkEl.parentNode.insertBefore(urlDisplay, profileLinkEl.nextSibling);
+                    }
 
                     [1, 2, 3].forEach(i => {
                         const si = document.getElementById('si-' + i);
