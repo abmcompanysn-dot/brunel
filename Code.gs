@@ -4,7 +4,7 @@
  * ==================================================================
  */
 const CONFIG = {
-  SENDER_NAME: "MAHU DIGITAL SYSTE el personnalise  stsM", // Le nom qui apparaîtra comme expéditeur des e-mails.
+  SENDER_NAME: "MAHU DIGITAL SYSTE ", // Le nom qui apparaîtra comme expéditeur des e-mails.
   SENDER_EMAIL_ALIAS: "contact@mahu.cards" // OPTIONNEL: L'alias email à utiliser (ex: "contact@votre-site.com"). Doit être configuré dans Gmail > Paramètres > Comptes.
 };
 
@@ -1629,24 +1629,24 @@ function handleLeadCapture(leadData) {
       try {
         // Lien vers la page de connexion avec l'email pré-rempli
         const connectionUrl = `https://mahu.cards/Connexion.html?email=${encodeURIComponent(profileOwnerEmail)}`;
-        const subject = "Nouveau prospect sur votre carte Mahu !";
+        const subject = `✨ Nouvelle opportunité — ${leadData.name} vous a laissé ses coordonnées`;
         const htmlBody = `
         <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #eeeeee; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
           <div style="background-color: #000000; padding: 30px 20px; text-align: center;">
             <img src="https://mahu.cards/r/logo.png" alt="Mahu Logo" style="height: 50px; vertical-align: middle;">
           </div>
           <div style="padding: 40px 30px; color: #1a1a1a; line-height: 1.8; font-size: 16px;">
-            <h2 style="color: #000000; margin-top: 0; font-weight: 300; letter-spacing: 1px; text-transform: uppercase; font-size: 24px; text-align: center; margin-bottom: 30px;">Nouveau Contact</h2>
+            <h2 style="color: #000000; margin-top: 0; font-weight: 300; letter-spacing: 1px; text-transform: uppercase; font-size: 22px; text-align: center; margin-bottom: 10px;">Nouvelle Opportunité</h2>
+            <p style="text-align: center; font-size: 28px; font-weight: 700; color: #000; margin: 0 0 30px 0;">${leadData.name}</p>
             <p>Bonjour,</p>
-            <p>Une nouvelle opportunité se présente. Une personne a partagé ses coordonnées via votre profil Mahu.</p>
-            <div style="background-color: #f9f9f9; padding: 25px; border-left: 4px solid #000000; margin: 30px 0;">
-                <p style="margin: 5px 0; font-size: 15px;"><strong>NOM :</strong> <span style="font-weight: 300;">${leadData.name}</span></p>
-                <p style="margin: 5px 0; font-size: 15px;"><strong>CONTACT :</strong> <span style="font-weight: 300;">${leadData.contact}</span></p>
-                <p style="margin: 15px 0 5px 0; font-size: 15px;"><strong>MESSAGE :</strong></p>
-                <p style="margin: 0; font-style: italic; color: #555;">"${leadData.message || 'Aucun message'}"</p>
+            <p><strong>${leadData.name}</strong> vient de laisser ses coordonnées sur votre carte Mahu. C'est une nouvelle opportunité à ne pas manquer !</p>
+            <div style="background-color: #f9f9f9; padding: 25px; border-left: 4px solid #000000; margin: 30px 0; border-radius: 0 8px 8px 0;">
+                <p style="margin: 5px 0; font-size: 15px;"><strong>NOM :</strong> <span style="font-weight: 400;">${leadData.name}</span></p>
+                <p style="margin: 5px 0; font-size: 15px;"><strong>CONTACT :</strong> <span style="font-weight: 400;">${leadData.contact}</span></p>
+                ${leadData.message ? `<p style="margin: 15px 0 5px 0; font-size: 15px;"><strong>MESSAGE :</strong></p><p style="margin: 0; font-style: italic; color: #555;">"${leadData.message}"</p>` : ''}
             </div>
             <div style="text-align: center; margin: 40px 0;">
-              <a href="${connectionUrl}" style="background-color: #000000; color: #ffffff; padding: 16px 32px; text-decoration: none; font-weight: 500; font-size: 14px; display: inline-block; letter-spacing: 1px; text-transform: uppercase;">Me connecter pour voir</a>
+              <a href="${connectionUrl}" style="background-color: #000000; color: #ffffff; padding: 16px 32px; text-decoration: none; font-weight: 500; font-size: 14px; display: inline-block; letter-spacing: 1px; text-transform: uppercase;">Voir mes prospects</a>
             </div>
           </div>
           <div style="background-color: #fcfcfc; padding: 20px; text-align: center; font-size: 11px; color: #999999; border-top: 1px solid #eeeeee;">

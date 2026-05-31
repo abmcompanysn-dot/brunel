@@ -80,8 +80,16 @@
         .contact-info-item:hover { border-color: rgba(77,166,255,0.3); }
 
         .contact-info-item .icon {
-            font-size: 1.8em;
-            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(77,166,255,0.1);
+            border: 1px solid rgba(77,166,255,0.2);
+            margin: 0 auto 12px;
+            color: #4da6ff;
         }
 
         .contact-info-item h4 {
@@ -141,18 +149,31 @@
         <div class="contact-wrapper">
             <!-- Infos de contact -->
             <div class="contact-info-grid">
-                <div class="contact-info-item">
-                    <div class="icon">📧</div>
+                <a href="mailto:contact@mahu.cards" class="contact-info-item" style="text-decoration:none;">
+                    <div class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    </div>
                     <h4>Email</h4>
-                    <p>support@mahu.cards</p>
-                </div>
-                <div class="contact-info-item">
-                    <div class="icon">💬</div>
+                    <p>contact@mahu.cards</p>
+                </a>
+                <a href="https://wa.me/221769047999" target="_blank" class="contact-info-item" style="text-decoration:none;">
+                    <div class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    </div>
                     <h4>WhatsApp</h4>
-                    <p>+221 XX XXX XX XX</p>
-                </div>
+                    <p>+221 76 904 79 99</p>
+                </a>
+                <a href="tel:+221769047999" class="contact-info-item" style="text-decoration:none;">
+                    <div class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                    </div>
+                    <h4>Téléphone</h4>
+                    <p>+221 76 904 79 99</p>
+                </a>
                 <div class="contact-info-item">
-                    <div class="icon">⏱</div>
+                    <div class="icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    </div>
                     <h4>Réponse</h4>
                     <p>Sous 24h ouvrées</p>
                 </div>
@@ -160,12 +181,13 @@
 
             <!-- Formulaire -->
             <form class="contact-form" onsubmit="sendContact(event)">
-                <input type="text"  placeholder="Votre nom complet" required>
-                <input type="email" placeholder="Votre email" required>
-                <input type="text"  placeholder="Sujet de votre message" required>
-                <textarea rows="6" placeholder="Votre message..." required></textarea>
+                <input id="cf-name"    type="text"  placeholder="Votre nom complet" required>
+                <input id="cf-email"   type="email" placeholder="Votre email" required>
+                <input id="cf-phone"   type="tel"   placeholder="Téléphone (optionnel)">
+                <input id="cf-subject" type="text"  placeholder="Sujet de votre message" required>
+                <textarea id="cf-message" rows="6" placeholder="Votre message..." required></textarea>
                 <!-- BOUTON : Envoi du formulaire contact -->
-                <button type="submit">Envoyer le message</button>
+                <button type="submit" id="cf-submit-btn">Envoyer le message</button>
             </form>
         </div>
     </main>
@@ -177,6 +199,10 @@
                 <div class="footer-col footer-logo-section">
                     <img src="r/logo.png" alt="Mahu Logo">
                     <p>Des cartes de visite intelligentes qui révolutionnent vos échanges professionnels.</p>
+                    <p style="margin-top:12px;font-size:0.82em;color:#555;line-height:1.8;">
+                        📞 <a href="tel:+221769047999" style="color:#4da6ff;text-decoration:none;">+221 76 904 79 99</a><br>
+                        ✉️ <a href="mailto:contact@mahu.cards" style="color:#4da6ff;text-decoration:none;">contact@mahu.cards</a>
+                    </p>
                 </div>
                 <div class="footer-col">
                     <h4>Produits</h4>
@@ -215,15 +241,42 @@
 
         function sendContact(e) {
             e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
+            const btn = document.getElementById('cf-submit-btn');
             btn.disabled = true;
             btn.textContent = "Envoi en cours...";
-            setTimeout(() => {
-                alert("Message envoyé ! Nous vous répondrons bientôt.");
-                e.target.reset();
-                btn.disabled = false;
-                btn.textContent = "Envoyer le message";
-            }, 800);
+
+            const payload = {
+                email:   document.getElementById('cf-email').value.trim(),
+                phone:   document.getElementById('cf-phone').value.trim(),
+                subject: document.getElementById('cf-subject').value.trim(),
+                message: document.getElementById('cf-name').value.trim() + ' — ' + document.getElementById('cf-message').value.trim()
+            };
+
+            const formData = new FormData();
+            formData.append('action', 'contactSupport');
+            formData.append('payload', JSON.stringify(payload));
+
+            fetch(API_URL, { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        e.target.innerHTML = `
+                            <div style="text-align:center;padding:40px 20px;color:#4da6ff;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <p style="margin-top:16px;font-size:1.1em;color:#fff;">Message envoyé avec succès !</p>
+                                <p style="color:#888;font-size:0.9em;margin-top:8px;">Nous vous répondrons à <strong>${payload.email}</strong> sous 24h.</p>
+                            </div>`;
+                    } else {
+                        btn.disabled = false;
+                        btn.textContent = "Envoyer le message";
+                        alert(data.error || "Erreur lors de l'envoi. Réessayez.");
+                    }
+                })
+                .catch(() => {
+                    btn.disabled = false;
+                    btn.textContent = "Envoyer le message";
+                    alert("Erreur réseau. Vérifiez votre connexion.");
+                });
         }
     </script>
 </body>
