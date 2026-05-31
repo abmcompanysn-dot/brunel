@@ -427,17 +427,18 @@
                     } catch (e) { console.error("Cache local invalide"); }
                 }
 
-                // GET /profile/{slug} — endpoint ultra-rapide mis en cache par Cloudflare
-                // Remplace l'ancien appel POST pour un chargement < 500ms après la 1ère visite
-                fetch(API_URL + '/profile/' + encodeURIComponent(profileUrl))
-                    .then(res => res.json())
+                // Utilisation de POST (via callApi) pour éviter les erreurs CORS et assurer la stabilité
+                callApi('getProfileData', { user: profileUrl })
                     .then(data => {
                         if (data.error) {
+                            // Si erreur réseau mais qu'on a le cache, on garde l'affichage actuel
                             if (!cachedData) onProfileError({ message: data.error });
                         } else {
+                            // Mise à jour du cache local et de l'affichage avec les données fraîches (Réglages)
                             localStorage.setItem(cacheKey, JSON.stringify(data));
                             populateProfile(data);
                         }
+                        // Appeler la fonction de tracking après avoir chargé le profil
                         callApi('trackView', { payload: { profileUrl, source } })
                             .catch(err => console.error('Erreur de tracking:', err));
                     })
@@ -451,12 +452,8 @@
 
         function onProfileError(error) {
             console.error("Erreur de chargement du profil:", error.message);
-            // Si le profil n'existe pas, rediriger vers le formulaire d'activation
-            const profileSlug = new URLSearchParams(window.location.search).get('user');
-            if (profileSlug) {
-                window.location.href = `ActivationCarte.html?slug=${encodeURIComponent(profileSlug)}`;
-                return;
-            }
+            document.querySelector('.profile-card').innerHTML = `<h1>Profil non trouvé</h1><p>${error.message}</p>`;
+            // Cacher la carte de profil et afficher le conteneur d'erreur
             document.querySelector('.profile-card').style.display = 'none';
             const errorContainer = document.getElementById('error-container');
             errorContainer.innerHTML = `<h1>Profil non trouvé</h1><p>Désolé, le profil que vous cherchez n'existe pas ou l'URL est incorrecte.</p>`;
@@ -498,68 +495,19 @@
             }
 
             // --- SEO DYNAMIQUE ---
-            const slug = new URLSearchParams(window.location.search).get('user') || '';
-            const profileTitle = [data.Nom_Complet, data.Profession, data.Compagnie].filter(Boolean).join(' — ') || 'Profil Mahu';
-            const profileDescription = `${data.Nom_Complet || 'Profil'}${data.Profession ? ' · ' + data.Profession : ''}${data.Compagnie ? ' chez ' + data.Compagnie : ''}. Profil digital sur Mahu Cards.`;
+            const profileTitle = `${data.Nom_Complet || 'Profil'} - Mahu`;
+            const profileDescription = `Découvrez le profil numérique de ${data.Nom_Complet || 'ce contact'}. Profession: ${data.Profession || 'Non spécifié'}.`;
             const profileUrl = window.location.href;
-            const profileImage = data.URL_Photo || 'https://mahu.cards/r/og-image.png';
-            const shareUrl = `https://mahuprofile.abmcompanysn.workers.dev/share/${slug}`;
+            const profileImage = data.URL_Photo || 'https://mahu.cards/r/og-image.png'; // Image par défaut
 
             document.title = profileTitle;
             document.querySelector('meta[name="description"]').setAttribute('content', profileDescription);
-
-            // Open Graph — sera lu par Facebook/LinkedIn si la page est indexée
-            const ogMetas = [
-                ['og:type', 'profile'],
-                ['og:title', profileTitle],
-                ['og:description', profileDescription],
-                ['og:url', profileUrl],
-                ['og:image', profileImage],
-                ['og:image:width', '400'],
-                ['og:image:height', '400'],
-                ['og:site_name', 'Mahu Cards'],
-                ['og:locale', 'fr_FR'],
-                ['twitter:card', 'summary'],
-                ['twitter:title', profileTitle],
-                ['twitter:description', profileDescription],
-                ['twitter:image', profileImage],
-                ['profile:first_name', (data.Nom_Complet || '').split(' ')[0]],
-                ['profile:last_name', (data.Nom_Complet || '').split(' ').slice(1).join(' ')],
-            ];
-            ogMetas.forEach(([prop, content]) => {
-                const el = document.createElement('meta');
-                el.setAttribute(prop.startsWith('twitter') ? 'name' : 'property', prop);
-                el.setAttribute('content', content);
-                document.head.appendChild(el);
-            });
-
-            // Schema.org Person — indexé par Google même avec JS
-            const schemaPersonScript = document.createElement('script');
-            schemaPersonScript.type = 'application/ld+json';
-            schemaPersonScript.text = JSON.stringify({
-                "@context": "https://schema.org",
-                "@type": "Person",
-                "name": data.Nom_Complet || '',
-                "jobTitle": data.Profession || '',
-                "worksFor": data.Compagnie ? { "@type": "Organization", "name": data.Compagnie } : undefined,
-                "email": data.Email || '',
-                "telephone": data.Telephone || '',
-                "image": data.URL_Photo || '',
-                "url": profileUrl,
-                "description": profileDescription,
-                "sameAs": (() => {
-                    try {
-                        return JSON.parse(data.Liens_Sociaux_JSON || '[]').map(l => l.url).filter(Boolean);
-                    } catch (_) { return []; }
-                })()
-            });
-            document.head.appendChild(schemaPersonScript);
-
-            // Lien de partage social (pointe vers le Worker /share/{slug})
-            const canonicalEl = document.createElement('link');
-            canonicalEl.rel = 'canonical';
-            canonicalEl.href = shareUrl;
-            document.head.appendChild(canonicalEl);
+            // Open Graph
+            document.head.insertAdjacentHTML('beforeend', `<meta property="og:title" content="${profileTitle}">`);
+            document.head.insertAdjacentHTML('beforeend', `<meta property="og:description" content="${profileDescription}">`);
+            document.head.insertAdjacentHTML('beforeend', `<meta property="og:url" content="${profileUrl}">`);
+            document.head.insertAdjacentHTML('beforeend', `<meta property="og:image" content="${profileImage}">`);
+            document.head.insertAdjacentHTML('beforeend', `<meta property="profile:first_name" content="${(data.Nom_Complet || '').split(' ')[0]}">`);
 
             const card = document.querySelector('.profile-card');
 
