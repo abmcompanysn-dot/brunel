@@ -296,7 +296,7 @@
             overflow: hidden;
             background-color: #000;
         }
-        #hero-canvas {
+        #hero-globe {
             position: absolute;
             top: 0;
             left: 0;
@@ -304,6 +304,7 @@
             height: 100%;
             z-index: 0;
         }
+        #hero-globe canvas { outline: none; touch-action: pan-y; }
         .hero-text-content {
             position: relative;
             z-index: 2;
@@ -510,7 +511,7 @@
 
     <main>
         <section class="hero">
-            <canvas id="hero-canvas"></canvas>
+            <div id="hero-globe"></div>
             <div class="container hero-text-content">
                 <img src="r/m.png" alt="Mahu - La nouvelle ère de la connexion" style="max-width: 70%; height: auto; filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));">
             </div>
@@ -1069,6 +1070,7 @@
     </footer>
 
     <script src="config.js"></script>
+    <script src="https://unpkg.com/globe.gl"></script>
 
     <script>
         /**
@@ -1200,133 +1202,76 @@
             });
         }
 
-        // ====== ANIMATION HERO : HÉLICOÏDALE + SINUSOÏDALE + RÉSEAU ======
+        // ====== ANIMATION HERO : GLOBE 3D DES CONNEXIONS MAHU ======
         (function() {
-            const canvas = document.getElementById('hero-canvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
+            const el = document.getElementById('hero-globe');
+            if (!el || typeof Globe === 'undefined') return;
+
+            // Hub principal (Dakar) + villes connectées à travers le réseau Mahu
+            const HUB = { lat: 14.6928, lng: -17.4467, name: 'Dakar' };
+            const cities = [
+                { lat: 48.8566,  lng: 2.3522,   name: 'Paris' },
+                { lat: 5.3600,   lng: -4.0083,  name: 'Abidjan' },
+                { lat: 40.7128,  lng: -74.0060, name: 'New York' },
+                { lat: 25.2048,  lng: 55.2708,  name: 'Dubai' },
+                { lat: 51.5074,  lng: -0.1278,  name: 'Londres' },
+                { lat: 6.5244,   lng: 3.3792,   name: 'Lagos' },
+            ];
+
+            const points = [HUB, ...cities];
+            const arcs = cities.map(city => ({
+                startLat: HUB.lat, startLng: HUB.lng,
+                endLat: city.lat, endLng: city.lng,
+            }));
+
+            const globe = Globe()
+                (el)
+                .width(el.clientWidth)
+                .height(el.clientHeight)
+                .backgroundColor('rgba(0,0,0,0)')
+                .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+                .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+                .showAtmosphere(true)
+                .atmosphereColor('#4da6ff')
+                .atmosphereAltitude(0.25)
+                .pointsData(points)
+                .pointLat('lat')
+                .pointLng('lng')
+                .pointLabel('name')
+                .pointColor(() => '#4da6ff')
+                .pointAltitude(0.012)
+                .pointRadius(0.35)
+                .arcsData(arcs)
+                .arcStartLat('startLat')
+                .arcStartLng('startLng')
+                .arcEndLat('endLat')
+                .arcEndLng('endLng')
+                .arcColor(() => ['#4da6ff', '#8b5cf6'])
+                .arcDashLength(0.4)
+                .arcDashGap(2)
+                .arcDashInitialGap(() => Math.random() * 5)
+                .arcDashAnimateTime(4000)
+                .arcStroke(0.5)
+                .arcAltitudeAutoScale(0.35);
+
+            // Rotation automatique + rotation manuelle (glisser pour tourner)
+            const controls = globe.controls();
+            controls.autoRotate = true;
+            controls.autoRotateSpeed = 0.6;
+            controls.enableZoom = false;
+            controls.enablePan = false;
+
+            globe.pointOfView({ lat: 12, lng: -10, altitude: 2.2 });
+
+            // Éclairage renforcé : évite le côté trop sombre du globe
+            globe.scene().children
+                .filter(c => c.isLight)
+                .forEach(light => { light.intensity *= 1.8; });
 
             function resize() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
+                globe.width(el.clientWidth).height(el.clientHeight);
             }
-            resize();
             window.addEventListener('resize', resize);
-
-            // Particules réseau
-            let particles = [];
-            const PARTICLE_COUNT = 70;
-            const CONNECT_DIST = 130;
-
-            function initParticles() {
-                particles = Array.from({length: PARTICLE_COUNT}, () => ({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    vx: (Math.random() - 0.5) * 0.38,
-                    vy: (Math.random() - 0.5) * 0.38,
-                    r:  Math.random() * 1.6 + 0.5
-                }));
-            }
-            initParticles();
-            window.addEventListener('resize', initParticles);
-
-            let t = 0;
-
-            function drawNetwork() {
-                for (let i = 0; i < particles.length; i++) {
-                    const p = particles[i];
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    if (p.x < 0 || p.x > canvas.width)  p.vx *= -1;
-                    if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(80,170,255,0.9)';
-                    ctx.fill();
-
-                    for (let j = i + 1; j < particles.length; j++) {
-                        const q = particles[j];
-                        const dx = p.x - q.x, dy = p.y - q.y;
-                        const d = Math.sqrt(dx * dx + dy * dy);
-                        if (d < CONNECT_DIST) {
-                            ctx.beginPath();
-                            ctx.moveTo(p.x, p.y);
-                            ctx.lineTo(q.x, q.y);
-                            ctx.strokeStyle = `rgba(80,170,255,${(1 - d / CONNECT_DIST) * 0.28})`;
-                            ctx.lineWidth = 0.6;
-                            ctx.stroke();
-                        }
-                    }
-                }
-            }
-
-            function drawSineWave(freqFactor, ampFactor, phase, cr, cg, cb, alpha, lw) {
-                const amp = canvas.height * ampFactor;
-                const cy  = canvas.height * 0.5;
-                ctx.beginPath();
-                for (let x = 0; x <= canvas.width; x += 3) {
-                    const y = cy + amp * Math.sin(freqFactor * (x / canvas.width) * Math.PI * 10 + phase + t);
-                    x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-                }
-                ctx.strokeStyle = `rgba(${cr},${cg},${cb},${alpha})`;
-                ctx.lineWidth = lw;
-                ctx.shadowColor = `rgba(${cr},${cg},${cb},0.9)`;
-                ctx.shadowBlur  = 22;
-                ctx.stroke();
-                ctx.shadowBlur  = 0;
-            }
-
-            function drawHelix() {
-                const cx = canvas.width  / 2;
-                const cy = canvas.height / 2;
-                const w  = Math.min(canvas.width * 0.84, 1050);
-                const h  = Math.min(canvas.height * 0.105, 95);
-                const turns = 5;
-
-                const strands = [
-                    { phase: 0,         r: 0,   g: 145, b: 255 },
-                    { phase: Math.PI,   r: 135, g: 55,  b: 255 }
-                ];
-
-                strands.forEach(({ phase, r, g, b }) => {
-                    ctx.beginPath();
-                    for (let i = 0; i <= w; i += 2) {
-                        const angle = (i / w) * turns * Math.PI * 2 + t * 0.5 + phase;
-                        const x = cx - w / 2 + i;
-                        const y = cy + h * Math.sin(angle);
-                        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-                    }
-                    ctx.strokeStyle = `rgba(${r},${g},${b},0.78)`;
-                    ctx.lineWidth   = 2.2;
-                    ctx.shadowColor = `rgba(${r},${g},${b},1)`;
-                    ctx.shadowBlur  = 18;
-                    ctx.stroke();
-                    ctx.shadowBlur  = 0;
-                });
-            }
-
-            function frame() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                const bg = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-                bg.addColorStop(0,   '#000008');
-                bg.addColorStop(0.5, '#040010');
-                bg.addColorStop(1,   '#08000f');
-                ctx.fillStyle = bg;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                t += 0.011;
-
-                drawNetwork();
-                drawHelix();
-                drawSineWave(1.2, 0.09, 0,           0,   200, 255, 0.55, 2);
-                drawSineWave(1.8, 0.065, Math.PI * 0.7, 160, 60,  255, 0.45, 1.5);
-
-                requestAnimationFrame(frame);
-            }
-
-            frame();
         })();
     </script>
 </body>

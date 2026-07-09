@@ -1871,6 +1871,66 @@
                 .then(() => fetchDashboardData())
                 .catch(err => alert("Erreur : " + err.message));
         }
+
+        /**
+         * Copie le lien d'invitation d'équipe (Inscription.html?enterprise_id=...) dans le presse-papiers.
+         * Ce lien permet à un futur employé de rejoindre l'entreprise sans passer par une inscription publique.
+         */
+        function copyInviteLink() {
+            if (!currentUser || !currentUser.ID_Unique) {
+                alert("Impossible de générer le lien : utilisateur non chargé.");
+                return;
+            }
+            const inviteUrl = `${window.location.origin}${window.location.pathname.replace(/Dashboard\.html$/, '')}Inscription.html?enterprise_id=${encodeURIComponent(currentUser.ID_Unique)}`;
+
+            navigator.clipboard.writeText(inviteUrl)
+                .then(() => alert("Lien d'invitation copié ! Partagez-le avec votre futur employé."))
+                .catch(() => prompt("Copiez ce lien d'invitation :", inviteUrl));
+        }
+
+        /**
+         * Crée un compte employé (réservé aux comptes Entreprise/Admin) depuis la modale d'ajout de membre.
+         */
+        function handleCreateEmployee(event) {
+            event.preventDefault();
+            const name = document.getElementById('new-emp-name').value.trim();
+            const email = document.getElementById('new-emp-email').value.trim();
+            const password = document.getElementById('new-emp-password').value;
+
+            if (!name || !email || !password) {
+                alert('Veuillez remplir tous les champs.');
+                return;
+            }
+
+            callApi('createEmployee', { name, email, password })
+                .then(res => {
+                    if (res.success) {
+                        closeModal('add-employee-modal');
+                        event.target.reset();
+                        fetchDashboardData();
+                    } else {
+                        alert(res.error || "Impossible de créer le compte.");
+                    }
+                })
+                .catch(err => alert("Erreur : " + err.message));
+        }
+
+        /**
+         * Retire un employé de l'équipe (réservé aux comptes Entreprise/Admin).
+         */
+        function deleteEmployee(email) {
+            if (!confirm(`Voulez-vous vraiment retirer ${email} de votre équipe ?`)) return;
+
+            callApi('deleteEmployee', { email })
+                .then(res => {
+                    if (res.success) {
+                        fetchDashboardData();
+                    } else {
+                        alert(res.error || "Impossible de supprimer cet employé.");
+                    }
+                })
+                .catch(err => alert("Erreur : " + err.message));
+        }
     </script>
 
     <!-- Intégration de Chart.js et appel à Apps Script -->

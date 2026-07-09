@@ -211,44 +211,6 @@
                         <p class="toggle-form" style="margin-top: 15px; margin-bottom: 0;">
                             <a onclick="showForgotPasswordForm()">Mot de passe oublié ?</a>
                         </p>
-                        <p class="toggle-form">Pas de compte ? <a onclick="toggleForms()">Inscrivez-vous</a></p>
-                    </form>
-
-                    <!-- Formulaire d'Inscription -->
-                    <form id="register-form" onsubmit="handleAuth(event)" style="display: none;">
-                        <h1>Inscription</h1>
-                        <input type="hidden" id="enterprise-id" value=""> <!-- Champ caché pour l'ID entreprise -->
-                        <div class="form-group">
-                            <label for="register-email">Email</label>
-                            <input type="email" id="register-email" class="form-control" required>
-                        </div>
-                        <div class="form-group password-group">
-                            <label for="register-password">Mot de passe</label>
-                            <input type="password" id="register-password" class="form-control" required>
-                            <svg onclick="togglePasswordVisibility('register-password', this)" class="password-toggle" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        </div>
-                        <div class="form-group">
-                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                                <input type="checkbox" id="is-enterprise" onchange="toggleEnterpriseFields()">
-                                Créer un compte Entreprise
-                            </label>
-                        </div>
-                        <div id="enterprise-fields" style="display: none; padding-left: 15px; border-left: 2px solid var(--border-color);">
-                            <div class="form-group">
-                                <label for="register-enterprise-name">Nom de l'entreprise</label>
-                                <input type="text" id="register-enterprise-name" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label for="register-enterprise-phone">Téléphone</label>
-                                <input type="tel" id="register-enterprise-phone" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label for="register-enterprise-address">Adresse</label>
-                                <input type="text" id="register-enterprise-address" class="form-control">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-gradient">Créer un compte</button>
-                        <p class="toggle-form">Déjà un compte ? <a onclick="toggleForms()">Connectez-vous</a></p>
                     </form>
 
                     <!-- Formulaire de Mot de Passe Oublié -->
@@ -302,42 +264,13 @@
         //                  SCRIPTS SPÉCIFIQUES À LA PAGE
         // ===================================================================
 
-        /**
-         * Bascule entre le formulaire de connexion et d'inscription.
-         */
-        function toggleForms() {
-            const loginForm = document.getElementById('login-form');
-            const registerForm = document.getElementById('register-form');
-            const forgotForm = document.getElementById('forgot-password-form');
-            const errorDiv = document.getElementById('error-message');
-            if (errorDiv) {
-                errorDiv.remove(); // Nettoyer les messages d'erreur
-            }
-
-            forgotForm.style.display = 'none'; // Toujours cacher le form forgot
-            if (loginForm.style.display === 'none') {
-                loginForm.style.display = 'block';
-                registerForm.style.display = 'none';
-            } else {
-                loginForm.style.display = 'none';
-                registerForm.style.display = 'block';
-            }
-        }
-
-        function toggleEnterpriseFields() {
-            const isEnterprise = document.getElementById('is-enterprise').checked;
-            document.getElementById('enterprise-fields').style.display = isEnterprise ? 'block' : 'none';
-        }
-
         function showForgotPasswordForm() {
             document.getElementById('login-form').style.display = 'none';
-            document.getElementById('register-form').style.display = 'none';
             document.getElementById('forgot-password-form').style.display = 'block';
         }
 
         function showLoginForm() {
             document.getElementById('login-form').style.display = 'block';
-            document.getElementById('register-form').style.display = 'none';
             document.getElementById('forgot-password-form').style.display = 'none';
         }
 
@@ -370,53 +303,34 @@
         }
 
         /**
-         * Gère la soumission des formulaires d'authentification.
+         * Gère la soumission du formulaire de connexion.
          * @param {Event} event - L'événement de soumission du formulaire.
          */
         function handleAuth(event) {
             event.preventDefault();
-            const isRegister = event.target.id === 'register-form';
-            const email = document.getElementById(isRegister ? 'register-email' : 'login-email').value;
-            const password = document.getElementById(isRegister ? 'register-password' : 'login-password').value;
-            const enterpriseId = document.getElementById('enterprise-id').value; // Récupérer l'ID entreprise si présent
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
             const formId = event.target.id;
             const button = event.target.querySelector('button');
             button.disabled = true;
             button.textContent = 'Chargement...';
-            
-            const payload = { email, password, enterpriseId };
-            
-            if (isRegister && document.getElementById('is-enterprise').checked) {
-                payload.isEnterprise = true;
-                payload.enterpriseName = document.getElementById('register-enterprise-name').value;
-                payload.enterprisePhone = document.getElementById('register-enterprise-phone').value;
-                payload.enterpriseAddress = document.getElementById('register-enterprise-address').value;
-            }
 
-            const action = isRegister ? 'registerUser' : 'loginUser';
-
-            // Passer enterpriseId lors de l'inscription
-            callApi(action, { payload: payload })
+            callApi('loginUser', { payload: { email, password } })
                 .then(response => {
                     if (response.success) {
                         localStorage.setItem('authToken', response.token); // Sauvegarder le token !
                         localStorage.setItem('userIsLoggedIn', 'true');
-                        // Si c'est une inscription (isRegister est vrai), on redirige vers l'onboarding.
-                        if (isRegister) {
-                            window.location.href = 'Onboarding.html'; 
-                        } else {
-                            window.location.href = 'Dashboard.html'; // Sinon (c'est une connexion), on redirige vers le tableau de bord.
-                        }
+                        window.location.href = 'Dashboard.html';
                     } else {
                         showError(formId, response.error || 'Une erreur est survenue.');
                         button.disabled = false;
-                        button.textContent = isRegister ? 'Créer un compte' : 'Se connecter';
+                        button.textContent = 'Se connecter';
                     }
                 })
                 .catch(error => {
                     showError(formId, 'Erreur de communication avec le serveur.');
                     button.disabled = false;
-                    button.textContent = isRegister ? 'Créer un compte' : 'Se connecter';
+                    button.textContent = 'Se connecter';
                 });
         }
 
@@ -447,10 +361,7 @@
         /**
          * Logique exécutée au chargement du DOM.
          */
-        document.addEventListener('DOMContentLoaded', () => { 
-            // Afficher la page une fois que tout est prêt pour éviter le "frot"
-            document.getElementById('auth-page-wrapper').style.opacity = '1';
-
+        document.addEventListener('DOMContentLoaded', () => {
             // Gestion du menu "trois points"
             const moreMenuIcon = document.querySelector('.more-menu-icon');
             if (moreMenuIcon) {
@@ -478,18 +389,6 @@
                 if (loginEmailInput) {
                     loginEmailInput.value = emailParam;
                 }
-            }
-
-            // Gestion du lien d'invitation entreprise
-            const enterpriseIdParam = urlParams.get('enterprise_id');
-            if (enterpriseIdParam) {
-                // Basculer sur l'inscription
-                toggleForms();
-                // Remplir le champ caché
-                document.getElementById('enterprise-id').value = enterpriseIdParam;
-                // Feedback visuel (optionnel)
-                const h1 = document.querySelector('#register-form h1');
-                if(h1) h1.textContent = "Rejoindre l'équipe";
             }
         });
     </script>
