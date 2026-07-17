@@ -8,7 +8,7 @@
  *  POST (autres)        → Proxy direct + cache synthétique pour les lectures
  */
 
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzUcADa5RmJRqTk4rWO1Hw6dXLanAly1iWM-iA2CyTNJRETDVecAp32hEXi-pl-isWJew/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyUptvUL2Zl4wA4y_B1VLWWZi3veMFow99tEdPrA7qUG9p6h-iBgSDH45lH-0cBTs6Baw/exec";
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',

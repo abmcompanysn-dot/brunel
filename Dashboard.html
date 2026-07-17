@@ -1516,6 +1516,17 @@
             }
         }
 
+        // Le profil public (ProfilePublic.html) garde une copie instantanée du profil dans le
+        // localStorage du navigateur (même origine que le Dashboard) pour un affichage ultra-rapide.
+        // Sans ça, après une sauvegarde, ce même navigateur continuerait à afficher l'ancienne
+        // version pendant un instant avant que le fetch réseau ne corrige l'affichage.
+        function clearPublicProfileCache() {
+            if (!currentUser) return;
+            [currentUser.URL_Profil, currentUser.URL_Profil_2, currentUser.URL_Profil_3]
+                .filter(Boolean)
+                .forEach(slug => localStorage.removeItem('profile_data_' + slug));
+        }
+
         function copyWidgetSnippet() {
             const el = document.getElementById('widget-snippet');
             if (!el || !el.value) return;
@@ -1537,6 +1548,7 @@
             callApi('saveProfile', dataToSave)
                 .then(response => {
                     if (response.success) {
+                        clearPublicProfileCache();
                         alert('Paramètre sauvegardé avec succès !');
                     } else {
                         alert('Erreur : ' + (response.error || 'Impossible de sauvegarder le paramètre.'));
@@ -1796,6 +1808,7 @@
             };
             callApi('saveProfileImage', { payload: payload })
                 .then(response => {
+                    if (!response.error) clearPublicProfileCache();
                     alert(response.error || response.message || 'Image sauvegardée !');
                     fetchDashboardData(); // Recharger les données pour afficher la nouvelle image
                 })
@@ -1810,6 +1823,7 @@
             }
             callApi('saveProfile', data) // Envoyer directement l'objet de données sans les infos Wallet
                 .then(response => {
+                    if (!response.error) clearPublicProfileCache();
                     alert(response.error || response.message || 'Profil sauvegardé !');
                     closeModal('profil-edit-modal');
                     fetchDashboardData(); // Recharger les données
