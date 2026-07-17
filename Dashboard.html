@@ -968,15 +968,17 @@
                                 <th>Nom du Prospect</th>
                                 <th>Contact (Email/Tél)</th>
                                 <th>Date</th>
-                                <th>Note</th>
+                                <th>Canal</th>
+                                <th>Éval.</th>
+                                <th>Message</th>
                             </tr>
                         </thead>
                         <tbody id="prospects-table-body">
-                            <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
-                            <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
-                            <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
-                            <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
-                            <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
+                            <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
+                            <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
+                            <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
+                            <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
+                            <tr class="skeleton-row"><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td><td><div></div></td></tr>
                         </tbody>
                     </table>
                     </div>
@@ -1154,7 +1156,7 @@
                     <h3>Gestion des Modules</h3>
                     <div class="toggle-switch">
                         <span>Capture de prospects</span>
-                        <input type="checkbox" id="toggle-lead" onchange="toggleModule('Lead_Capture_Actif', this.checked)">
+                        <input type="checkbox" id="toggle-lead" onchange="toggleModule('Lead_Capture_Actif', this.checked, this)">
                     </div>
                 </div>
                <!-- <div class="card">
@@ -1207,7 +1209,18 @@
                     <div id="edit-pane-appearance" class="edit-pane">
                         <h3>Réseaux Sociaux & Liens (Entreprise)</h3>
                         <div id="social-links-container"></div>
-                        <button type="button" class="btn btn-secondary" onclick="addSocialLink()" style="width: auto; margin-top: 10px; margin-bottom: 30px;">Ajouter un lien</button>
+                        <button type="button" class="btn btn-secondary" onclick="addSocialLink()" style="width: auto; margin-top: 10px; margin-bottom: 20px;">Ajouter un lien</button>
+
+                        <div class="toggle-switch">
+                            <span>Rediriger directement vers mon site web (au lieu d'afficher mon profil)</span>
+                            <input type="checkbox" id="toggle-redirect-website" onchange="toggleModule('Redirection_Site_Web', this.checked, this)">
+                        </div>
+                        <p class="text-secondary" style="color: var(--text-secondary); margin-top: 5px; margin-bottom: 30px; font-size: 0.85em;">Nécessite un lien "Site Web" renseigné ci-dessus. Les visiteurs seront envoyés directement sur ce site au lieu de voir votre profil Mahu.</p>
+
+                        <h3>Widget pour votre site web</h3>
+                        <p class="text-secondary" style="color: var(--text-secondary); margin-top:-10px; margin-bottom: 15px;">Collez ce code sur votre propre site (comme Tawk.to) : un bouton flottant apparaît, les visiteurs peuvent vous laisser un message et une note ⭐, reçus par email et dans vos Prospects ci-dessus. <a href="AideWidget.html" target="_blank">Voir la documentation complète</a>.</p>
+                        <textarea id="widget-snippet" class="form-control" readonly rows="2" style="font-family: monospace; font-size: 0.8em; margin-bottom: 10px;"></textarea>
+                        <button type="button" class="btn btn-secondary" onclick="copyWidgetSnippet()" style="width: auto; margin-bottom: 30px;">Copier le code</button>
 
                         <h3>Apparence</h3>
                         <p class="text-secondary" style="color: var(--text-secondary); margin-top:-10px; margin-bottom: 20px;">Personnalisez l'aspect et la convivialité de votre profil.</p>
@@ -1503,7 +1516,16 @@
             }
         }
 
-        function toggleModule(moduleName, isEnabled) {
+        function copyWidgetSnippet() {
+            const el = document.getElementById('widget-snippet');
+            if (!el || !el.value) return;
+            el.select();
+            navigator.clipboard.writeText(el.value)
+                .then(() => alert('Code copié ! Collez-le juste avant la balise </body> de votre site.'))
+                .catch(() => alert('Impossible de copier automatiquement, sélectionnez le texte manuellement.'));
+        }
+
+        function toggleModule(moduleName, isEnabled, checkbox) {
             const dataToSave = {};
             if (currentUser && currentUser.URL_Profil) dataToSave.user = currentUser.URL_Profil; // Important pour le cache
             // Convertit le booléen en 'OUI' ou 'NON' pour la feuille de calcul
@@ -1519,14 +1541,12 @@
                     } else {
                         alert('Erreur : ' + (response.error || 'Impossible de sauvegarder le paramètre.'));
                         // En cas d'erreur, on remet l'interrupteur à son état précédent
-                        const checkbox = document.getElementById('toggle-lead');
-                        checkbox.checked = !isEnabled;
+                        if (checkbox) checkbox.checked = !isEnabled;
                     }
                 })
                 .catch(err => {
                     alert('Erreur de communication avec le serveur.');
-                    const checkbox = document.getElementById('toggle-lead');
-                    checkbox.checked = !isEnabled;
+                    if (checkbox) checkbox.checked = !isEnabled;
                 });
         }
 
@@ -2166,10 +2186,12 @@
 
             if (prospects.length > 0) {
                 prospects.forEach(p => {
-                    prospectsBody.innerHTML += `<tr><td>${p.nom || ''}</td><td>${p.contact || ''}</td><td>${new Date(p.date).toLocaleDateString()}</td><td>${p.note || ''}</td></tr>`;
+                    const canalBadge = p.canal === 'Widget Site' ? '🌐 Site Web' : '👤 Profil';
+                    const stars = p.rating ? '⭐'.repeat(p.rating) + '☆'.repeat(5 - p.rating) : '—';
+                    prospectsBody.innerHTML += `<tr><td>${p.nom || ''}</td><td>${p.contact || ''}</td><td>${new Date(p.date).toLocaleDateString()}</td><td>${canalBadge}</td><td>${stars}</td><td>${p.note || ''}</td></tr>`;
                 });
             } else {
-                prospectsBody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Aucun prospect pour le moment.</td></tr>';
+                prospectsBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Aucun prospect pour le moment.</td></tr>';
             }
 
             // Remplir la section Documents
@@ -2202,6 +2224,13 @@
 
             // Mettre à jour les toggles des modules
             if (document.getElementById('toggle-lead')) document.getElementById('toggle-lead').checked = profile.Lead_Capture_Actif === 'OUI';
+            if (document.getElementById('toggle-redirect-website')) document.getElementById('toggle-redirect-website').checked = profile.Redirection_Site_Web === 'OUI';
+
+            // Snippet du widget flottant à coller sur le site externe de l'utilisateur
+            const widgetSnippetEl = document.getElementById('widget-snippet');
+            if (widgetSnippetEl && currentUser && currentUser.URL_Profil) {
+                widgetSnippetEl.value = `<script src="${API_URL}/widget.js?user=${currentUser.URL_Profil}" async><\/script>`;
+            }
 
             // Remplir le statut de commande
             const orderStatusEl = document.getElementById('order-status');

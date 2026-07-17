@@ -497,6 +497,19 @@
                 return;
             }
 
+            // --- REDIRECTION DIRECTE VERS LE SITE WEB (profils "pro") ---
+            // Si l'utilisateur a activé l'option, on saute l'affichage du profil Mahu
+            // et on envoie directement le visiteur vers son propre site.
+            if (data.Redirection_Site_Web === 'OUI') {
+                const websiteLink = (JSON.parse(data.Liens_Sociaux_JSON || '[]')).find(link => link.type === 'website' && link.url);
+                if (websiteLink) {
+                    let target = websiteLink.url.trim();
+                    if (!/^https?:\/\//i.test(target)) target = 'https://' + target;
+                    window.location.replace(target);
+                    return;
+                }
+            }
+
             // --- SEO DYNAMIQUE ---
             const slug = new URLSearchParams(window.location.search).get('user') || '';
             const profileTitle = [data.Nom_Complet, data.Profession, data.Compagnie].filter(Boolean).join(' — ') || 'Profil Mahu';

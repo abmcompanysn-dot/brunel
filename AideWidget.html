@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Site Web - Aide - Mahu</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { background-color: #000; color: #fff; padding-top: 80px; }
+        .guide-container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .hero-nfc { text-align: center; padding: 40px 0; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); border-radius: 20px; margin-bottom: 40px; border: 1px solid #222; }
+        .guide-section { background: #111; padding: 35px; border-radius: 16px; margin-bottom: 30px; border: 1px solid #333; }
+        h1 { font-size: 2.5em; margin-bottom: 10px; }
+        h2 { color: #fff; display: flex; align-items: center; gap: 10px; margin-bottom: 25px; }
+        h2::after { content: ""; flex-grow: 1; height: 1px; background: #333; }
+
+        .activation-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 30px; }
+        .step-card { background: #1a1a1a; padding: 20px; border-radius: 12px; border-top: 4px solid var(--blue); }
+        .step-num { font-size: 2em; font-weight: 800; opacity: 0.2; margin-bottom: 10px; }
+
+        .code-block { background: #0a0a0a; border: 1px solid #333; border-radius: 10px; padding: 18px 20px; font-family: monospace; font-size: 0.85em; color: #4da6ff; overflow-x: auto; margin: 15px 0; }
+        .faq-item { border-bottom: 1px solid #222; padding: 16px 0; }
+        .faq-item:last-child { border-bottom: none; }
+        .faq-item h3 { margin-bottom: 8px; font-size: 1.05em; }
+        .faq-item p { color: #aaa; }
+
+        .widget-preview { position: relative; height: 220px; background: #0a0a0a; border-radius: 12px; border: 1px solid #222; overflow: hidden; }
+        .widget-preview .fake-btn { position: absolute; bottom: 18px; right: 18px; width: 46px; height: 46px; border-radius: 50%; background: var(--blue); display: flex; align-items: center; justify-content: center; font-size: 1.2em; box-shadow: 0 4px 14px rgba(0,0,0,.4); }
+        .widget-preview .fake-panel { position: absolute; bottom: 74px; right: 18px; width: 200px; background: #1a1a1a; border-radius: 10px; padding: 14px; border: 1px solid #333; }
+        .widget-preview .fake-panel .stars { color: #ffb400; text-align: center; margin-bottom: 8px; }
+        .widget-preview .fake-panel input, .widget-preview .fake-panel textarea { display: block; width: 100%; margin-bottom: 6px; background: #0a0a0a; border: 1px solid #333; border-radius: 6px; padding: 6px 8px; color: #666; font-size: 0.75em; }
+
+        .device-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+        @media (max-width: 768px) { .device-grid { grid-template-columns: 1fr; text-align: center; } }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <a href="index.html" class="logo"><img src="r/logo.png" alt="Logo Mahu" style="height: 40px;"></a>
+            <div class="nav-actions">
+                <a href="Connexion.html" class="primary">Mon Compte</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="guide-container">
+        <div class="hero-nfc">
+            <img src="r/logo.png" alt="Mahu" style="height: 60px; margin-bottom: 20px;">
+            <h1>Widget Mahu pour votre site web</h1>
+            <p>Ajoutez un bouton flottant façon Tawk.to sur votre propre site : vos visiteurs vous laissent un message et une note, vous les recevez par email et dans votre Dashboard.</p>
+        </div>
+
+        <section class="guide-section">
+            <h2>1. Récupérez votre code</h2>
+            <p>Connectez-vous à votre <a href="Dashboard.html">Dashboard</a>, ouvrez l'onglet <strong>Apparence &amp; Liens</strong>, puis section <strong>"Widget pour votre site web"</strong>. Votre code personnalisé y est déjà prêt, avec votre identifiant de profil intégré :</p>
+            <div class="code-block">&lt;script src="https://mahuprofile.abmcompanysn.workers.dev/widget.js?user=VOTRE-SLUG" async&gt;&lt;/script&gt;</div>
+            <p>Cliquez sur "Copier le code" dans le Dashboard pour ne pas avoir à le retaper.</p>
+        </section>
+
+        <section class="guide-section">
+            <h2>2. Collez-le sur votre site</h2>
+            <div class="activation-steps">
+                <div class="step-card">
+                    <div class="step-num">01</div>
+                    <h3>Ouvrez le code source</h3>
+                    <p>Éditeur HTML, WordPress (thème > éditeur), Wix (code personnalisé), Shopify, etc.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">02</div>
+                    <h3>Collez avant &lt;/body&gt;</h3>
+                    <p>Le script doit être ajouté juste avant la balise de fermeture <code>&lt;/body&gt;</code> de chaque page où vous voulez le widget.</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-num">03</div>
+                    <h3>Publiez</h3>
+                    <p>Le bouton flottant Mahu apparaît immédiatement en bas à droite de votre site.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="guide-section">
+            <h2>3. Ce que voient vos visiteurs</h2>
+            <div class="device-grid">
+                <div>
+                    <p>En cliquant sur le bouton flottant, le visiteur peut :</p>
+                    <ul class="step-list">
+                        <li>Donner une <strong>note sur 5 étoiles</strong> à votre site.</li>
+                        <li>Laisser son <strong>nom</strong> et un <strong>contact</strong> (email ou téléphone).</li>
+                        <li>Écrire un <strong>message</strong> (optionnel).</li>
+                    </ul>
+                </div>
+                <div class="widget-preview">
+                    <div class="fake-panel">
+                        <div class="stars">★★★★☆</div>
+                        <input placeholder="Votre nom" disabled>
+                        <input placeholder="Email ou téléphone" disabled>
+                        <textarea placeholder="Votre message" disabled></textarea>
+                    </div>
+                    <div class="fake-btn">💬</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="guide-section">
+            <h2>4. Ce que vous recevez</h2>
+            <p>Chaque message envoyé depuis votre site apparaît immédiatement :</p>
+            <ul class="step-list">
+                <li>Dans votre boîte email, avec le nom, le contact, la note ⭐ et le message.</li>
+                <li>Dans votre <a href="Dashboard.html">Dashboard</a>, section "Mes Prospects", avec le canal "🌐 Site Web" pour le distinguer des messages laissés directement sur votre profil Mahu.</li>
+            </ul>
+        </section>
+
+        <section class="guide-section">
+            <h2>Questions fréquentes</h2>
+            <div class="faq-item">
+                <h3>Le widget ralentit-il mon site ?</h3>
+                <p>Non. Le script se charge en <code>async</code> et pèse quelques kilo-octets ; il ne bloque jamais l'affichage de votre page.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Puis-je le mettre sur plusieurs sites ?</h3>
+                <p>Oui, le même code (avec votre identifiant) fonctionne sur autant de sites et de pages que vous voulez.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Puis-je changer les couleurs ou le texte ?</h3>
+                <p>Pas encore depuis le Dashboard — le widget utilise actuellement un style par défaut aux couleurs Mahu. Contactez le support si vous avez un besoin spécifique.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Le widget fonctionne-t-il sans compte Mahu actif ?</h3>
+                <p>Non, il vous faut un identifiant de profil valide (celui de votre Dashboard) pour que les messages soient acheminés jusqu'à vous.</p>
+            </div>
+        </section>
+    </main>
+
+        <div class="container">
+            <p>&copy; 2026 Mahu - Votre connexion simplifiée.</p>
+        </div>
+    </footer>
+</body>
+</html>

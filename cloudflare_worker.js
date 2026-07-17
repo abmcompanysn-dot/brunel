@@ -67,6 +67,18 @@ async function handleRequest(request, event) {
     return serveSharePage(shareMatch[1], request, event);
   }
 
+  // ══════════════════════════════════════════════════════════════
+  // GET /widget.js?user={slug}
+  // Widget flottant embarquable (façon Tawk.to) que n'importe quel
+  // utilisateur Mahu peut coller sur son PROPRE site web externe :
+  //   <script src="https://.../widget.js?user=SLUG" async></script>
+  // Les visiteurs du site laissent un message + une note ; le tout
+  // remonte au propriétaire par email et dans son Dashboard (Prospects).
+  // ══════════════════════════════════════════════════════════════
+  if (request.method === 'GET' && url.pathname === '/widget.js') {
+    return serveWidgetScript(url.searchParams.get('user') || '', url, event);
+  }
+
   // POST → proxy + logique de cache
   if (request.method === 'POST') {
     return handlePost(request, event);
@@ -270,6 +282,191 @@ function esc(str) {
     .replace(/"/g, '&quot;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+// ─────────────────────────────────────────────────────────────────
+// GET /widget.js — Widget flottant embarquable sur un site externe
+// ─────────────────────────────────────────────────────────────────
+async function serveWidgetScript(rawSlug, url, event) {
+  const slug = String(rawSlug).trim().toLowerCase();
+
+  if (!/^[a-z0-9-]{1,60}$/.test(slug)) {
+    return new Response(
+      'console.error("Mahu Widget: identifiant de profil manquant ou invalide (utilisez ?user=votre-slug).");',
+      { status: 200, headers: { 'Content-Type': 'application/javascript; charset=utf-8', ...CORS } }
+    );
+  }
+
+  const cache = caches.default;
+  const cacheKey = new Request(url.toString(), { method: 'GET' });
+  const cached = await cache.match(cacheKey);
+  if (cached) return cached;
+
+  const scriptBody = '(' + mahuWidgetClient.toString() + ')(' +
+    JSON.stringify(slug) + ',' + JSON.stringify(url.origin + '/') + ');';
+
+  const response = new Response(scriptBody, {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/javascript; charset=utf-8',
+      ...CORS,
+      'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800'
+    }
+  });
+
+  event.waitUntil(cache.put(cacheKey, response.clone()));
+  return response;
+}
+
+// Code client du widget. Écrit comme une vraie fonction (et non une string à la main)
+// puis converti via .toString() dans serveWidgetScript — ça évite l'enfer de l'échappement
+// de guillemets/backticks et garde ce code lisible et éditable normalement.
+function mahuWidgetClient(SLUG, API) {
+  if (window.__mahuWidgetLoaded) return;
+  window.__mahuWidgetLoaded = true;
+
+  var LOGO_URL = 'https://mahu.cards/r/logo.png';
+
+  var css = '.mahu-w-btn{position:fixed;bottom:22px;right:22px;width:58px;height:58px;border-radius:50%;background:#4da6ff;box-shadow:0 6px 20px rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:2147483000;transition:transform .2s ease;overflow:hidden}' +
+    '.mahu-w-btn:hover{transform:scale(1.08)}' +
+    '.mahu-w-btn img{width:34px;height:34px;border-radius:50%;object-fit:cover}' +
+    '.mahu-w-panel{position:fixed;bottom:90px;right:22px;width:320px;max-width:90vw;background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.25);z-index:2147483000;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden;display:none}' +
+    '.mahu-w-panel.mahu-open{display:block}' +
+    '.mahu-w-head{background:#000;color:#fff;padding:16px 18px;position:relative}' +
+    '.mahu-w-close{position:absolute;top:12px;right:14px;cursor:pointer;color:#fff;font-size:18px;line-height:1}' +
+    '.mahu-w-owner{display:flex;align-items:center;gap:10px}' +
+    '.mahu-w-avatar{width:42px;height:42px;border-radius:50%;object-fit:cover;background:#222;flex-shrink:0}' +
+    '.mahu-w-owner-name{font-size:14px;font-weight:600}' +
+    '.mahu-w-owner-email{font-size:11px;color:#aaa;margin-top:2px;word-break:break-all}' +
+    '.mahu-w-body{padding:16px 18px}' +
+    '.mahu-w-stars{display:flex;gap:4px;justify-content:center;margin-bottom:12px}' +
+    '.mahu-w-star{font-size:24px;cursor:pointer;color:#ddd;user-select:none}' +
+    '.mahu-w-star.mahu-active{color:#ffb400}' +
+    '.mahu-w-input{width:100%;padding:9px 10px;margin-bottom:8px;border:1px solid #ddd;border-radius:8px;font-size:13px;box-sizing:border-box;font-family:inherit}' +
+    'textarea.mahu-w-input{resize:vertical;min-height:60px}' +
+    '.mahu-w-send{width:100%;padding:10px;background:#000;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}' +
+    '.mahu-w-send:disabled{opacity:.5;cursor:default}' +
+    '.mahu-w-foot{text-align:center;padding:8px;font-size:10px;color:#999}' +
+    '.mahu-w-foot a{color:#4da6ff;text-decoration:none}' +
+    '.mahu-w-msg{font-size:12px;text-align:center;margin-top:8px;min-height:14px}';
+
+  var style = document.createElement('style');
+  style.textContent = css;
+  document.head.appendChild(style);
+
+  var btn = document.createElement('div');
+  btn.className = 'mahu-w-btn';
+  btn.innerHTML = '<img src="' + LOGO_URL + '" alt="Mahu">';
+
+  var panel = document.createElement('div');
+  panel.className = 'mahu-w-panel';
+  panel.innerHTML =
+    '<div class="mahu-w-head">' +
+      '<span class="mahu-w-close">&times;</span>' +
+      '<div class="mahu-w-owner">' +
+        '<img class="mahu-w-avatar" src="' + LOGO_URL + '" alt="">' +
+        '<div>' +
+          '<div class="mahu-w-owner-name">Laissez un message</div>' +
+          '<div class="mahu-w-owner-email"></div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="mahu-w-body">' +
+      '<div class="mahu-w-stars"></div>' +
+      '<input class="mahu-w-input" type="text" placeholder="Votre nom">' +
+      '<input class="mahu-w-input" type="text" placeholder="Email ou téléphone (optionnel)">' +
+      '<textarea class="mahu-w-input" placeholder="Votre message (optionnel)"></textarea>' +
+      '<button class="mahu-w-send">Envoyer</button>' +
+      '<div class="mahu-w-msg"></div>' +
+    '</div>' +
+    '<div class="mahu-w-foot">Propulsé par <a href="https://mahu.cards" target="_blank" rel="noopener">Mahu</a></div>';
+
+  document.body.appendChild(btn);
+  document.body.appendChild(panel);
+
+  // Personnalise l'en-tête avec la photo, le nom et l'email du propriétaire du profil
+  var avatarEl = panel.querySelector('.mahu-w-avatar');
+  var ownerNameEl = panel.querySelector('.mahu-w-owner-name');
+  var ownerEmailEl = panel.querySelector('.mahu-w-owner-email');
+  avatarEl.onerror = function () { avatarEl.src = LOGO_URL; };
+  fetch(API + 'profile/' + encodeURIComponent(SLUG))
+    .then(function (r) { return r.json(); })
+    .then(function (p) {
+      if (!p || p.error) return;
+      if (p.Nom_Complet) ownerNameEl.textContent = p.Nom_Complet;
+      if (p.Email) ownerEmailEl.textContent = p.Email;
+      if (p.URL_Photo) avatarEl.src = p.URL_Photo;
+    })
+    .catch(function () {});
+
+  var starsWrap = panel.querySelector('.mahu-w-stars');
+  var rating = 0;
+  for (var i = 1; i <= 5; i++) {
+    (function (n) {
+      var s = document.createElement('span');
+      s.className = 'mahu-w-star';
+      s.textContent = '★';
+      s.addEventListener('click', function () {
+        rating = n;
+        var all = starsWrap.querySelectorAll('.mahu-w-star');
+        all.forEach(function (el, idx) { el.classList.toggle('mahu-active', idx < n); });
+      });
+      starsWrap.appendChild(s);
+    })(i);
+  }
+
+  var nameInput = panel.querySelectorAll('input')[0];
+  var contactInput = panel.querySelectorAll('input')[1];
+  var messageInput = panel.querySelector('textarea');
+  var sendBtn = panel.querySelector('.mahu-w-send');
+  var statusEl = panel.querySelector('.mahu-w-msg');
+
+  btn.addEventListener('click', function () { panel.classList.toggle('mahu-open'); });
+  panel.querySelector('.mahu-w-close').addEventListener('click', function () { panel.classList.remove('mahu-open'); });
+
+  sendBtn.addEventListener('click', function () {
+    var name = nameInput.value.trim();
+    var contact = contactInput.value.trim();
+    if (!name) {
+      statusEl.style.color = '#c0392b';
+      statusEl.textContent = 'Merci de renseigner votre nom.';
+      return;
+    }
+    sendBtn.disabled = true;
+    statusEl.style.color = '#666';
+    statusEl.textContent = 'Envoi...';
+
+    var fd = new FormData();
+    fd.append('action', 'submitWidgetMessage');
+    fd.append('profileUrl', SLUG);
+    fd.append('name', name);
+    fd.append('contact', contact);
+    fd.append('message', messageInput.value.trim());
+    fd.append('rating', String(rating));
+
+    fetch(API, { method: 'POST', body: fd })
+      .then(function (r) { return r.json(); })
+      .then(function (res) {
+        if (res && res.success) {
+          statusEl.style.color = '#2e7d32';
+          statusEl.textContent = 'Message envoyé, merci !';
+          nameInput.value = '';
+          contactInput.value = '';
+          messageInput.value = '';
+          rating = 0;
+          starsWrap.querySelectorAll('.mahu-w-star').forEach(function (el) { el.classList.remove('mahu-active'); });
+          setTimeout(function () { panel.classList.remove('mahu-open'); statusEl.textContent = ''; }, 2500);
+        } else {
+          statusEl.style.color = '#c0392b';
+          statusEl.textContent = (res && res.error) || 'Une erreur est survenue.';
+        }
+      })
+      .catch(function () {
+        statusEl.style.color = '#c0392b';
+        statusEl.textContent = 'Erreur réseau, réessayez.';
+      })
+      .then(function () { sendBtn.disabled = false; });
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────

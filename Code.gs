@@ -51,6 +51,7 @@ function doPost(e) {
       case 'resetPassword': result = resetPassword(payload.token, payload.newPassword); break;
       case 'trackView': result = trackView(payload.profileUrl, payload.source); break;
       case 'handleLeadCapture': result = handleLeadCapture(payload); break;
+      case 'submitWidgetMessage': result = submitWidgetMessage(payload); break;
       case 'getProfileData': result = getProfileData(e.parameter.user || payload.user); break;
       case 'checkCardStatus': result = checkCardStatus(payload); break;
       case 'quickRegisterAndActivate': result = quickRegisterAndActivate(payload); break;
@@ -222,9 +223,9 @@ function setupSpreadsheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheetsToCreate = [
     { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'Mot_De_Passe', 'ID_Entreprise', 'Role', 'URL_Profil', 'URL_Profil_2', 'URL_Profil_3', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration', 'Reset_Token', 'Reset_Token_Expiration'] },
-    { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Telephone', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'Services_JSON', 'Mise_En_Page', 'Info_Separator', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
+    { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Telephone', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'Services_JSON', 'Mise_En_Page', 'Info_Separator', 'Couleur_Theme', 'Cacher_Marque', 'Langue', 'Redirection_Site_Web'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
-    { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
+    { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note', 'Note_Etoiles', 'Canal'] },
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
     { name: 'Documents', headers: ['ID_Document', 'ID_Utilisateur', 'Type', 'Nom', 'URL', 'Date_Ajout'] },
     { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut', 'Telephone'] },
@@ -283,9 +284,9 @@ function verifyAndFixSheetStructure() {
 
   const requiredSheets = [
     { name: 'Utilisateurs', headers: ['ID_Unique', 'Email', 'Mot_De_Passe', 'ID_Entreprise', 'Role', 'URL_Profil', 'URL_Profil_2', 'URL_Profil_3', 'ID_Cartes_NFC', 'Onboarding_Status', 'Auth_Token', 'Token_Expiration', 'Reset_Token', 'Reset_Token_Expiration'] },
-    { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Telephone', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'Services_JSON', 'Mise_En_Page', 'Info_Separator', 'Couleur_Theme', 'Cacher_Marque', 'Langue'] },
+    { name: 'Profils', headers: ['ID_Utilisateur', 'Email', 'Nom_Complet', 'Telephone', 'Profession', 'Compagnie', 'Location', 'URL_Photo', 'URL_Couverture', 'Liens_Sociaux_JSON', 'Lead_Capture_Actif', 'Services_JSON', 'Mise_En_Page', 'Info_Separator', 'Couleur_Theme', 'Cacher_Marque', 'Langue', 'Redirection_Site_Web'] },
     { name: 'Historique_Actions', headers: ['Timestamp', 'Action', 'Statut', 'Message', 'Utilisateur_Email', 'Suggestion_Correction'] },
-    { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note'] },
+    { name: 'Prospects', headers: ['ID_Profil_Source', 'Date_Capture', 'Nom_Prospect', 'Contact_Prospect', 'Message_Note', 'Note_Etoiles', 'Canal'] },
     { name: 'Statistiques', headers: ['ID_Profil', 'Date_Heure', 'Source'] },
     { name: 'Documents', headers: ['ID_Document', 'ID_Utilisateur', 'Type', 'Nom', 'URL', 'Date_Ajout'] },
     { name: 'Support', headers: ['Date', 'Email', 'Sujet', 'Message', 'Statut', 'Telephone'] },
@@ -926,7 +927,7 @@ function getDashboardData(user) {
     const userProspects = allProspects
       .filter(row => row[0] === user.ID_Unique) // Filtrer par ID_Profil_Source (colonne A)
       // Formater pour le frontend (les indices sont pour les colonnes 0=ID_Profil_Source, 1=Date_Capture, 2=Nom_Prospect, 3=Contact_Prospect, 4=Message_Note)
-      .map(row => ({ id: row[0], date: row[1], nom: row[2], contact: row[3], note: row[4] })) 
+      .map(row => ({ id: row[0], date: row[1], nom: row[2], contact: row[3], note: row[4], rating: row[5] || '', canal: row[6] || 'Profil' })) 
       .slice(0, 10); // Limiter aux 10 derniers pour l'aperçu
 
     // --- Récupérer les documents (Coffre-fort) ---
@@ -1594,34 +1595,41 @@ function trackView(profileUrl, source) {
  * Enregistre un nouveau prospect depuis le formulaire de la page publique.
  * @param {Object} leadData - Données du prospect (nom, message, etc.) et ID du profil source.
  */
+function findProfileOwnerByUrl(profileUrl) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const usersSheet = ss.getSheetByName('Utilisateurs');
+  const usersData = usersSheet.getDataRange().getValues();
+
+  // Recherche multi-colonnes pour trouver le propriétaire du profil (URL 1, 2 ou 3)
+  const headers = usersData[0].map(h => String(h).trim().toLowerCase());
+  const idCol = headers.indexOf('id_unique');
+  const emailCol = headers.indexOf('email');
+  const urlIndices = [headers.indexOf('url_profil'), headers.indexOf('url_profil_2'), headers.indexOf('url_profil_3')].filter(idx => idx !== -1);
+
+  const targetUrl = String(profileUrl).trim().toLowerCase();
+  const userRow = usersData.slice(1).find(row =>
+    urlIndices.some(idx => String(row[idx] || '').trim().toLowerCase() === targetUrl)
+  );
+
+  if (!userRow) return null;
+  return { id: userRow[idCol], email: userRow[emailCol] };
+}
+
 function handleLeadCapture(leadData) {
   try {
     if (!leadData || !leadData.profileUrl || !leadData.name || !leadData.contact) {
       throw new Error("Données de prospect incomplètes.");
     }
 
+    const owner = findProfileOwnerByUrl(leadData.profileUrl);
+    if (!owner) throw new Error("Profil source introuvable.");
+
+    const profileOwnerId = owner.id;
+    const profileOwnerEmail = owner.email;
+
     const ss = SpreadsheetApp.getActiveSpreadsheet();
-    const usersSheet = ss.getSheetByName('Utilisateurs');
-    const usersData = usersSheet.getDataRange().getValues();
-    
-    // Recherche multi-colonnes pour trouver le propriétaire du profil (URL 1, 2 ou 3)
-    const headers = usersData[0].map(h => String(h).trim().toLowerCase());
-    const idCol = headers.indexOf('id_unique');
-    const emailCol = headers.indexOf('email');
-    const urlIndices = [headers.indexOf('url_profil'), headers.indexOf('url_profil_2'), headers.indexOf('url_profil_3')].filter(idx => idx !== -1);
-
-    const targetUrl = String(leadData.profileUrl).trim().toLowerCase();
-    const userRow = usersData.slice(1).find(row => 
-      urlIndices.some(idx => String(row[idx] || '').trim().toLowerCase() === targetUrl)
-    );
-
-    if (!userRow) throw new Error("Profil source introuvable.");
-
-    const profileOwnerId = userRow[idCol];
-    const profileOwnerEmail = userRow[emailCol];
-
     const prospectsSheet = ss.getSheetByName('Prospects');
-    prospectsSheet.appendRow([profileOwnerId, new Date(), leadData.name, leadData.contact, leadData.message]);
+    prospectsSheet.appendRow([profileOwnerId, new Date(), leadData.name, leadData.contact, leadData.message, '', 'Profil']);
     Logger.log(`Nouveau prospect capturé pour ${profileOwnerId}: ${leadData.name}`);
 
     // --- ENVOI EMAIL NOTIFICATION ---
@@ -1663,6 +1671,76 @@ function handleLeadCapture(leadData) {
     return { success: true };
   } catch (e) {
     Logger.log(`Erreur dans handleLeadCapture: ${e.message}`);
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Reçoit un message (+ note optionnelle) envoyé depuis le widget flottant Mahu
+ * installé sur le site web externe d'un utilisateur (voir cloudflare_worker.js /widget.js).
+ * Action PUBLIQUE, appelée en cross-origin depuis n'importe quel site tiers.
+ * @param {Object} data - { profileUrl, name, contact (optionnel), message, rating }
+ */
+function submitWidgetMessage(data) {
+  try {
+    if (!data || !data.profileUrl || !data.name) {
+      throw new Error("Données du widget incomplètes.");
+    }
+
+    const owner = findProfileOwnerByUrl(data.profileUrl);
+    if (!owner) throw new Error("Site Mahu introuvable pour ce widget.");
+
+    // Note sur 5, bornée et vide si non fournie
+    let rating = parseInt(data.rating, 10);
+    rating = (rating >= 1 && rating <= 5) ? rating : '';
+
+    const message = data.message || '';
+    const contact = data.contact || '';
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const prospectsSheet = ss.getSheetByName('Prospects');
+    prospectsSheet.appendRow([owner.id, new Date(), data.name, contact, message, rating, 'Widget Site']);
+    Logger.log(`Message widget reçu pour ${owner.id}: ${data.name} (${rating || 'sans note'})`);
+
+    if (owner.email) {
+      try {
+        const connectionUrl = `https://mahu.cards/Connexion.html?email=${encodeURIComponent(owner.email)}`;
+        const stars = rating ? '⭐'.repeat(rating) + '☆'.repeat(5 - rating) : 'Non notée';
+        const subject = `💬 ${data.name} vous a laissé un message via votre site web`;
+        const htmlBody = `
+        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #eeeeee; box-shadow: 0 5px 15px rgba(0,0,0,0.05);">
+          <div style="background-color: #000000; padding: 30px 20px; text-align: center;">
+            <img src="https://mahu.cards/r/logo.png" alt="Mahu Logo" style="height: 50px; vertical-align: middle;">
+          </div>
+          <div style="padding: 40px 30px; color: #1a1a1a; line-height: 1.8; font-size: 16px;">
+            <h2 style="color: #000000; margin-top: 0; font-weight: 300; letter-spacing: 1px; text-transform: uppercase; font-size: 22px; text-align: center; margin-bottom: 10px;">Nouveau message — Widget Mahu</h2>
+            <p style="text-align: center; font-size: 28px; font-weight: 700; color: #000; margin: 0 0 10px 0;">${data.name}</p>
+            <p style="text-align: center; font-size: 20px; letter-spacing: 2px; margin: 0 0 30px 0;">${stars}</p>
+            <p>Bonjour,</p>
+            <p>Un visiteur de votre site web vient de vous laisser un message via le widget Mahu.</p>
+            <div style="background-color: #f9f9f9; padding: 25px; border-left: 4px solid #000000; margin: 30px 0; border-radius: 0 8px 8px 0;">
+                <p style="margin: 5px 0; font-size: 15px;"><strong>NOM :</strong> <span style="font-weight: 400;">${data.name}</span></p>
+                ${contact ? `<p style="margin: 5px 0; font-size: 15px;"><strong>CONTACT :</strong> <span style="font-weight: 400;">${contact}</span></p>` : ''}
+                ${message ? `<p style="margin: 15px 0 5px 0; font-size: 15px;"><strong>MESSAGE :</strong></p><p style="margin: 0; font-style: italic; color: #555;">"${message}"</p>` : ''}
+            </div>
+            <div style="text-align: center; margin: 40px 0;">
+              <a href="${connectionUrl}" style="background-color: #000000; color: #ffffff; padding: 16px 32px; text-decoration: none; font-weight: 500; font-size: 14px; display: inline-block; letter-spacing: 1px; text-transform: uppercase;">Voir mes prospects</a>
+            </div>
+          </div>
+          <div style="background-color: #fcfcfc; padding: 20px; text-align: center; font-size: 11px; color: #999999; border-top: 1px solid #eeeeee;">
+            &copy; ${new Date().getFullYear()} Mahu. L'excellence de la connexion.
+          </div>
+        </div>`;
+
+        sendEmail(owner.email, subject, htmlBody);
+      } catch (e) {
+        Logger.log("Erreur envoi email widget: " + e.message);
+      }
+    }
+
+    return { success: true };
+  } catch (e) {
+    Logger.log(`Erreur dans submitWidgetMessage: ${e.message}`);
     return { success: false, error: e.message };
   }
 }
