@@ -820,6 +820,38 @@ function deleteEmployee(data, adminUser) {
 }
 
 /**
+ * Lit une feuille entière (à partir de la ligne 2) en passant par CacheService.
+ * La clé de cache inclut le numéro de la dernière ligne : dès qu'une ligne est
+ * ajoutée/supprimée sur la feuille, la clé change automatiquement et la valeur
+ * en cache est ignorée (pas besoin de purge manuelle à chaque écriture).
+ * Sert à éviter de relire des feuilles globales (Statistiques, Prospects,
+ * Documents, Commandes...) à chaque chargement du Dashboard par n'importe
+ * quel utilisateur, alors que leur contenu ne change qu'occasionnellement.
+ */
+function getCachedFullSheet(sheetName, ttlSeconds) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  if (!sheet || sheet.getLastRow() < 2) return [];
+
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+  const cache = CacheService.getScriptCache();
+  const cacheKey = `sheet_${sheetName}_${lastRow}x${lastCol}`;
+
+  const cached = cache.get(cacheKey);
+  if (cached !== null) {
+    try { return JSON.parse(cached); } catch (_) { /* cache corrompu, on relit */ }
+  }
+
+  const values = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  try {
+    cache.put(cacheKey, JSON.stringify(values), ttlSeconds);
+  } catch (_) {
+    // Feuille trop volumineuse pour tenir dans le cache (limite ~100Ko) : on continue sans cache.
+  }
+  return values;
+}
+
+/**
  * Fonction centrale pour charger toutes les données du tableau de bord en un seul appel.
  * @returns {Object} Un objet contenant toutes les données nécessaires pour le dashboard.
  */
@@ -880,6 +912,7 @@ function getDashboardData(user) {
     }
 
     // --- Récupérer les cartes physiques liées ---
+    // (feuille généralement petite, lecture directe conservée)
     const physicalCardsSheet = ss.getSheetByName('PhysicalCards');
     const userPhysicalCards = physicalCardsSheet && physicalCardsSheet.getLastRow() > 1
       ? physicalCardsSheet.getRange(2, 1, physicalCardsSheet.getLastRow() - 1, 4).getValues()
@@ -888,10 +921,9 @@ function getDashboardData(user) {
       : [];
 
     // --- Récupérer les statistiques de vues (pour le graphique) ---
-    const statsSheet = ss.getSheetByName('Statistiques');
-    const allViews = statsSheet.getLastRow() > 1 
-      ? statsSheet.getRange('A2:C' + statsSheet.getLastRow()).getValues()
-      : [];
+    // Feuille globale (toutes les vues, tous utilisateurs confondus) : mise en
+    // cache 30s pour éviter de la relire à chaque chargement de Dashboard.
+    const allViews = getCachedFullSheet('Statistiques', 30);
     const sevenDaysAgo = new Date(new Date().setDate(new Date().getDate() - 7));
 
     // Liste de toutes les URLs associées à l'utilisateur pour agréger les stats
@@ -919,22 +951,19 @@ function getDashboardData(user) {
     // --- Récupérer le nombre total de vues ---
     const totalUserViews = allViews.filter(row => userUrls.includes(String(row[0]).toLowerCase())).length;
 
-    // Récupérer les prospects
-    const prospectsSheet = ss.getSheetByName('Prospects');
-    const allProspects = prospectsSheet.getLastRow() > 1
-      ? prospectsSheet.getRange('A2:E' + prospectsSheet.getLastRow()).getValues()
-      : [];
+    // Récupérer les prospects (feuille globale, mise en cache 30s)
+    // NOTE : la plage lisait auparavant seulement 'A2:E', ce qui excluait les
+    // colonnes F (note) et G (canal) — elles étaient donc toujours vides/par
+    // défaut à l'affichage. getCachedFullSheet lit toutes les colonnes.
+    const allProspects = getCachedFullSheet('Prospects', 30);
     const userProspects = allProspects
       .filter(row => row[0] === user.ID_Unique) // Filtrer par ID_Profil_Source (colonne A)
       // Formater pour le frontend (les indices sont pour les colonnes 0=ID_Profil_Source, 1=Date_Capture, 2=Nom_Prospect, 3=Contact_Prospect, 4=Message_Note)
-      .map(row => ({ id: row[0], date: row[1], nom: row[2], contact: row[3], note: row[4], rating: row[5] || '', canal: row[6] || 'Profil' })) 
+      .map(row => ({ id: row[0], date: row[1], nom: row[2], contact: row[3], note: row[4], rating: row[5] || '', canal: row[6] || 'Profil' }))
       .slice(0, 10); // Limiter aux 10 derniers pour l'aperçu
 
     // --- Récupérer les documents (Coffre-fort) ---
-    const docsSheet = ss.getSheetByName('Documents');
-    const allDocs = docsSheet && docsSheet.getLastRow() > 1
-      ? docsSheet.getRange('A2:F' + docsSheet.getLastRow()).getValues()
-      : [];
+    const allDocs = getCachedFullSheet('Documents', 30);
     const userDocs = allDocs
       .filter(row => row[1] === user.ID_Unique)
       .map(row => ({
@@ -952,8 +981,8 @@ function getDashboardData(user) {
     let enterpriseData = {};
     if (user.Role === 'Entreprise' || user.Role === 'Admin') {
       const usersSheet = ss.getSheetByName('Utilisateurs');
-      const usersData = usersSheet.getDataRange().getValues(); // On garde getDataRange ici car on filtre ensuite
-      const uHeaders = usersData[0]; // Headers sont la première ligne
+      const uHeaders = usersSheet.getRange(1, 1, 1, usersSheet.getLastColumn()).getValues()[0];
+      const usersData = getCachedFullSheet('Utilisateurs', 60); // Feuille globale, mise en cache 60s
       const uIdCol = uHeaders.indexOf('ID_Unique');
       const uEntCol = uHeaders.indexOf('ID_Entreprise');
       const uEmailCol = uHeaders.indexOf('Email');
@@ -986,9 +1015,8 @@ function getDashboardData(user) {
     // --- Récupérer la dernière commande (Boutique) ---
     let lastOrder = null;
     try {
-      const ordersSheet = ss.getSheetByName('Commandes');
-      if (ordersSheet && ordersSheet.getLastRow() > 1) {
-        const ordersData = ordersSheet.getRange(2, 1, ordersSheet.getLastRow() - 1, ordersSheet.getLastColumn()).getValues();
+      const ordersData = getCachedFullSheet('Commandes', 30); // Feuille globale, mise en cache 30s
+      if (ordersData.length > 0) {
         // Headers: ['Date', 'Produit', 'Prix', 'Client_Nom', 'Client_Email', 'Client_Telephone', 'Statut']
         // Email est à l'index 4
         const userOrders = ordersData.filter(row => row[4] === user.Email);
