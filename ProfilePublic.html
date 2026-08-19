@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <!-- Les balises meta suivantes seront remplies dynamiquement par JavaScript -->
     <!-- Optimisation de la vitesse : Préconnexion aux serveurs critiques -->
-    <link rel="preconnect" href="https://script.google.com">
+    <link rel="preconnect" href="https://mahuprofile.abmcompanysn.workers.dev">
+    <link rel="preconnect" href="https://wsrv.nl">
+    <link rel="preconnect" href="https://res.cloudinary.com">
     <link rel="preconnect" href="https://i.ibb.co">
-    <link rel="dns-prefetch" href="https://script.google.com">
     <link rel="preconnect" href="https://drive.google.com">
     <link rel="dns-prefetch" href="https://drive.google.com">
     <link rel="preconnect" href="https://lh3.googleusercontent.com">
+    <link rel="preconnect" href="https://quickchart.io">
     <link rel="preload" href="r/logo.png" as="image">
     <title>Profil Public</title>
     <meta name="description" content="Découvrez le profil numérique de ce contact sur Mahu.">
@@ -477,18 +479,16 @@
                 return url.replace('/upload/', `/upload/${transformation}/`);
             }
 
-            // Gestion pour ImgBB : Retourner l'URL telle quelle
-            if (url.includes('ibb.co')) {
-                return url;
-            }
-
             // Transforme les liens Google Drive standards (lents) en liens CDN (rapides)
             if (url.includes('drive.google.com') && url.includes('id=')) {
                 var id = url.split('id=')[1].split('&')[0];
                 // sz=s{size} demande au serveur Google de redimensionner l'image à la volée
                 return 'https://drive.google.com/thumbnail?id=' + id + '&sz=s' + size;
             }
-            return url;
+
+            // Pour tout le reste (ImgBB, etc.) : passer par wsrv.nl pour redimensionner,
+            // compresser et convertir en WebP à la volée (ces hébergeurs ne le font pas).
+            return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${size}&q=75&output=webp`;
         }
 
         function populateProfile(data) {

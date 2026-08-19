@@ -8,7 +8,13 @@
  *  POST (autres)        → Proxy direct + cache synthétique pour les lectures
  */
 
-const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyUptvUL2Zl4wA4y_B1VLWWZi3veMFow99tEdPrA7qUG9p6h-iBgSDH45lH-0cBTs6Baw/exec";
+const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyWlT9A4pzky2iYGfOPlMTy5H6r2NmrjEIWjcZllWmaJ5USOVHRjMQuFGH-rP6YHV3uPA/exec";
+
+// Incrémenter cette version force tous les datacenters Cloudflare à ignorer
+// l'ancien cache et à recharger les données fraîches immédiatement (le cache
+// caches.default est réparti par datacenter, une purge normale ne les couvre
+// pas tous en même temps).
+const CACHE_VERSION = 'v3';
 
 const CORS = {
   'Access-Control-Allow-Origin': '*',
@@ -98,7 +104,7 @@ async function serveProfile(slug, request, event) {
 
   // Clé de cache normalisée (minuscules)
   const cacheUrl = new URL(request.url);
-  cacheUrl.pathname = '/profile/' + slug.toLowerCase();
+  cacheUrl.pathname = `/${CACHE_VERSION}/profile/` + slug.toLowerCase();
   const cacheKey = new Request(cacheUrl.toString(), { method: 'GET' });
 
   // ── Tentative de lecture depuis le cache Edge ──
@@ -110,29 +116,39 @@ async function serveProfile(slug, request, event) {
   }
 
   // ── MISS : appel à Google Apps Script ──
-  const fd = new FormData();
-  fd.append('action', 'getProfileData');
-  fd.append('user', slug);
+  // Utiliser un GET (au lieu d'un POST + FormData) : Apps Script répond à un
+  // GET par une redirection 302 simple, sans body à re-poster. Un POST suivi
+  // d'une redirection peut faire échouer certains runtimes fetch (en-têtes
+  // de la requête POST conservés à tort sur la requête suivante).
+  const gasUrl = new URL(GOOGLE_SCRIPT_URL);
+  gasUrl.searchParams.set('action', 'getProfileData');
+  gasUrl.searchParams.set('user', slug);
 
   let gasRes;
   try {
-    gasRes = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: fd });
+    gasRes = await fetch(gasUrl.toString());
   } catch (e) {
     return jsonError('Erreur réseau serveur.', 502);
   }
 
   const body = await gasRes.text();
 
-  // Ne pas mettre en cache les erreurs applicatives
+  // Ne mettre en cache que du JSON valide représentant un profil réel.
+  // Si Apps Script est down/mal déployé, Google renvoie parfois une page
+  // d'erreur HTML avec un statut 200 — il ne faut surtout pas la mettre
+  // en cache, sinon tous les visiteurs restent bloqués dessus pendant 24h.
+  let parsed;
   try {
-    const parsed = JSON.parse(body);
-    if (parsed.error) {
-      return new Response(body, {
-        status: 200,
-        headers: { 'Content-Type': 'application/json', ...CORS, 'X-Cache': 'MISS-ERROR' }
-      });
-    }
-  } catch (_) {}
+    parsed = JSON.parse(body);
+  } catch (_) {
+    return jsonError('Réponse invalide du serveur Apps Script.', 502);
+  }
+  if (parsed.error) {
+    return new Response(body, {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', ...CORS, 'X-Cache': 'MISS-ERROR' }
+    });
+  }
 
   // ── Réponse à mettre en cache ──
   // s-maxage=86400 : Cloudflare garde 24h (profil servi < 50ms)
@@ -170,14 +186,14 @@ async function serveSharePage(slug, request, event) {
     return new Response(cached.body, { status: cached.status, headers });
   }
 
-  // Récupérer les données du profil
-  const fd = new FormData();
-  fd.append('action', 'getProfileData');
-  fd.append('user', slug);
+  // Récupérer les données du profil (GET, voir commentaire dans serveProfile)
+  const gasUrl = new URL(GOOGLE_SCRIPT_URL);
+  gasUrl.searchParams.set('action', 'getProfileData');
+  gasUrl.searchParams.set('user', slug);
 
   let profileData = {};
   try {
-    const gasRes = await fetch(GOOGLE_SCRIPT_URL, { method: 'POST', body: fd });
+    const gasRes = await fetch(gasUrl.toString());
     profileData = await gasRes.json();
   } catch (_) {}
 
@@ -580,8 +596,8 @@ async function purgeProfileCache(slug, workerUrl) {
   const base = new URL(workerUrl);
   const cache = caches.default;
 
-  // 1. Clé GET principale (nouveau format)
-  base.pathname = '/profile/' + slug;
+  // 1. Clé GET principale (nouveau format, versionnée)
+  base.pathname = `/${CACHE_VERSION}/profile/` + slug;
   await cache.delete(new Request(base.toString(), { method: 'GET' }));
 
   // 2. Clés POST synthétiques (compatibilité)
