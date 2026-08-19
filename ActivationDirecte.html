@@ -72,7 +72,7 @@
 
                 if (res.success && res.active && res.profileUrl) {
                     // CARTE ACTIVE : Redirection immédiate vers le profil public
-                    window.location.href = `ProfilePublic.html?user=${res.profileUrl}&source=NFC`;
+                    window.location.href = `ProfilePublic?user=${res.profileUrl}&source=NFC`;
                 } else {
                     // CARTE VIERGE : On cache l'overlay pour montrer le formulaire
                     overlay.style.opacity = '0';

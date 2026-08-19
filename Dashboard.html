@@ -2069,7 +2069,7 @@
 
             // --- Remplir le panneau d'aperçu du profil ---
             const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
-            const fullUrl = `${baseUrl}ProfilePublic.html?user=${user.URL_Profil || ''}`;
+            const fullUrl = `${baseUrl}ProfilePublic?user=${user.URL_Profil || ''}`;
 
             // Aperçu
             document.getElementById('profile-picture-preview').src = profile.URL_Photo || 'https://placehold.co/150x150/333/ccc?text=Profil';
@@ -2203,7 +2203,7 @@
                 data.team.forEach(member => {
                     teamBody.innerHTML += `
                         <tr><td>${member.name}</td><td>${member.email}</td><td>${member.leads}</td>
-                        <td><a href="ProfilePublic.html?user=${member.url}" target="_blank" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em;">Voir</a>
+                        <td><a href="ProfilePublic?user=${member.url}" target="_blank" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em;">Voir</a>
                         <button class="btn btn-danger" onclick="deleteEmployee('${member.email}')" style="padding: 5px 10px; font-size: 0.8em; margin-left: 5px;">Supprimer</button></td></tr>`;
                 });
             }

@@ -265,7 +265,7 @@ async function serveSharePage(slug, request, event) {
     profileData = await gasRes.json();
   } catch (_) {}
 
-  const profileUrl = `https://mahu.cards/ProfilePublic.html?user=${encodeURIComponent(slug)}&source=Share`;
+  const profileUrl = `https://mahu.cards/ProfilePublic?user=${encodeURIComponent(slug)}&source=Share`;
   const name = esc(profileData.Nom_Complet || slug);
   const profession = esc(profileData.Profession || '');
   const company = esc(profileData.Compagnie || '');

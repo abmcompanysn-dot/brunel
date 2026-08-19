@@ -1004,7 +1004,7 @@ function getDashboardData(user) {
     } catch (e) { Logger.log("Erreur commandes: " + e.message); }
 
     // Construire l'URL de base de l'application web
-    const appUrl = "https://mahu.cards/ProfilePublic.html"; // URL générique
+    const appUrl = "https://mahu.cards/ProfilePublic"; // URL générique
 
     return {
       user: user,
@@ -1113,7 +1113,7 @@ function testProfileUrl() {
   }
 
   // 4. Afficher le lien cliquable
-  const fullUrl = `https://mahu.cards/ProfilePublic.html?user=${targetUrl}`;
+  const fullUrl = `https://mahu.cards/ProfilePublic?user=${targetUrl}`;
   
   const htmlOutput = HtmlService.createHtmlOutput(
     `<div style="font-family:sans-serif; padding:20px; text-align:center;">
@@ -2649,7 +2649,7 @@ function quickRegisterAndActivate(payload) {
   SpreadsheetApp.flush();
   logAction('quickRegisterAndActivate', 'SUCCESS', `Carte activée pour ${email} (slug: ${slug})`, email);
 
-  const profilePublicUrl = `https://mahu.cards/ProfilePublic.html?user=${slug}`;
+  const profilePublicUrl = `https://mahu.cards/ProfilePublic?user=${slug}`;
   const dashboardUrl = 'https://mahu.cards/Dashboard.html';
 
   // 7. Notification WhatsApp (CallMeBot) à l'admin

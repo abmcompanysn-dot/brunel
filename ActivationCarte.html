@@ -797,7 +797,7 @@
                 if (res.success) {
                     if (res.token) localStorage.setItem('authToken', res.token);
 
-                    const profileHref = `https://mahu.cards/ProfilePublic.html?user=${payload.slug}`;
+                    const profileHref = `https://mahu.cards/ProfilePublic?user=${payload.slug}`;
                     const profileLinkEl = document.getElementById('profile-link');
                     profileLinkEl.href = profileHref;
                     profileLinkEl.setAttribute('target', '_blank');
