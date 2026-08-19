@@ -74,6 +74,18 @@ async function handleRequest(request, event) {
   }
 
   // ══════════════════════════════════════════════════════════════
+  // GET /warmup/{slug}
+  // Pré-chauffe le cache Cloudinary/wsrv.nl ET le cache JSON du profil,
+  // pour qu'un profil déjà existant (uploadé avant la mise en place du
+  // pré-chauffage automatique) ne fasse plus jamais attendre son premier
+  // visiteur. Appelable manuellement à tout moment, pour n'importe quel slug.
+  // ══════════════════════════════════════════════════════════════
+  const warmupMatch = url.pathname.match(/^\/warmup\/([a-z0-9][a-z0-9-]{0,60})$/i);
+  if (request.method === 'GET' && warmupMatch) {
+    return warmUpProfile(warmupMatch[1], request, event);
+  }
+
+  // ══════════════════════════════════════════════════════════════
   // GET /widget.js?user={slug}
   // Widget flottant embarquable (façon Tawk.to) que n'importe quel
   // utilisateur Mahu peut coller sur son PROPRE site web externe :
@@ -167,6 +179,62 @@ async function serveProfile(slug, request, event) {
   event.waitUntil(cache.put(cacheKey, response.clone()));
 
   return response;
+}
+
+// Reproduit exactement la logique de getOptimizedImageUrl() dans
+// ProfilePublic.html, pour préchauffer la même URL transformée que celle
+// que le navigateur du visiteur ira réellement demander.
+function optimizedImageUrl(url, size) {
+  if (!url) return '';
+  if (url.includes('res.cloudinary.com')) {
+    const transformation = `w_${size},c_limit,q_auto:eco,f_auto,fl_progressive`;
+    return url.replace('/upload/', `/upload/${transformation}/`);
+  }
+  if (url.includes('drive.google.com') && url.includes('id=')) {
+    const id = url.split('id=')[1].split('&')[0];
+    return 'https://drive.google.com/thumbnail?id=' + id + '&sz=s' + size;
+  }
+  return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${size}&q=75&output=webp`;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// GET /warmup/{slug} — Pré-chauffe le cache JSON + les images d'un profil
+// ─────────────────────────────────────────────────────────────────
+async function warmUpProfile(slug, request, event) {
+  const gasUrl = new URL(GOOGLE_SCRIPT_URL);
+  gasUrl.searchParams.set('action', 'getProfileData');
+  gasUrl.searchParams.set('user', slug);
+
+  let data;
+  try {
+    const gasRes = await fetch(gasUrl.toString());
+    data = await gasRes.json();
+  } catch (e) {
+    return jsonError('Impossible de récupérer le profil pour le préchauffage.', 502);
+  }
+  if (data.error) {
+    return jsonError(data.error, 404);
+  }
+
+  const warmed = [];
+  if (data.URL_Photo) {
+    warmed.push(optimizedImageUrl(data.URL_Photo, 300));
+  }
+  if (data.URL_Couverture) {
+    warmed.push(optimizedImageUrl(data.URL_Couverture, 1000));
+  }
+
+  // Préchauffe aussi le cache JSON /profile/{slug} lui-même (comme un vrai visiteur)
+  const profileUrl = new URL(request.url);
+  profileUrl.pathname = '/profile/' + slug.toLowerCase();
+  warmed.push(profileUrl.toString());
+
+  event.waitUntil(Promise.all(warmed.map(u => fetch(u).catch(() => {}))));
+
+  return new Response(JSON.stringify({ success: true, slug, warmed }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json', ...CORS }
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────
