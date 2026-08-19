@@ -1781,9 +1781,23 @@
                 // Uploader et sauvegarder
                 alert('Mise à jour de l\'image en cours...');
                 uploadToCloudinary(blob).then(url => {
+                    warmUpImageCache(url, currentImageType);
                     saveImageData(currentImageType, url);
                 }).catch(err => alert("Erreur d'upload: " + err.message));
             }, 'image/jpeg', 0.9);
+        }
+
+        /**
+         * Pré-chauffe le cache Cloudinary pour la taille exacte utilisée par
+         * ProfilePublic.html (300px pour la photo, 1000px pour la couverture),
+         * pour que le premier visiteur du profil ne subisse jamais le délai de
+         * génération de la transformation (~2s la toute première fois).
+         */
+        function warmUpImageCache(url, imageType) {
+            const size = imageType === 'picture' ? 300 : 1000;
+            const transformation = `w_${size},c_limit,q_auto:eco,f_auto,fl_progressive`;
+            const optimizedUrl = url.replace('/upload/', `/upload/${transformation}/`);
+            fetch(optimizedUrl).catch(() => {});
         }
 
 
