@@ -1,4 +1,27 @@
 {
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/ProfilePublic", "has": [{ "type": "query", "key": "user", "value": "(?<user>[^&]+)" }], "destination": "https://call.mahu.cards/p/:user", "permanent": false },
+    { "source": "/ProfilePublic", "destination": "https://call.mahu.cards", "permanent": false },
+
+    { "source": "/ActivationDirecte", "has": [{ "type": "query", "key": "code", "value": "(?<code>[^&]+)" }], "destination": "https://call.mahu.cards/c/:code", "permanent": false },
+    { "source": "/ActivationDirecte", "destination": "https://call.mahu.cards/register", "permanent": false },
+    { "source": "/ActivationCarte", "has": [{ "type": "query", "key": "code", "value": "(?<code>[^&]+)" }], "destination": "https://call.mahu.cards/c/:code", "permanent": false },
+    { "source": "/ActivationCarte", "has": [{ "type": "query", "key": "card", "value": "(?<card>[^&]+)" }], "destination": "https://call.mahu.cards/c/:card", "permanent": false },
+    { "source": "/ActivationCarte", "destination": "https://call.mahu.cards/register", "permanent": false },
+
+    { "source": "/Connexion", "destination": "https://call.mahu.cards/login", "permanent": false },
+    { "source": "/Inscription", "destination": "https://call.mahu.cards/register", "permanent": false },
+    { "source": "/Panier", "destination": "https://call.mahu.cards/register", "permanent": false },
+    { "source": "/Paiement", "destination": "https://call.mahu.cards/register", "permanent": false },
+    { "source": "/ResetPassword", "destination": "https://call.mahu.cards/forgot-password", "permanent": false },
+    { "source": "/Dashboard", "destination": "https://call.mahu.cards/dashboard", "permanent": false },
+    { "source": "/Onboarding", "destination": "https://call.mahu.cards/dashboard", "permanent": false },
+    { "source": "/GuideDashboard", "destination": "https://mahu.cards/guide-nouvelle-version", "permanent": false },
+    { "source": "/MahuCloud", "destination": "https://call.mahu.cards/dashboard", "permanent": false },
+    { "source": "/Admin", "destination": "https://call.mahu.cards/admin", "permanent": false },
+    { "source": "/AdminDashboard", "destination": "https://call.mahu.cards/admin", "permanent": false },
+    { "source": "/AdminRegister", "destination": "https://call.mahu.cards/admin", "permanent": false }
+  ]
 }
