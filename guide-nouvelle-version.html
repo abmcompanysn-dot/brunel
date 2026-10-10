@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Guide de la nouvelle version Mahu</title>
+<meta name="description" content="Prendre en main la nouvelle version de Mahu en quelques minutes : connexion, formulaire de contact, mode confidentiel, contacts, partage, application.">
+<style>
+/* Guide client : une colonne, lisible au téléphone, sommaire en tête, une étape par ligne */
+:root{--bg:#f4f7fc;--surface:#fff;--ink:#0d1830;--ink-2:#46536b;--muted:#77819a;--line:#e1e8f2;--accent:#1f6fe5;--accent-soft:#e7f0ff;--navy:#0b2552;
+  --f:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--f)}
+header{background:var(--navy);color:#fff;padding:40px 20px 34px}
+header .in,main{max-width:760px;margin:0 auto}
+header .k{font-weight:800;letter-spacing:.12em;font-size:14px;opacity:.85}
+header h1{font-size:clamp(28px,6vw,40px);line-height:1.1;margin:10px 0 10px;letter-spacing:-.02em}
+header p{margin:0;color:#c9d6ef;max-width:60ch}
+main{padding:24px 20px 60px}
+nav.toc{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin:-40px 0 24px;position:relative}
+nav.toc b{display:block;margin-bottom:6px}
+nav.toc ol{margin:0;padding-left:22px;columns:2;column-gap:28px}
+nav.toc a{color:var(--accent);text-decoration:none}
+nav.toc a:hover{text-decoration:underline}
+section{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 22px 18px;margin-bottom:16px}
+section h2{margin:0 0 4px;font-size:21px;line-height:1.25;display:flex;gap:10px;align-items:baseline}
+section h2 .n{color:var(--accent);font-weight:800}
+section .why{color:var(--ink-2);margin:0 0 12px}
+ol.steps{margin:0;padding:0;list-style:none;counter-reset:s}
+ol.steps li{counter-increment:s;position:relative;padding:8px 0 8px 40px;border-top:1px dashed var(--line)}
+ol.steps li:first-child{border-top:0}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:8px;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
+.ui{font-weight:600;background:#eef2f8;border-radius:6px;padding:1px 7px;white-space:nowrap}
+.tip{background:var(--accent-soft);border-radius:10px;padding:10px 14px;margin-top:12px;font-size:15px}
+.cta{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;padding:12px 20px;border-radius:10px;margin-top:6px}
+footer{max-width:760px;margin:0 auto;padding:0 20px 40px;color:var(--muted);font-size:14px}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:560px){nav.toc ol{columns:1}section{padding:18px 16px 14px}}
+</style>
+</head>
+<body>
+<header><div class="in">
+  <div class="k">MAHU</div>
+  <h1>Bien démarrer avec la nouvelle version</h1>
+  <p>Votre compte est déjà prêt et votre carte continue de fonctionner. Voici, en quelques minutes, comment profiter de tout ce qui est nouveau.</p>
+</div></header>
+<main>
+<nav class="toc" aria-label="Sommaire"><b>Sommaire</b><ol>
+  <li><a href="#connexion">Se connecter</a></li>
+  <li><a href="#formulaire">Recevoir des contacts</a></li>
+  <li><a href="#confidentiel">Le mode confidentiel</a></li>
+  <li><a href="#contacts">Gérer ses contacts</a></li>
+  <li><a href="#partager">Partager sa carte</a></li>
+  <li><a href="#application">Installer l'application</a></li>
+  <li><a href="#entreprise">L'espace entreprise</a></li>
+  <li><a href="#offres">Aller plus loin</a></li>
+</ol></nav>
+
+<section id="connexion">
+  <h2><span class="n">1</span>Se connecter à la nouvelle version</h2>
+  <p class="why">Vos identifiants n'ont pas changé.</p>
+  <ol class="steps">
+    <li>Ouvrez <a href="https://call.mahu.cards/login">call.mahu.cards/login</a> sur votre téléphone ou votre ordinateur.</li>
+    <li>Saisissez l'adresse e-mail et le mot de passe que vous utilisiez déjà.</li>
+    <li>Mot de passe oublié ? Touchez <span class="ui">Mot de passe oublié</span> et suivez le lien reçu par e-mail.</li>
+  </ol>
+  <a class="cta" href="https://call.mahu.cards/login">Me connecter</a>
+</section>
+
+<section id="formulaire">
+  <h2><span class="n">2</span>Recevoir des contacts grâce au formulaire</h2>
+  <p class="why">Les personnes qui ouvrent votre carte vous laissent leurs coordonnées, leur message et leur avis.</p>
+  <ol class="steps">
+    <li>Dans le menu, ouvrez <span class="ui">Mon Profil</span>, puis <span class="ui">Editer mon profil</span>.</li>
+    <li>En haut de la page, activez <span class="ui">Formulaire de contact sur ma carte</span>. C'est enregistré tout de suite.</li>
+    <li>Ouvrez votre carte depuis un autre téléphone pour voir le formulaire tel que vos visiteurs le voient.</li>
+  </ol>
+  <p class="tip">C'est la fonction qui rapporte le plus : chez un de nos clients, elle a apporté 39 demandes de contact.</p>
+</section>
+
+<section id="confidentiel">
+  <h2><span class="n">3</span>Le mode confidentiel</h2>
+  <p class="why">Pour partager votre carte sans montrer votre numéro ni votre e-mail.</p>
+  <ol class="steps">
+    <li>Dans <span class="ui">Editer mon profil</span>, activez <span class="ui">Mode confidentiel</span>.</li>
+    <li>Votre carte n'affiche plus que votre photo, votre nom, votre poste et votre entreprise, avec le formulaire de contact.</li>
+    <li>Les personnes vous écrivent par le formulaire : vous choisissez qui rappeler. Vos coordonnées ne sont même plus envoyées au téléphone du visiteur.</li>
+  </ol>
+</section>
+
+<section id="contacts">
+  <h2><span class="n">4</span>Gérer vos contacts</h2>
+  <p class="why">Tous les contacts reçus par votre carte, au même endroit.</p>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui">Mes Contacts</span> dans le menu.</li>
+    <li>Classez chaque contact : <span class="ui">Nouveau</span>, <span class="ui">A rappeler</span> ou <span class="ui">Ignore</span>, et filtrez par statut.</li>
+    <li>Choisissez la <span class="ui">Periode</span> : 7 derniers jours, 30 derniers jours ou cette année.</li>
+    <li>Répondez en un clic avec <span class="ui">Envoyer via Gmail</span>, ou exportez la liste au format CSV pour votre fichier clients.</li>
+  </ol>
+</section>
+
+<section id="partager">
+  <h2><span class="n">5</span>Partager votre carte</h2>
+  <p class="why">Votre carte NFC n'est pas le seul moyen de vous trouver.</p>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui">Partager ma carte</span> depuis le tableau de bord.</li>
+    <li>Copiez votre lien pour votre statut WhatsApp, votre signature d'e-mail ou vos réseaux. L'aperçu affiche votre nom et votre photo.</li>
+    <li>Montrez ou imprimez votre QR code pour les personnes dont le téléphone ne lit pas le NFC.</li>
+  </ol>
+  <p class="tip">Publiez votre lien en statut WhatsApp entre 12 h et 15 h : c'est le moment où les profils Mahu sont le plus ouverts.</p>
+</section>
+
+<section id="application">
+  <h2><span class="n">6</span>Installer l'application Mahu</h2>
+  <p class="why">Mahu s'ouvre alors comme une application, depuis l'écran d'accueil de votre téléphone.</p>
+  <ol class="steps">
+    <li>Sur Android : touchez <span class="ui">Installer Mahu</span> dans la barre qui s'affiche en bas de l'écran.</li>
+    <li>Sur iPhone : dans Safari, touchez le bouton de partage, puis <span class="ui">Sur l'écran d'accueil</span>.</li>
+  </ol>
+</section>
+
+<section id="entreprise">
+  <h2><span class="n">7</span>L'espace entreprise</h2>
+  <p class="why">Pour les équipes : tous les contacts rapportés par les cartes des collaborateurs.</p>
+  <ol class="steps">
+    <li>Ouvrez <span class="ui">Entreprise</span> dans le menu, puis le back-office de votre entreprise (comptes entreprise).</li>
+    <li>Dans <span class="ui">Contacts de l'equipe</span>, voyez qui a rencontré chaque contact, quand, avec son message et sa note.</li>
+    <li>Suivez les compteurs par collaborateur : aujourd'hui, 7 jours, total.</li>
+  </ol>
+  <p class="tip">Vous voulez équiper toute l'équipe ? Les cartes démarrent à 13 900 FCFA, avec un tarif dégressif selon le nombre de cartes.</p>
+</section>
+
+<section id="offres">
+  <h2><span class="n">8</span>Aller plus loin</h2>
+  <ol class="steps">
+    <li><b>Web Card</b> : un vrai site web pour votre activité (vitrine, boutique en ligne, catalogue, gestion), relié à votre carte, à partir de 25 000 FCFA. Exemples sur <a href="https://abmcy.com">abmcy.com</a>.</li>
+    <li><b>Portfolio numérique</b> pour les étudiants : un CV en ligne modifiable à tout moment, à 7 600 FCFA.</li>
+    <li><b>Cartes de visite NFC</b> à partir de 13 900 FCFA, livrées sous 48 h au Sénégal, au Bénin et au Burkina Faso.</li>
+  </ol>
+  <a class="cta" href="https://wa.me/221769047999">Nous écrire sur WhatsApp</a>
+</section>
+</main>
+<footer>Une question ? Écrivez-nous sur WhatsApp au +221 76 904 79 99 ou répondez à notre e-mail. Mahu Cards · call.mahu.cards</footer>
+</body>
+</html>
