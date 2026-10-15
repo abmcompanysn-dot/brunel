@@ -9,6 +9,8 @@
     { "source": "/ActivationDirecte", "destination": "https://call.mahu.cards/register", "permanent": false },
     { "source": "/ActivationCarte", "has": [{ "type": "query", "key": "code", "value": "(?<code>[^&]+)" }], "destination": "https://call.mahu.cards/c/:code", "permanent": false },
     { "source": "/ActivationCarte", "has": [{ "type": "query", "key": "card", "value": "(?<card>[^&]+)" }], "destination": "https://call.mahu.cards/c/:card", "permanent": false },
+    { "source": "/ActivationCarte", "has": [{ "type": "query", "key": "slug", "value": "(?<slug>[^&]+)" }], "destination": "https://call.mahu.cards/p/:slug", "permanent": false },
+    { "source": "/ActivationCarte", "has": [{ "type": "query", "key": "user", "value": "(?<slug>[^&]+)" }], "destination": "https://call.mahu.cards/p/:slug", "permanent": false },
     { "source": "/ActivationCarte", "destination": "https://call.mahu.cards/register", "permanent": false },
 
     { "source": "/Connexion", "destination": "https://call.mahu.cards/login", "permanent": false },
